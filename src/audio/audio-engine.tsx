@@ -22,21 +22,24 @@ const AudioEngine: React.FC = () => {
   const registerAudioElement = useAudioStore((s) => s.registerAudioElement);
 
   useEffect(() => {
-    if (!source || source.type !== "file") {
+    if (!source) {
       registerAudioElement(null);
       return;
     }
 
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current);
+    const playableFile = source.type === "file" ? source.file : source.type === "youtube" ? source.file : null;
+    if (!playableFile) {
+      registerAudioElement(null);
+      return;
     }
 
-    const objectUrl = URL.createObjectURL(source.file);
-    objectUrlRef.current = objectUrl;
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    const createdObjectUrl = URL.createObjectURL(playableFile);
+    objectUrlRef.current = createdObjectUrl;
 
     const audio = new Audio();
     audio.id = "composer-audio";
-    audio.src = objectUrl;
+    audio.src = createdObjectUrl;
     audio.style.display = "none";
     document.body.appendChild(audio);
     audioRef.current = audio;
@@ -45,7 +48,9 @@ const AudioEngine: React.FC = () => {
     const handleLoadedMetadata = () => setDuration(audio.duration);
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleEnded = () => setIsPlaying(false);
-    const handleError = (e: Event) => console.error(LOG_PREFIX, "Audio error:", e);
+    const handleError = (e: Event) => {
+      console.error(LOG_PREFIX, "Audio error:", e);
+    };
 
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("timeupdate", handleTimeUpdate);
@@ -60,8 +65,8 @@ const AudioEngine: React.FC = () => {
       audio.pause();
       audio.src = "";
       audio.remove();
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
+      if (objectUrlRef.current === createdObjectUrl) {
+        URL.revokeObjectURL(createdObjectUrl);
         objectUrlRef.current = null;
       }
       registerAudioElement(null);

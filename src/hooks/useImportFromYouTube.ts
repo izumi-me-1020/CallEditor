@@ -1,0 +1,53 @@
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
+import { useLoadYouTubeSource } from "@/hooks/useLoadYouTubeSource";
+import { extractVideoId } from "@/utils/youtube-url";
+
+// -- Constants ----------------------------------------------------------------
+
+const YOUTUBE_PARAM_NAMES = ["youtube", "videoId", "v"] as const;
+
+// -- Functions ----------------------------------------------------------------
+
+function readYouTubeParam(params: URLSearchParams): string | null {
+  for (const name of YOUTUBE_PARAM_NAMES) {
+    const value = params.get(name);
+    if (value) return value;
+  }
+  return null;
+}
+
+function cleanYouTubeParamsFromUrl(): void {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  for (const name of YOUTUBE_PARAM_NAMES) url.searchParams.delete(name);
+  const search = url.searchParams.toString();
+  const next = url.pathname + (search ? `?${search}` : "") + url.hash;
+  window.history.replaceState(null, "", next);
+}
+
+function useImportFromYouTube(): void {
+  const loadYouTubeSource = useLoadYouTubeSource();
+  const loadRef = useRef(loadYouTubeSource);
+  loadRef.current = loadYouTubeSource;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const raw = readYouTubeParam(params);
+    if (!raw) return;
+
+    const videoId = extractVideoId(raw);
+    cleanYouTubeParamsFromUrl();
+
+    if (!videoId) {
+      toast.error("That URL doesn't look like a valid YouTube video");
+      return;
+    }
+    loadRef.current(videoId);
+  }, []);
+}
+
+// -- Exports ------------------------------------------------------------------
+
+export { useImportFromYouTube, YOUTUBE_PARAM_NAMES };

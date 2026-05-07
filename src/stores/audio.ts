@@ -3,7 +3,10 @@ import { create } from "zustand";
 
 // -- Types --------------------------------------------------------------------
 
-type AudioSource = { type: "file"; file: File } | { type: "youtube"; videoId: string } | null;
+type AudioSource =
+  | { type: "file"; file: File }
+  | { type: "youtube"; videoId: string; file?: File }
+  | null;
 
 interface AudioState {
   source: AudioSource;
@@ -19,6 +22,8 @@ interface AudioState {
 
 interface AudioActions {
   setSource: (source: AudioSource) => void;
+  setYouTubeSource: (videoId: string, file?: File) => void;
+  setYouTubeFile: (file: File) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   setCurrentTime: (time: number) => void;
   setDuration: (duration: number) => void;
@@ -56,6 +61,20 @@ const useAudioStore = create<AudioState & AudioActions>((set, get) => ({
   ...INITIAL_STATE,
 
   setSource: (source) => set({ source, currentTime: 0, duration: 0, isPlaying: false }),
+  setYouTubeSource: (videoId, file) =>
+    set({
+      source: { type: "youtube", videoId, file },
+      currentTime: 0,
+      duration: 0,
+      isPlaying: false,
+    }),
+  setYouTubeFile: (file) =>
+    set((s) => {
+      if (!s.source || s.source.type !== "youtube") return {};
+      return {
+        source: { ...s.source, file },
+      };
+    }),
   setIsPlaying: (isPlaying) => set({ isPlaying }),
   setCurrentTime: (currentTime) => set({ currentTime }),
   setDuration: (duration) => set({ duration }),
@@ -65,6 +84,7 @@ const useAudioStore = create<AudioState & AudioActions>((set, get) => ({
   setIsLoading: (isLoading) => set({ isLoading }),
   registerAudioElement: (audioElement) => set({ audioElement }),
   seekTo: (time: number) => {
+    if (!Number.isFinite(time) || time < 0) return;
     const audio = get().audioElement;
     if (audio) {
       audio.currentTime = time;
