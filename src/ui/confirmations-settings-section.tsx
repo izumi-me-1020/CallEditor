@@ -63,6 +63,16 @@ const ConfirmationsSettingsSection: React.FC = () => {
           settingKey="confirmReplaceLyrics"
         />
         <ConfirmationToggle
+          label="Confirm resetting sync timing"
+          description="Show a warning before clearing every word and line timing in the sync view."
+          settingKey="confirmSyncReset"
+        />
+        <ConfirmationToggle
+          label="Confirm clearing project"
+          description="Show a warning before discarding the current project, metadata, and audio file."
+          settingKey="confirmClearProject"
+        />
+        <ConfirmationToggle
           label="Confirm resetting all settings"
           description="Show a warning before restoring all settings to their defaults."
           settingKey="confirmResetSettings"

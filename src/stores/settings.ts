@@ -26,6 +26,8 @@ interface SettingsState {
 
   confirmReplaceProjectFromHash: boolean;
   confirmReplaceLyrics: boolean;
+  confirmSyncReset: boolean;
+  confirmClearProject: boolean;
   confirmResetSettings: boolean;
   confirmResetShortcuts: boolean;
 }
@@ -59,6 +61,8 @@ const DEFAULTS: SettingsState = {
 
   confirmReplaceProjectFromHash: true,
   confirmReplaceLyrics: true,
+  confirmSyncReset: true,
+  confirmClearProject: true,
   confirmResetSettings: true,
   confirmResetShortcuts: true,
 };
@@ -71,7 +75,16 @@ const useSettingsStore = create<SettingsState & SettingsActions>()(
       ...DEFAULTS,
 
       set: (key, value) => set({ [key]: value }),
-      resetToDefaults: () => set(DEFAULTS),
+      resetToDefaults: () =>
+        set((state) => ({
+          ...DEFAULTS,
+          confirmReplaceProjectFromHash: state.confirmReplaceProjectFromHash,
+          confirmReplaceLyrics: state.confirmReplaceLyrics,
+          confirmSyncReset: state.confirmSyncReset,
+          confirmClearProject: state.confirmClearProject,
+          confirmResetSettings: state.confirmResetSettings,
+          confirmResetShortcuts: state.confirmResetShortcuts,
+        })),
     }),
     { name: "composer-settings" },
   ),
