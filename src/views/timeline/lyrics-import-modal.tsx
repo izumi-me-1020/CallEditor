@@ -88,6 +88,7 @@ const LyricsImportModal: React.FC<LyricsImportModalProps> = ({ isOpen, onClose }
         }
 
         setLines(importedLines);
+        useProjectStore.getState().setGroups(result.groups ?? []);
         setText("");
         onClose();
       }

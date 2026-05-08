@@ -1,4 +1,5 @@
 import type { Agent, LinkGroup, ProjectMetadata } from "@/stores/project";
+import { parseLyricsFile } from "@/utils/lyrics-parsers";
 import { generateTTML } from "@/utils/ttml";
 import { describe, expect, it } from "vitest";
 
@@ -123,6 +124,119 @@ describe("ttml export · per-line group attrs", () => {
       granularity: "line",
     });
     expect(t2).not.toContain("composer:detached");
+  });
+});
+
+describe("ttml import · groups registry", () => {
+  it("parses composer:groups registry from head metadata", () => {
+    const groups: LinkGroup[] = [
+      { id: "g1", label: "Chorus", color: "#f472b6", templateVersion: 3 },
+      { id: "g2", label: "Verse", color: "#60a5fa", templateVersion: 1 },
+    ];
+    const ttml = generateTTML({ metadata: baseMetadata, agents: baseAgents, lines: [], groups, granularity: "word" });
+    const result = parseLyricsFile("test.ttml", ttml);
+
+    expect(result.groups).toHaveLength(2);
+    expect(result.groups?.find((g) => g.id === "g1")?.label).toBe("Chorus");
+    expect(result.groups?.find((g) => g.id === "g1")?.templateVersion).toBe(3);
+    expect(result.groups?.find((g) => g.id === "g2")?.label).toBe("Verse");
+  });
+
+  it("returns no groups when none in TTML", () => {
+    const ttml = generateTTML({ metadata: baseMetadata, agents: baseAgents, lines: [], granularity: "word" });
+    const result = parseLyricsFile("test.ttml", ttml);
+    expect(result.groups).toBeUndefined();
+  });
+});
+
+describe("ttml import · per-line group attrs", () => {
+  const groups: LinkGroup[] = [{ id: "g1", label: "Chorus", color: "#f472b6", templateVersion: 1 }];
+
+  it("round-trips group attrs through export → import", () => {
+    const ttml = generateTTML({
+      metadata: baseMetadata,
+      agents: baseAgents,
+      lines: [
+        {
+          id: "a",
+          text: "I love you",
+          agentId: "v1",
+          begin: 30,
+          end: 32,
+          groupId: "g1",
+          instanceIdx: 2,
+          templateLineIdx: 0,
+        },
+      ],
+      groups,
+      granularity: "line",
+    });
+    const result = parseLyricsFile("test.ttml", ttml);
+
+    expect(result.lines[0].groupId).toBe("g1");
+    expect(result.lines[0].instanceIdx).toBe(2);
+    expect(result.lines[0].templateLineIdx).toBe(0);
+    expect(result.lines[0].detached).toBeUndefined();
+  });
+
+  it("round-trips composer:detached flag", () => {
+    const ttml = generateTTML({
+      metadata: baseMetadata,
+      agents: baseAgents,
+      lines: [
+        {
+          id: "a",
+          text: "yeah",
+          agentId: "v1",
+          begin: 30,
+          end: 32,
+          groupId: "g1",
+          instanceIdx: 0,
+          templateLineIdx: 1,
+          detached: true,
+        },
+      ],
+      groups,
+      granularity: "line",
+    });
+    const result = parseLyricsFile("test.ttml", ttml);
+    expect(result.lines[0].detached).toBe(true);
+  });
+
+  it("ignores groupId that doesn't reference a known group (warns and treats as standalone)", () => {
+    const ttml = generateTTML({
+      metadata: baseMetadata,
+      agents: baseAgents,
+      lines: [
+        {
+          id: "a",
+          text: "hi",
+          agentId: "v1",
+          begin: 0,
+          end: 1,
+          groupId: "g1",
+          instanceIdx: 0,
+          templateLineIdx: 0,
+        },
+      ],
+      groups: [],
+      granularity: "line",
+    });
+    const result = parseLyricsFile("test.ttml", ttml);
+    expect(result.lines[0].groupId).toBeUndefined();
+  });
+
+  it("backward compat: TTML without composer attrs imports cleanly", () => {
+    const flatTtml = `<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
+      <head><metadata><ttm:agent xml:id="v1" type="person"><ttm:name>Lead</ttm:name></ttm:agent></metadata></head>
+      <body><div>
+        <p begin="00:00:00.000" end="00:00:01.000" ttm:agent="v1">Hello</p>
+      </div></body>
+    </tt>`;
+    const result = parseLyricsFile("flat.ttml", flatTtml);
+    expect(result.lines[0].text).toBe("Hello");
+    expect(result.lines[0].groupId).toBeUndefined();
+    expect(result.groups).toBeUndefined();
   });
 });
 

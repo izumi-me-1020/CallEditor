@@ -111,6 +111,7 @@ interface ProjectActions {
   updateLinesWithHistory: (updates: Array<{ id: string; updates: Partial<LyricLine> }>) => void;
   moveWordToBg: (lineId: string, wordIndices: number[], timeDelta: number, duration: number) => void;
   moveWordFromBg: (lineId: string, wordIndices: number[], timeDelta: number, duration: number) => void;
+  setGroups: (groups: LinkGroup[]) => void;
   addGroup: (group: LinkGroup) => void;
   updateGroup: (id: string, updates: Partial<LinkGroup>) => void;
   removeGroup: (id: string) => void;
@@ -466,6 +467,8 @@ const useProjectStore = create<ProjectState & ProjectActions>((set, get) => ({
       if (!mutated) return state;
       return commitHistory(state, { lines: newLines });
     }),
+
+  setGroups: (groups) => set({ groups, isDirty: true }),
 
   addGroup: (group) =>
     set((state) => commitHistory(state, { groups: [...state.groups, group] })),

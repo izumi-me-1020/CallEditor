@@ -405,6 +405,7 @@ const EditPanel: React.FC = () => {
         linesSetByUs.current = result.lines;
         setLines(result.lines);
         setRawText(result.lines.map((l) => l.text).join("\n"));
+        useProjectStore.getState().setGroups(result.groups ?? []);
 
         if (Object.keys(result.metadata).length > 0) {
           setMetadata(result.metadata);
