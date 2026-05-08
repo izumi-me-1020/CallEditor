@@ -95,6 +95,9 @@ interface ProjectActions {
   updateLinesWithHistory: (updates: Array<{ id: string; updates: Partial<LyricLine> }>) => void;
   moveWordToBg: (lineId: string, wordIndices: number[], timeDelta: number, duration: number) => void;
   moveWordFromBg: (lineId: string, wordIndices: number[], timeDelta: number, duration: number) => void;
+  addGroup: (group: LinkGroup) => void;
+  updateGroup: (id: string, updates: Partial<LinkGroup>) => void;
+  removeGroup: (id: string) => void;
 }
 
 // -- Constants ----------------------------------------------------------------
@@ -379,7 +382,7 @@ const useProjectStore = create<ProjectState & ProjectActions>((set, get) => ({
       });
 
       if (!mutated) return state;
-      return commitHistory(state, newLines);
+      return commitHistory(state, { lines: newLines });
     }),
 
   moveWordFromBg: (lineId, wordIndices, timeDelta, duration) =>
@@ -419,11 +422,45 @@ const useProjectStore = create<ProjectState & ProjectActions>((set, get) => ({
       });
 
       if (!mutated) return state;
-      return commitHistory(state, newLines);
+      return commitHistory(state, { lines: newLines });
     }),
+
+  addGroup: (group) =>
+    set((state) => commitHistory(state, { groups: [...state.groups, group] })),
+
+  updateGroup: (id, updates) =>
+    set((state) =>
+      commitHistory(state, {
+        groups: state.groups.map((g) => (g.id === id ? { ...g, ...updates } : g)),
+      }),
+    ),
+
+  removeGroup: (id) =>
+    set((state) =>
+      commitHistory(state, {
+        groups: state.groups.filter((g) => g.id !== id),
+        lines: state.lines.map((line) =>
+          line.groupId === id
+            ? {
+                ...line,
+                groupId: undefined,
+                instanceIdx: undefined,
+                templateLineIdx: undefined,
+                detached: undefined,
+              }
+            : line,
+        ),
+      }),
+    ),
 }));
 
-function commitHistory(state: ProjectState, newLines: LyricLine[]) {
+function commitHistory(
+  state: ProjectState,
+  changes: { lines?: LyricLine[]; groups?: LinkGroup[] },
+) {
+  const nextLines = changes.lines ?? state.lines;
+  const nextGroups = changes.groups ?? state.groups;
+
   const newHistory = state.history.slice(0, state.historyIndex + 1);
   if (newHistory.length === 0) {
     newHistory.push({
@@ -433,13 +470,14 @@ function commitHistory(state: ProjectState, newLines: LyricLine[]) {
     });
   }
   newHistory.push({
-    lines: JSON.parse(JSON.stringify(newLines)),
-    groups: JSON.parse(JSON.stringify(state.groups)),
+    lines: JSON.parse(JSON.stringify(nextLines)),
+    groups: JSON.parse(JSON.stringify(nextGroups)),
     timestamp: Date.now(),
   });
   if (newHistory.length > MAX_HISTORY_SIZE) newHistory.shift();
   return {
-    lines: newLines,
+    lines: nextLines,
+    groups: nextGroups,
     isDirty: true,
     history: newHistory,
     historyIndex: newHistory.length - 1,

@@ -103,3 +103,86 @@ describe("project store · history captures groups", () => {
     expect(useProjectStore.getState().groups).toEqual(before);
   });
 });
+
+describe("project store · group registry mutators", () => {
+  it("addGroup pushes to registry with history", () => {
+    useProjectStore.getState().addGroup(seedGroup("g1"));
+    expect(useProjectStore.getState().groups).toHaveLength(1);
+    expect(useProjectStore.getState().groups[0].label).toBe("Chorus");
+    expect(useProjectStore.getState().canUndo()).toBe(true);
+  });
+
+  it("addGroup is undoable", () => {
+    useProjectStore.getState().addGroup(seedGroup("g1"));
+    useProjectStore.getState().undo();
+    expect(useProjectStore.getState().groups).toHaveLength(0);
+  });
+
+  it("updateGroup merges fields", () => {
+    useProjectStore.getState().addGroup(seedGroup("g1"));
+    useProjectStore.getState().updateGroup("g1", { label: "Refrain", color: "#60a5fa" });
+
+    const g = useProjectStore.getState().groups[0];
+    expect(g.label).toBe("Refrain");
+    expect(g.color).toBe("#60a5fa");
+    expect(g.templateVersion).toBe(1);
+  });
+
+  it("updateGroup leaves other groups untouched", () => {
+    useProjectStore.getState().addGroup(seedGroup("g1"));
+    useProjectStore.getState().addGroup(seedGroup("g2", { label: "Verse" }));
+
+    useProjectStore.getState().updateGroup("g1", { label: "Refrain" });
+
+    const groups = useProjectStore.getState().groups;
+    expect(groups.find((g) => g.id === "g1")?.label).toBe("Refrain");
+    expect(groups.find((g) => g.id === "g2")?.label).toBe("Verse");
+  });
+
+  it("removeGroup deletes registry entry and clears group fields on lines", () => {
+    useProjectStore.getState().addGroup(seedGroup("g1"));
+    useProjectStore.setState({
+      lines: [
+        {
+          id: "l1",
+          text: "test",
+          agentId: "v1",
+          groupId: "g1",
+          instanceIdx: 0,
+          templateLineIdx: 0,
+        },
+        {
+          id: "l2",
+          text: "untouched",
+          agentId: "v1",
+        },
+      ],
+    });
+
+    useProjectStore.getState().removeGroup("g1");
+
+    expect(useProjectStore.getState().groups).toHaveLength(0);
+    expect(useProjectStore.getState().lines[0].groupId).toBeUndefined();
+    expect(useProjectStore.getState().lines[0].instanceIdx).toBeUndefined();
+    expect(useProjectStore.getState().lines[0].templateLineIdx).toBeUndefined();
+    expect(useProjectStore.getState().lines[1].text).toBe("untouched");
+  });
+
+  it("removeGroup is undoable (group + line fields restored together)", () => {
+    useProjectStore.getState().addGroup(seedGroup("g1"));
+    useProjectStore
+      .getState()
+      .setLinesWithHistory([
+        { id: "l1", text: "test", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      ]);
+
+    useProjectStore.getState().removeGroup("g1");
+    expect(useProjectStore.getState().groups).toHaveLength(0);
+    expect(useProjectStore.getState().lines[0].groupId).toBeUndefined();
+
+    useProjectStore.getState().undo();
+    expect(useProjectStore.getState().groups).toHaveLength(1);
+    expect(useProjectStore.getState().lines[0].groupId).toBe("g1");
+    expect(useProjectStore.getState().lines[0].instanceIdx).toBe(0);
+  });
+});
