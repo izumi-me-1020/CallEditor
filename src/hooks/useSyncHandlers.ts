@@ -310,7 +310,7 @@ function useSyncHandlers({
     if (hasAnyTiming) {
       const ok = await confirm({
         title: "Reset all sync timing?",
-        description: "Clear every word and line timing in this project. You can undo with Cmd+Z.",
+        description: "Clear every word and line timing in this project.",
         confirmLabel: "Reset",
         variant: "destructive",
         settingsKey: "confirmSyncReset",
