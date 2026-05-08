@@ -25,7 +25,7 @@ function generateTTML({ metadata, agents, lines, groups, granularity, minify = f
   const nl = minify ? "" : "\n";
   const ind = (n: number) => (minify ? "" : "  ".repeat(n));
 
-  const effectiveGranularity = granularity === "word" && lines.some((l) => l.words?.length) ? "word" : "line";
+  const effectiveGranularity = lines.some((l) => l.words?.length) ? "word" : "line";
 
   const parts: string[] = [];
 

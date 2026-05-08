@@ -66,6 +66,13 @@ function selectionTouchesAnyGroup(lines: LyricLine[], selectedLineIds: ReadonlyS
 
 // -- Create group --------------------------------------------------------------
 
+function nextGroupId(existingGroups: LinkGroup[]): string {
+  const used = new Set(existingGroups.map((g) => g.id));
+  let i = 1;
+  while (used.has(`g${i}`)) i++;
+  return `g${i}`;
+}
+
 function createGroupFromSelection(
   lines: LyricLine[],
   selectedLineIds: ReadonlySet<string>,
@@ -75,7 +82,7 @@ function createGroupFromSelection(
   if (!lineIdsAreContiguous(lines, selectedLineIds)) return null;
   if (selectionTouchesAnyGroup(lines, selectedLineIds)) return null;
 
-  const groupId = crypto.randomUUID();
+  const groupId = nextGroupId(existingGroups);
   const usedColors = existingGroups.map((g) => g.color);
   const color = pickNextGroupColor(usedColors.length > 0 ? usedColors : GROUP_COLORS.slice(0, 0));
   const label = options.label ?? `Group ${existingGroups.length + 1}`;
