@@ -1,8 +1,10 @@
 import { type LinkGroup, useProjectStore } from "@/stores/project";
+import { groupPingVariants } from "@/utils/animationVariants";
 import { cn } from "@/utils/cn";
 import { useTimelineStore } from "@/views/timeline/timeline-store";
 import { getWordsInInstance } from "@/views/timeline/utils";
 import { IconChevronDown, IconChevronRight, IconLink } from "@tabler/icons-react";
+import { motion } from "motion/react";
 import { memo, useCallback, useRef, useState } from "react";
 
 // -- Types ---------------------------------------------------------------------
@@ -95,21 +97,25 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
     [group.id, instanceIdx, setSelectedWords, zoom],
   );
 
+  const setPingingGroupId = useTimelineStore((s) => s.setPingingGroupId);
+  const handleBadgeMouseEnter = useCallback(() => setPingingGroupId(group.id), [group.id, setPingingGroupId]);
+  const handleBadgeMouseLeave = useCallback(() => setPingingGroupId(null), [setPingingGroupId]);
+
   const left = Math.max(0, instanceStart * zoom - scrollLeft);
   const width = Math.max(BANNER_MIN_WIDTH, (instanceEnd - instanceStart) * zoom);
   const deltaSecondsLive = dragOffsetPx / Math.max(zoom, 1);
 
   return (
-    <div
+    <motion.div
       data-banner-progress=""
       data-instance-key={`${group.id}:${instanceIdx}`}
       data-instance-start={instanceStart}
       data-instance-end={instanceEnd}
+      variants={groupPingVariants}
+      animate={isPinging ? "ping" : "idle"}
       className={cn(
         "absolute flex items-center gap-2 rounded-[9px] cursor-grab select-none px-2.5",
         "border text-[10px] font-medium text-composer-text z-[45]",
-        "transition-[box-shadow,background] duration-150",
-        isPinging && "ring-2 ring-offset-0",
       )}
       onPointerDown={handlePointerDown}
       style={{
@@ -121,7 +127,6 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
         borderColor: `color-mix(in srgb, ${group.color} 60%, transparent)`,
         transform: isDragging ? `translateX(${dragOffsetPx}px)` : undefined,
         cursor: isDragging ? "grabbing" : "grab",
-        ["--ring-color" as string]: group.color,
       }}
     >
       {isCollapsed ? (
@@ -135,7 +140,11 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
         aria-hidden
       />
       <span className="font-semibold whitespace-nowrap">{group.label}</span>
-      <span className="flex items-center gap-1 text-composer-text-muted tabular-nums whitespace-nowrap ml-auto">
+      <span
+        className="flex items-center gap-1 text-composer-text-muted tabular-nums whitespace-nowrap ml-auto"
+        onMouseEnter={handleBadgeMouseEnter}
+        onMouseLeave={handleBadgeMouseLeave}
+      >
         <IconLink className="w-2.5 h-2.5" />
         {instanceIdx + 1} of {totalInstances}
         {isDragging && (
@@ -151,7 +160,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
           }}
         />
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -111,6 +111,17 @@ const syncPulseVariants: Variants = {
   },
 };
 
+const groupPingVariants: Variants = {
+  idle: {
+    boxShadow: "0 0 0 0 rgba(129, 140, 248, 0)",
+    transition: { duration: 0 },
+  },
+  ping: {
+    boxShadow: ["0 0 0 0 rgba(129, 140, 248, 0.55)", "0 0 0 8px rgba(129, 140, 248, 0)"],
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+};
+
 const shimmerTransition: Transition = {
   type: "spring",
   stiffness: 30,
@@ -157,6 +168,7 @@ export {
   syncLineVariants,
   syncContextVariants,
   syncPulseVariants,
+  groupPingVariants,
   shimmerTransition,
   shimmerVariants,
 };
