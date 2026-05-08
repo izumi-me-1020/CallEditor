@@ -2,7 +2,6 @@ import { type LinkGroup, useProjectStore } from "@/stores/project";
 import { groupPingVariants } from "@/utils/animationVariants";
 import { cn } from "@/utils/cn";
 import { useTimelineStore } from "@/views/timeline/timeline-store";
-import { getWordsInInstance } from "@/views/timeline/utils";
 import { IconChevronDown, IconLink } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { memo, useCallback, useRef, useState } from "react";
@@ -38,7 +37,8 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
 }) => {
   const pingingGroupId = useTimelineStore((s) => s.pingingGroupId);
   const isPinging = pingingGroupId === group.id;
-  const setSelectedWords = useTimelineStore((s) => s.setSelectedWords);
+  const setDraggedGroupShift = useTimelineStore((s) => s.setDraggedGroupShift);
+  const toggleInstanceCollapsed = useTimelineStore((s) => s.toggleInstanceCollapsed);
 
   const [dragOffsetPx, setDragOffsetPx] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -59,6 +59,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
         }
         if (dragStateRef.current.moved) {
           setDragOffsetPx(dx);
+          setDraggedGroupShift({ groupId: group.id, instanceIdx, offsetPx: dx });
         }
       };
 
@@ -70,6 +71,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
         cleanup?.();
         setIsDragging(false);
         setDragOffsetPx(0);
+        setDraggedGroupShift(null);
 
         if (wasDrag && useProjectStore.getState().groups.find((g) => g.id === group.id)) {
           const deltaSeconds = dx / zoom;
@@ -77,9 +79,8 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
             useProjectStore.getState().shiftInstance(group.id, instanceIdx, deltaSeconds);
           }
         } else {
-          // treat as click: select all instance words
-          const lines = useProjectStore.getState().lines;
-          setSelectedWords(getWordsInInstance(lines, group.id, instanceIdx));
+          // treat as click: toggle collapse
+          toggleInstanceCollapsed(`${group.id}:${instanceIdx}`);
         }
       };
 
@@ -92,14 +93,13 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
       document.addEventListener("pointermove", handleMove);
       document.addEventListener("pointerup", handleUp);
     },
-    [group.id, instanceIdx, setSelectedWords, zoom],
+    [group.id, instanceIdx, toggleInstanceCollapsed, setDraggedGroupShift, zoom],
   );
 
   const setPingingGroupId = useTimelineStore((s) => s.setPingingGroupId);
   const handleBadgeMouseEnter = useCallback(() => setPingingGroupId(group.id), [group.id, setPingingGroupId]);
   const handleBadgeMouseLeave = useCallback(() => setPingingGroupId(null), [setPingingGroupId]);
 
-  const toggleInstanceCollapsed = useTimelineStore((s) => s.toggleInstanceCollapsed);
   const setContextMenu = useTimelineStore((s) => s.setContextMenu);
   const handleChevronPointerDown = useCallback((e: React.PointerEvent) => {
     e.stopPropagation();
@@ -157,6 +157,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
         "border text-[10px] font-medium text-composer-text z-[45]",
       )}
       onPointerDown={handlePointerDown}
+      onMouseDown={(e) => e.stopPropagation()}
       onContextMenu={handleContextMenu}
       style={{
         left,

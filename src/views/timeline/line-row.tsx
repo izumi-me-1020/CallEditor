@@ -79,6 +79,15 @@ const LineRow: React.FC<LineRowProps> = ({ line, lineIndex, duration, onUpdateWo
   const rowHeight = useTimelineStore((s) => s.rowHeights[line.id] ?? s.defaultRowHeight);
   const defaultRowHeight = useTimelineStore((s) => s.defaultRowHeight);
   const setRowHeight = useTimelineStore((s) => s.setRowHeight);
+  const dragShiftPx = useTimelineStore((s) =>
+    s.draggedGroupShift &&
+    line.groupId !== undefined &&
+    line.instanceIdx !== undefined &&
+    s.draggedGroupShift.groupId === line.groupId &&
+    s.draggedGroupShift.instanceIdx === line.instanceIdx
+      ? s.draggedGroupShift.offsetPx
+      : 0,
+  );
 
   const [isResizing, setIsResizing] = useState(false);
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -140,20 +149,25 @@ const LineRow: React.FC<LineRowProps> = ({ line, lineIndex, duration, onUpdateWo
       </div>
 
       <div className="flex-1 overflow-hidden border-b border-composer-border relative">
-        {groupColor && (
-          <>
-            <div
-              aria-hidden
-              className="absolute left-0 top-0 bottom-0 w-[3px] z-[5] pointer-events-none"
-              style={{ background: groupColor }}
-            />
-            <div
-              aria-hidden
-              className="absolute inset-0 pointer-events-none z-0"
-              style={{ background: groupColor, opacity: 0.06 }}
-            />
-          </>
-        )}
+        <div
+          className="absolute inset-0"
+          style={{ transform: dragShiftPx !== 0 ? `translateX(${dragShiftPx}px)` : undefined }}
+        >
+          {groupColor && (
+            <>
+              <div
+                aria-hidden
+                className="absolute left-0 top-0 bottom-0 w-[3px] z-[5] pointer-events-none"
+                style={{ background: groupColor }}
+              />
+              <div
+                aria-hidden
+                className="absolute inset-0 pointer-events-none z-0"
+                style={{ background: groupColor, opacity: 0.06 }}
+              />
+            </>
+          )}
+        </div>
         <div
           ref={setMainDropRef}
           className={cn(
@@ -161,6 +175,7 @@ const LineRow: React.FC<LineRowProps> = ({ line, lineIndex, duration, onUpdateWo
             !hasMainWords && "opacity-50",
             isOverMain && "bg-composer-accent/10",
           )}
+          style={{ transform: dragShiftPx !== 0 ? `translateX(${dragShiftPx}px)` : undefined }}
         >
           {hasMainWords ? (
             <WordTrack
@@ -196,6 +211,7 @@ const LineRow: React.FC<LineRowProps> = ({ line, lineIndex, duration, onUpdateWo
               "relative opacity-70 transition-colors border-t border-composer-border/50",
               isOverBg ? "bg-composer-accent/10" : "bg-composer-bg-elevated/25",
             )}
+            style={{ transform: dragShiftPx !== 0 ? `translateX(${dragShiftPx}px)` : undefined }}
           >
             <WordTrack
               lineId={line.id}

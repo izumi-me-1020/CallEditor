@@ -563,10 +563,15 @@ Or drag and drop a lyrics file (.txt, .lrc, .srt, .ttml)"
               <div className="py-2">
                 {parsed.map((line, index) => {
                   const prev = index > 0 ? parsed[index - 1] : null;
-                  const showDivider =
+                  const next = index < parsed.length - 1 ? parsed[index + 1] : null;
+                  const isFirstOfInstance =
                     line.groupId !== undefined &&
                     line.instanceIdx !== undefined &&
                     (prev?.groupId !== line.groupId || prev?.instanceIdx !== line.instanceIdx);
+                  const isLastOfInstance =
+                    line.groupId !== undefined &&
+                    line.instanceIdx !== undefined &&
+                    (next?.groupId !== line.groupId || next?.instanceIdx !== line.instanceIdx);
                   const group = line.groupId ? groups.find((g) => g.id === line.groupId) : undefined;
                   const totalInstances = group
                     ? new Set(
@@ -577,17 +582,16 @@ Or drag and drop a lyrics file (.txt, .lrc, .srt, .ttml)"
                     : 0;
                   return (
                     <div key={line.lineNumber}>
-                      {showDivider && group && (
+                      {isFirstOfInstance && group && (
                         <div
-                          className="mx-3 my-1 flex items-center gap-2 text-xs text-composer-text-muted select-none"
+                          className="mx-3 mt-2 mb-1 flex items-center gap-2 text-xs text-composer-text-muted select-none"
                           aria-hidden
                         >
-                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: group.color }} />
                           <span className="font-medium text-composer-text">{group.label}</span>
                           <span className="tabular-nums">
                             · {(line.instanceIdx ?? 0) + 1} of {totalInstances}
                           </span>
-                          <span className="flex-1 h-px" style={{ backgroundColor: group.color, opacity: 0.3 }} />
+                          <span className="flex-1 h-px" style={{ backgroundColor: group.color, opacity: 0.4 }} />
                         </div>
                       )}
                       <LinePreview
@@ -603,6 +607,11 @@ Or drag and drop a lyrics file (.txt, .lrc, .srt, .ttml)"
                         onGutterMouseEnter={handleGutterMouseEnter}
                         didDragRef={didDragRef}
                       />
+                      {isLastOfInstance && group && (
+                        <div className="mx-3 mt-1 mb-2 flex items-center select-none" aria-hidden>
+                          <span className="flex-1 h-px" style={{ backgroundColor: group.color, opacity: 0.4 }} />
+                        </div>
+                      )}
                     </div>
                   );
                 })}

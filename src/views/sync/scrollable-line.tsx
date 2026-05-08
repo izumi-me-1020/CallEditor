@@ -239,31 +239,35 @@ const ScrollableLineInner: React.FC<ScrollableLineProps> = ({
         isCurrent ? "bg-composer-accent/10 border-composer-accent" : "border-transparent"
       }`}
     >
-      <span className="flex items-center gap-1.5 mt-1 w-10 shrink-0">
-        <span
-          className="w-2 h-2 rounded-full shrink-0"
-          style={{
-            backgroundColor: agentId ? getAgentColor(agentId) : "transparent",
-          }}
-          title={agentId}
-        />
-        <span className="flex-1 font-mono text-xs text-right text-composer-text-muted tabular-nums">{lineNumber}</span>
-      </span>
-      {linkInfo && (
-        <span
-          className="flex items-center gap-1 mt-1 px-1.5 h-4 text-[10px] rounded-md select-none"
-          title={`Linked: ${linkInfo.label} ${linkInfo.instanceIdx + 1}/${linkInfo.totalInstances}`}
-          style={{
-            background: `color-mix(in srgb, ${linkInfo.color} 18%, transparent)`,
-            color: linkInfo.color,
-          }}
-        >
-          <IconLink className="w-2.5 h-2.5" />
-          <span className="tabular-nums">
-            {linkInfo.instanceIdx + 1}/{linkInfo.totalInstances}
+      <span className="flex flex-col items-center gap-1 mt-1 w-10 shrink-0">
+        <span className="flex items-center gap-1.5 w-full">
+          <span
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{
+              backgroundColor: agentId ? getAgentColor(agentId) : "transparent",
+            }}
+            title={agentId}
+          />
+          <span className="flex-1 font-mono text-xs text-right text-composer-text-muted tabular-nums">
+            {lineNumber}
           </span>
         </span>
-      )}
+        {linkInfo && (
+          <span
+            className="flex items-center gap-1 px-1.5 h-4 text-[10px] rounded-md select-none"
+            title={`Linked: ${linkInfo.label} ${linkInfo.instanceIdx + 1}/${linkInfo.totalInstances}`}
+            style={{
+              background: `color-mix(in srgb, ${linkInfo.color} 18%, transparent)`,
+              color: linkInfo.color,
+            }}
+          >
+            <IconLink className="w-2.5 h-2.5" />
+            <span className="tabular-nums">
+              {linkInfo.instanceIdx + 1}/{linkInfo.totalInstances}
+            </span>
+          </span>
+        )}
+      </span>
       <div className="flex flex-col flex-1 gap-1">
         {granularity === "line" ? (
           <div className="flex items-start justify-between gap-2">
