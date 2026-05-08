@@ -468,7 +468,7 @@ const useProjectStore = create<ProjectState & ProjectActions>((set, get) => ({
       return commitHistory(state, { lines: newLines });
     }),
 
-  setGroups: (groups) => set({ groups, isDirty: true }),
+  setGroups: (groups) => set({ groups: Array.isArray(groups) ? groups : [], isDirty: true }),
 
   addGroup: (group) => set((state) => commitHistory(state, { groups: [...state.groups, group] })),
 

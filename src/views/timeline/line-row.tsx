@@ -154,18 +154,11 @@ const LineRow: React.FC<LineRowProps> = ({ line, lineIndex, duration, onUpdateWo
           style={{ transform: dragShiftPx !== 0 ? `translateX(${dragShiftPx}px)` : undefined }}
         >
           {groupColor && (
-            <>
-              <div
-                aria-hidden
-                className="absolute left-0 top-0 bottom-0 w-[3px] z-[5] pointer-events-none"
-                style={{ background: groupColor }}
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0 pointer-events-none z-0"
-                style={{ background: groupColor, opacity: 0.06 }}
-              />
-            </>
+            <div
+              aria-hidden
+              className="absolute inset-0 pointer-events-none z-0"
+              style={{ background: groupColor, opacity: 0.06 }}
+            />
           )}
         </div>
         <div

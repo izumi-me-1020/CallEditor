@@ -72,7 +72,7 @@ const TimelineRows: React.FC<TimelineRowsProps> = ({ scrollContainerRef }) => {
     return out;
   }, [lines]);
 
-  const groupsById = useMemo(() => new Map(groups.map((g) => [g.id, g])), [groups]);
+  const groupsById = useMemo(() => new Map((groups ?? []).map((g) => [g.id, g])), [groups]);
 
   const handleUpdateWord = useCallback(
     (

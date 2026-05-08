@@ -37,6 +37,7 @@ function usePersistence(): void {
         const state = useProjectStore.getState();
         state.setMetadata(project.metadata);
         state.setLines(project.lines);
+        state.setGroups(project.groups ?? []);
         state.setGranularity(project.granularity);
         for (const agent of project.agents) {
           if (!state.agents.find((a) => a.id === agent.id)) {
@@ -60,7 +61,7 @@ function usePersistence(): void {
       if (!state.isDirty) return;
       if (state.lines.length > 0 || state.metadata.title) {
         const audioSource = toSavedAudioSource(useAudioStore.getState().source);
-        debouncedSave(state.metadata, state.agents, state.lines, state.granularity, audioSource);
+        debouncedSave(state.metadata, state.agents, state.lines, state.groups, state.granularity, audioSource);
       }
     });
 

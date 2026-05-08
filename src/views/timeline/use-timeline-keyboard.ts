@@ -3,7 +3,7 @@ import { type LyricLine, useProjectStore } from "@/stores/project";
 import { useSettingsStore } from "@/stores/settings";
 import { convertLineToWord } from "@/utils/sync-helpers";
 import { findMatchingShortcut } from "@/utils/shortcut-matcher";
-import { createGroupFromSelection, instanceToTemplate } from "@/views/timeline/group-ops";
+import { createGroupFromSelection, fillSelectionGaps, instanceToTemplate } from "@/views/timeline/group-ops";
 import { GUTTER_WIDTH, type WordSelection, useTimelineStore } from "@/views/timeline/timeline-store";
 import { useTimelineClipboard } from "@/views/timeline/use-timeline-clipboard";
 import { findWordAtTime, getLineTiming, isLineSynced } from "@/views/timeline/utils";
@@ -433,14 +433,25 @@ function useTimelineKeyboard(
             break;
           }
           const projectState = useProjectStore.getState();
-          const result = createGroupFromSelection(projectState.lines, selectedLineIds, projectState.groups);
+          const filled = fillSelectionGaps(projectState.lines, selectedLineIds);
+          if (!filled) {
+            toast.error("Some lines in this range are already part of a group");
+            break;
+          }
+          const result = createGroupFromSelection(projectState.lines, filled.expanded, projectState.groups);
           if (!result) {
-            toast.error("Selection must be contiguous and not part of an existing group");
+            toast.error("Could not create group from this selection");
             break;
           }
           projectState.setLinesWithHistory(result.updatedLines);
           projectState.addGroup(result.group);
-          toast.success(`Grouped ${selectedLineIds.size} line${selectedLineIds.size === 1 ? "" : "s"}`);
+          const totalCount = filled.expanded.size;
+          const noun = totalCount === 1 ? "line" : "lines";
+          toast.success(
+            filled.addedCount > 0
+              ? `Grouped ${totalCount} ${noun} (filled ${filled.addedCount} gap${filled.addedCount === 1 ? "" : "s"})`
+              : `Grouped ${totalCount} ${noun}`,
+          );
           break;
         }
         case "timeline.duplicateAsLinked": {

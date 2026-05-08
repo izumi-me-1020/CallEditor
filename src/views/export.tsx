@@ -108,8 +108,8 @@ const ExportPanel: React.FC = () => {
   const handleExportProject = useCallback(() => {
     const audioSource = useAudioStore.getState().source;
     const audioFileName = audioSource?.type === "file" ? audioSource.file.name : undefined;
-    exportProjectToFile(metadata, agents, lines, granularity, audioFileName);
-  }, [metadata, agents, lines, granularity]);
+    exportProjectToFile(metadata, agents, lines, groups, granularity, audioFileName);
+  }, [metadata, agents, lines, groups, granularity]);
 
   const handleImportProject = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,6 +134,7 @@ const ExportPanel: React.FC = () => {
       const project = await importProjectFromFile(file);
       setMetadata(project.metadata);
       setLines(project.lines);
+      useProjectStore.getState().setGroups(project.groups ?? []);
       setGranularity(project.granularity);
       for (const agent of project.agents) {
         if (!agents.find((a) => a.id === agent.id)) {

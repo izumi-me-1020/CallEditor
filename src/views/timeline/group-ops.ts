@@ -31,6 +31,32 @@ function lineIdsAreContiguous(lines: LyricLine[], selectedLineIds: ReadonlySet<s
   return true;
 }
 
+// Expand a selection to fill any gaps between min and max selected indices.
+// Returns the expanded set, or null if any in-between line is already part of a group
+// (which would make the resulting group invalid).
+function fillSelectionGaps(
+  lines: LyricLine[],
+  selectedLineIds: ReadonlySet<string>,
+): { expanded: Set<string>; addedCount: number } | null {
+  if (selectedLineIds.size === 0) return null;
+  const indices: number[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (selectedLineIds.has(lines[i].id)) indices.push(i);
+  }
+  if (indices.length === 0) return null;
+  const min = indices[0];
+  const max = indices[indices.length - 1];
+  const expanded = new Set<string>();
+  let addedCount = 0;
+  for (let i = min; i <= max; i++) {
+    const line = lines[i];
+    if (line.groupId !== undefined) return null; // any in-between is grouped → can't form coherent group
+    if (!selectedLineIds.has(line.id)) addedCount++;
+    expanded.add(line.id);
+  }
+  return { expanded, addedCount };
+}
+
 function selectionTouchesAnyGroup(lines: LyricLine[], selectedLineIds: ReadonlySet<string>): boolean {
   for (const line of lines) {
     if (selectedLineIds.has(line.id) && line.groupId !== undefined) return true;
@@ -141,6 +167,7 @@ export {
   createGroupFromSelection,
   uniqueLineIdsInOrder,
   lineIdsAreContiguous,
+  fillSelectionGaps,
   selectionTouchesAnyGroup,
   instanceToTemplate,
   instanceLineRange,

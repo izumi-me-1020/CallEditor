@@ -38,7 +38,7 @@ const GroupHeaderRowComponent: React.FC<GroupHeaderRowProps> = ({
       setContextMenu({
         x: e.clientX,
         y: e.clientY,
-        target: { kind: "group-banner", groupId: group.id, instanceIdx },
+        target: { kind: "group-banner", groupId: group.id, instanceIdx, source: "gutter" },
       });
     },
     [group.id, instanceIdx, setContextMenu],

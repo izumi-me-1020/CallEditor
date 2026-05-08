@@ -1,7 +1,8 @@
 import { useAudioStore } from "@/stores/audio";
 import { useProjectStore } from "@/stores/project";
+import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
 import { GUTTER_WIDTH, useTimelineStore } from "@/views/timeline/timeline-store";
-import { getLineTiming } from "@/views/timeline/utils";
+import { computeRowLayout, getLineTiming } from "@/views/timeline/utils";
 import { useCallback, useEffect, useRef } from "react";
 
 // -- Types ---------------------------------------------------------------------
@@ -63,26 +64,38 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
           lastFollowedLineRef.current = activeLineIndex;
           const WAVEFORM_HEIGHT = 80;
           const BG_DROP_ZONE_HEIGHT = 24;
-          const { rowHeights, defaultRowHeight } = useTimelineStore.getState();
+          const { rowHeights, defaultRowHeight, collapsedInstances } = useTimelineStore.getState();
 
-          let rowTop = WAVEFORM_HEIGHT;
-          for (let i = 0; i < activeLineIndex; i++) {
-            const l = lines[i];
-            const mainHeight = rowHeights[l.id] ?? defaultRowHeight;
-            const hasBg = l.backgroundWords && l.backgroundWords.length > 0;
-            rowTop += mainHeight + (hasBg ? mainHeight : BG_DROP_ZONE_HEIGHT) + 1;
+          const layout = computeRowLayout({
+            lines,
+            rowHeights,
+            defaultRowHeight,
+            collapsedInstances,
+            waveformHeight: WAVEFORM_HEIGHT,
+            bgDropZoneHeight: BG_DROP_ZONE_HEIGHT,
+            groupHeaderHeight: GROUP_HEADER_HEIGHT,
+          });
+
+          const activeLine = lines[activeLineIndex];
+          const activeInstanceKey =
+            activeLine.groupId !== undefined && activeLine.instanceIdx !== undefined
+              ? `${activeLine.groupId}:${activeLine.instanceIdx}`
+              : null;
+          const isActiveCollapsed = activeInstanceKey !== null && collapsedInstances[activeInstanceKey];
+
+          const target =
+            isActiveCollapsed && activeInstanceKey !== null
+              ? layout.headerTops.get(activeInstanceKey)
+              : layout.lineTops.get(activeLine.id);
+
+          if (target) {
+            const viewportHeight = container.clientHeight;
+            const rowCenter = target.top + target.height / 2;
+            verticalTargetRef.current = Math.max(
+              0,
+              Math.min(container.scrollHeight - viewportHeight, rowCenter - viewportHeight / 2),
+            );
           }
-          const line = lines[activeLineIndex];
-          const mainHeight = rowHeights[line.id] ?? defaultRowHeight;
-          const hasBg = line.backgroundWords && line.backgroundWords.length > 0;
-          const rowHeight = mainHeight + (hasBg ? mainHeight : BG_DROP_ZONE_HEIGHT) + 1;
-
-          const viewportHeight = container.clientHeight;
-          const rowCenter = rowTop + rowHeight / 2;
-          verticalTargetRef.current = Math.max(
-            0,
-            Math.min(container.scrollHeight - viewportHeight, rowCenter - viewportHeight / 2),
-          );
         }
 
         // Lerp vertical scroll only while animating toward target

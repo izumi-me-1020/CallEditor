@@ -310,7 +310,11 @@ const ScrollableLine = memo(ScrollableLineInner, (prev, next) => {
     prev.editMode === next.editMode &&
     prev.lineBegin === next.lineBegin &&
     prev.lineEnd === next.lineEnd &&
-    prev.words === next.words
+    prev.words === next.words &&
+    prev.linkInfo?.color === next.linkInfo?.color &&
+    prev.linkInfo?.label === next.linkInfo?.label &&
+    prev.linkInfo?.instanceIdx === next.linkInfo?.instanceIdx &&
+    prev.linkInfo?.totalInstances === next.linkInfo?.totalInstances
   );
 });
 

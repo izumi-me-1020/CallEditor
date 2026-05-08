@@ -1,4 +1,4 @@
-import type { Agent, GranularityMode, LyricLine, ProjectMetadata } from "@/stores/project";
+import type { Agent, GranularityMode, LinkGroup, LyricLine, ProjectMetadata } from "@/stores/project";
 import { useSettingsStore } from "@/stores/settings";
 
 // -- Types --------------------------------------------------------------------
@@ -11,6 +11,7 @@ interface SavedProject {
   metadata: ProjectMetadata;
   agents: Agent[];
   lines: LyricLine[];
+  groups?: LinkGroup[];
   granularity: GranularityMode;
   audioFileName?: string;
   audioSource?: SavedAudioSource;
@@ -91,6 +92,7 @@ async function saveCurrentProject(
   metadata: ProjectMetadata,
   agents: Agent[],
   lines: LyricLine[],
+  groups: LinkGroup[],
   granularity: GranularityMode,
   audioSource?: SavedAudioSource,
 ): Promise<void> {
@@ -101,6 +103,7 @@ async function saveCurrentProject(
     metadata,
     agents,
     lines,
+    groups,
     granularity,
     audioFileName,
     audioSource,
@@ -148,6 +151,7 @@ function exportProjectToFile(
   metadata: ProjectMetadata,
   agents: Agent[],
   lines: LyricLine[],
+  groups: LinkGroup[],
   granularity: GranularityMode,
   audioFileName?: string,
 ): void {
@@ -157,6 +161,7 @@ function exportProjectToFile(
     metadata,
     agents,
     lines,
+    groups,
     granularity,
     audioFileName,
   };
@@ -186,16 +191,18 @@ async function importProjectFromFile(file: File): Promise<SavedProject> {
 // -- Debounced Auto-save ------------------------------------------------------
 
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
-let pendingSaveArgs: [ProjectMetadata, Agent[], LyricLine[], GranularityMode, SavedAudioSource?] | null = null;
+let pendingSaveArgs: [ProjectMetadata, Agent[], LyricLine[], LinkGroup[], GranularityMode, SavedAudioSource?] | null =
+  null;
 
 function debouncedSave(
   metadata: ProjectMetadata,
   agents: Agent[],
   lines: LyricLine[],
+  groups: LinkGroup[],
   granularity: GranularityMode,
   audioSource?: SavedAudioSource,
 ): void {
-  pendingSaveArgs = [metadata, agents, lines, granularity, audioSource];
+  pendingSaveArgs = [metadata, agents, lines, groups, granularity, audioSource];
   if (saveTimeout) {
     clearTimeout(saveTimeout);
   }

@@ -184,6 +184,63 @@ function getWordsInInstance(lines: LyricLine[], groupId: string, instanceIdx: nu
   return out;
 }
 
+interface RowLayoutInput {
+  lines: LyricLine[];
+  rowHeights: Record<string, number>;
+  defaultRowHeight: number;
+  collapsedInstances: Record<string, boolean>;
+  waveformHeight: number;
+  bgDropZoneHeight: number;
+  groupHeaderHeight: number;
+}
+
+interface RowPosition {
+  top: number;
+  height: number;
+}
+
+interface RowLayout {
+  lineTops: Map<string, RowPosition>;
+  headerTops: Map<string, RowPosition>;
+}
+
+function computeRowLayout({
+  lines,
+  rowHeights,
+  defaultRowHeight,
+  collapsedInstances,
+  waveformHeight,
+  bgDropZoneHeight,
+  groupHeaderHeight,
+}: RowLayoutInput): RowLayout {
+  const lineTops = new Map<string, RowPosition>();
+  const headerTops = new Map<string, RowPosition>();
+  let rowTop = waveformHeight;
+  let lastInstanceKey: string | null = null;
+
+  for (const line of lines) {
+    const inst =
+      line.groupId !== undefined && line.instanceIdx !== undefined ? `${line.groupId}:${line.instanceIdx}` : null;
+
+    if (inst !== lastInstanceKey && inst !== null) {
+      headerTops.set(inst, { top: rowTop, height: groupHeaderHeight });
+      rowTop += groupHeaderHeight;
+    }
+    lastInstanceKey = inst;
+
+    const isCollapsed = inst !== null && collapsedInstances[inst];
+    if (isCollapsed) continue;
+
+    const mainHeight = rowHeights[line.id] ?? defaultRowHeight;
+    const hasBg = line.backgroundWords && line.backgroundWords.length > 0;
+    const rowHeight = mainHeight + (hasBg ? mainHeight : bgDropZoneHeight) + 1;
+    lineTops.set(line.id, { top: rowTop, height: rowHeight });
+    rowTop += rowHeight;
+  }
+
+  return { lineTops, headerTops };
+}
+
 // -- Exports -------------------------------------------------------------------
 
 export {
@@ -197,5 +254,6 @@ export {
   getEffectiveRows,
   instanceTimingBounds,
   getWordsInInstance,
+  computeRowLayout,
 };
-export type { EffectiveRow, GroupHeaderRow, LineEffectiveRow };
+export type { EffectiveRow, GroupHeaderRow, LineEffectiveRow, RowLayout, RowPosition };

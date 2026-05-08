@@ -9,9 +9,10 @@ import { GROUP_COLORS } from "@/utils/group-colors";
 import { isMac } from "@/utils/platform";
 import { convertLineToWord } from "@/utils/sync-helpers";
 import { findInsertionSlot, normalizeTrailingSpaces } from "@/utils/word-spaces";
-import { createGroupFromSelection, instanceToTemplate } from "@/views/timeline/group-ops";
-import { useTimelineStore } from "@/views/timeline/timeline-store";
-import { getEffectiveLines, isLineSynced } from "@/views/timeline/utils";
+import { createGroupFromSelection, fillSelectionGaps, instanceToTemplate } from "@/views/timeline/group-ops";
+import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
+import { GUTTER_WIDTH, useTimelineStore } from "@/views/timeline/timeline-store";
+import { computeRowLayout, getEffectiveLines, isLineSynced } from "@/views/timeline/utils";
 import { IconCommand } from "@tabler/icons-react";
 import { FloatingPortal } from "@floating-ui/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -212,17 +213,78 @@ const TimelineContextMenu: React.FC = () => {
     clearContextMenu();
   }, [gutterLineGroupInfo, clearContextMenu]);
 
+  const scrollToInstanceHeader = useCallback((groupId: string, instanceIdx: number) => {
+    const container = document.querySelector<HTMLDivElement>("[data-scroll-container]");
+    if (!container) return;
+    const { rowHeights, defaultRowHeight, collapsedInstances, zoom } = useTimelineStore.getState();
+    const projectLines = useProjectStore.getState().lines;
+    const layout = computeRowLayout({
+      lines: projectLines,
+      rowHeights,
+      defaultRowHeight,
+      collapsedInstances,
+      waveformHeight: 80,
+      bgDropZoneHeight: 24,
+      groupHeaderHeight: GROUP_HEADER_HEIGHT,
+    });
+    const target = layout.headerTops.get(`${groupId}:${instanceIdx}`);
+    if (!target) return;
+
+    // Find the instance's start time (min word/line begin)
+    let instanceStart = Number.POSITIVE_INFINITY;
+    for (const line of projectLines) {
+      if (line.groupId !== groupId || line.instanceIdx !== instanceIdx) continue;
+      if (line.words?.length) {
+        for (const w of line.words) if (w.begin < instanceStart) instanceStart = w.begin;
+      }
+      if (line.begin !== undefined && line.begin < instanceStart) instanceStart = line.begin;
+    }
+
+    const viewportWidth = container.clientWidth;
+    const viewportHeight = container.clientHeight;
+    const scrollLeft = Number.isFinite(instanceStart)
+      ? Math.max(0, instanceStart * zoom - viewportWidth / 2 + GUTTER_WIDTH)
+      : container.scrollLeft;
+
+    const rowCenter = target.top + target.height / 2;
+    const scrollTop = Math.max(0, Math.min(container.scrollHeight - viewportHeight, rowCenter - viewportHeight / 2));
+
+    container.scrollTo({ left: scrollLeft, top: scrollTop, behavior: "smooth" });
+  }, []);
+
+  const handleJumpToGroupFromBanner = useCallback(() => {
+    if (!contextMenu || contextMenu.target.kind !== "group-banner") return;
+    const { groupId, instanceIdx } = contextMenu.target;
+    scrollToInstanceHeader(groupId, instanceIdx);
+    clearContextMenu();
+  }, [contextMenu, scrollToInstanceHeader, clearContextMenu]);
+
   const groupableSelection = useMemo(() => {
-    if (!contextMenu || contextMenu.target.kind !== "gutter") return null;
+    if (!contextMenu) return null;
+    const target = contextMenu.target;
     const selectedWords = useTimelineStore.getState().selectedWords;
     const selectedLineIds = new Set<string>(selectedWords.map((w) => w.lineId));
-    if (!selectedLineIds.has(contextMenu.target.lineId)) {
-      selectedLineIds.add(contextMenu.target.lineId);
+    // Auto-include the right-clicked line for word/track/gutter targets so the user can
+    // right-click on a non-selected line and still get "Group this line".
+    if (target.kind === "gutter" || target.kind === "track" || target.kind === "word") {
+      selectedLineIds.add(target.lineId);
     }
     if (selectedLineIds.size < 1) return null;
-    const result = createGroupFromSelection(rawLines, selectedLineIds, useProjectStore.getState().groups);
+    // If any included line is already in a group, can't form a new one.
+    for (const id of selectedLineIds) {
+      const line = rawLines.find((l) => l.id === id);
+      if (line?.groupId !== undefined) return null;
+    }
+    const filled = fillSelectionGaps(rawLines, selectedLineIds);
+    if (!filled) return null;
+    const result = createGroupFromSelection(rawLines, filled.expanded, useProjectStore.getState().groups);
     if (!result) return null;
-    return { selectedLineIds, count: selectedLineIds.size, result };
+    return {
+      selectedLineIds: filled.expanded,
+      count: filled.expanded.size,
+      addedFromGaps: filled.addedCount,
+      result,
+    };
   }, [contextMenu, rawLines]);
 
   const handleCreateGroupFromSelection = useCallback(() => {
@@ -377,6 +439,13 @@ const TimelineContextMenu: React.FC = () => {
     clearContextMenu();
   }, [contextMenu, clearContextMenu]);
 
+  const handleToggleCollapse = useCallback(() => {
+    if (!contextMenu || contextMenu.target.kind !== "group-banner") return;
+    const { groupId, instanceIdx } = contextMenu.target;
+    useTimelineStore.getState().toggleInstanceCollapsed(`${groupId}:${instanceIdx}`);
+    clearContextMenu();
+  }, [contextMenu, clearContextMenu]);
+
   const handleAddInstanceAtPlayhead = useCallback(() => {
     if (!contextMenu || contextMenu.target.kind !== "group-banner") return;
     const { groupId, instanceIdx } = contextMenu.target;
@@ -497,13 +566,43 @@ const TimelineContextMenu: React.FC = () => {
                 />
               </>
             )}
+            {groupableSelection && (
+              <>
+                <MenuDivider />
+                <MenuItem
+                  label={
+                    groupableSelection.count > 1
+                      ? `Group ${groupableSelection.count} lines${groupableSelection.addedFromGaps > 0 ? ` (incl. ${groupableSelection.addedFromGaps} gap)` : ""}`
+                      : "Group this line"
+                  }
+                  shortcut={getEffectiveKeysArray("timeline.createGroup")}
+                  onClick={handleCreateGroupFromSelection}
+                />
+              </>
+            )}
             <MenuDivider />
             <MenuItem label="Delete word" shortcut={["Del"]} onClick={handleDeleteWord} danger />
           </>
         )}
 
         {target.kind === "track" && (
-          <MenuItem label="Add word here" shortcut={["Double Click"]} onClick={handleAddWordHere} />
+          <>
+            <MenuItem label="Add word here" shortcut={["Double Click"]} onClick={handleAddWordHere} />
+            {groupableSelection && (
+              <>
+                <MenuDivider />
+                <MenuItem
+                  label={
+                    groupableSelection.count > 1
+                      ? `Group ${groupableSelection.count} lines${groupableSelection.addedFromGaps > 0 ? ` (incl. ${groupableSelection.addedFromGaps} gap)` : ""}`
+                      : "Group this line"
+                  }
+                  shortcut={getEffectiveKeysArray("timeline.createGroup")}
+                  onClick={handleCreateGroupFromSelection}
+                />
+              </>
+            )}
+          </>
         )}
 
         {target.kind === "gutter" && (
@@ -516,7 +615,7 @@ const TimelineContextMenu: React.FC = () => {
                 <MenuItem
                   label={
                     groupableSelection.count > 1
-                      ? `Group ${groupableSelection.count} selected lines`
+                      ? `Group ${groupableSelection.count} lines${groupableSelection.addedFromGaps > 0 ? ` (incl. ${groupableSelection.addedFromGaps} gap)` : ""}`
                       : "Group this line"
                   }
                   shortcut={getEffectiveKeysArray("timeline.createGroup")}
@@ -583,6 +682,19 @@ const TimelineContextMenu: React.FC = () => {
             />
           ) : (
             <>
+              <MenuItem
+                label={
+                  useTimelineStore.getState().collapsedInstances[`${target.groupId}:${target.instanceIdx}`]
+                    ? "Expand instance"
+                    : "Collapse instance"
+                }
+                onClick={handleToggleCollapse}
+              />
+              <MenuItem
+                label={target.source === "gutter" ? "Jump to group" : "Jump to start"}
+                onClick={handleJumpToGroupFromBanner}
+              />
+              <MenuDivider />
               <MenuItem label="Add instance at playhead" onClick={handleAddInstanceAtPlayhead} />
               <MenuItem label="Shift instance to playhead" onClick={handleShiftToPlayhead} />
               <MenuDivider />

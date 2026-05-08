@@ -2,6 +2,7 @@ import { type LinkGroup, useProjectStore } from "@/stores/project";
 import { groupPingVariants } from "@/utils/animationVariants";
 import { cn } from "@/utils/cn";
 import { useTimelineStore } from "@/views/timeline/timeline-store";
+import { getWordsInInstance } from "@/views/timeline/utils";
 import { IconChevronDown, IconLink } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { memo, useCallback, useRef, useState } from "react";
@@ -38,7 +39,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
   const pingingGroupId = useTimelineStore((s) => s.pingingGroupId);
   const isPinging = pingingGroupId === group.id;
   const setDraggedGroupShift = useTimelineStore((s) => s.setDraggedGroupShift);
-  const toggleInstanceCollapsed = useTimelineStore((s) => s.toggleInstanceCollapsed);
+  const setSelectedWords = useTimelineStore((s) => s.setSelectedWords);
 
   const [dragOffsetPx, setDragOffsetPx] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -79,8 +80,9 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
             useProjectStore.getState().shiftInstance(group.id, instanceIdx, deltaSeconds);
           }
         } else {
-          // treat as click: toggle collapse
-          toggleInstanceCollapsed(`${group.id}:${instanceIdx}`);
+          // treat as click: select all words in this instance (so nudge works on it)
+          const lines = useProjectStore.getState().lines;
+          setSelectedWords(getWordsInInstance(lines, group.id, instanceIdx));
         }
       };
 
@@ -93,7 +95,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
       document.addEventListener("pointermove", handleMove);
       document.addEventListener("pointerup", handleUp);
     },
-    [group.id, instanceIdx, toggleInstanceCollapsed, setDraggedGroupShift, zoom],
+    [group.id, instanceIdx, setSelectedWords, setDraggedGroupShift, zoom],
   );
 
   const setPingingGroupId = useTimelineStore((s) => s.setPingingGroupId);
@@ -101,6 +103,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
   const handleBadgeMouseLeave = useCallback(() => setPingingGroupId(null), [setPingingGroupId]);
 
   const setContextMenu = useTimelineStore((s) => s.setContextMenu);
+  const toggleInstanceCollapsed = useTimelineStore((s) => s.toggleInstanceCollapsed);
   const handleChevronPointerDown = useCallback((e: React.PointerEvent) => {
     e.stopPropagation();
   }, []);
@@ -119,7 +122,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
       setContextMenu({
         x: e.clientX,
         y: e.clientY,
-        target: { kind: "group-banner", groupId: group.id, instanceIdx },
+        target: { kind: "group-banner", groupId: group.id, instanceIdx, source: "banner" },
       });
     },
     [group.id, instanceIdx, setContextMenu],
@@ -133,7 +136,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
       setContextMenu({
         x: e.clientX,
         y: e.clientY,
-        target: { kind: "group-banner", groupId: group.id, instanceIdx },
+        target: { kind: "group-banner", groupId: group.id, instanceIdx, source: "banner" },
       });
       setRenamingGroupId(group.id);
     },
@@ -143,6 +146,27 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
   const left = instanceStart * zoom;
   const width = Math.max(BANNER_MIN_WIDTH, (instanceEnd - instanceStart) * zoom);
   const deltaSecondsLive = dragOffsetPx / Math.max(zoom, 1);
+
+  // When collapsed, render thin ticks on the banner showing approximate word positions
+  const wordTicks = (() => {
+    if (!isCollapsed) return [];
+    const span = instanceEnd - instanceStart;
+    if (span <= 0) return [];
+    const lines = useProjectStore.getState().lines;
+    const ticks: Array<{ leftPct: number; widthPct: number }> = [];
+    for (const line of lines) {
+      if (line.groupId !== group.id || line.instanceIdx !== instanceIdx) continue;
+      if (line.words?.length) {
+        for (const w of line.words) {
+          const startPct = ((w.begin - instanceStart) / span) * 100;
+          const endPct = ((w.end - instanceStart) / span) * 100;
+          const widthPct = Math.max(0.4, endPct - startPct);
+          ticks.push({ leftPct: startPct, widthPct });
+        }
+      }
+    }
+    return ticks;
+  })();
 
   return (
     <motion.div
@@ -154,7 +178,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
       animate={isPinging ? "ping" : "idle"}
       className={cn(
         "absolute flex items-center gap-1 rounded-md cursor-grab select-none pl-1.5 pr-2.5",
-        "border text-[10px] font-medium text-composer-text z-[45]",
+        "border text-[10px] font-medium text-composer-text z-[30]",
       )}
       onPointerDown={handlePointerDown}
       onMouseDown={(e) => e.stopPropagation()}
@@ -175,7 +199,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
         aria-label={isCollapsed ? "Expand instance" : "Collapse instance"}
         onClick={handleChevronClick}
         onPointerDown={handleChevronPointerDown}
-        className="shrink-0 cursor-pointer opacity-70 hover:opacity-100 transition-opacity p-0.5"
+        className="shrink-0 cursor-pointer opacity-70 hover:opacity-100 transition-opacity p-0.5 relative before:content-[''] before:absolute before:-inset-2"
       >
         <IconChevronDown
           className={cn("w-3 h-3 transition-transform duration-200 ease-out", isCollapsed && "-rotate-90")}
@@ -199,13 +223,33 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
         )}
       </span>
       {isCollapsed && (
-        <span
-          aria-hidden
-          className="absolute inset-0 rounded-md pointer-events-none overflow-hidden"
-          style={{
-            background: `linear-gradient(to right, color-mix(in srgb, ${group.color} 35%, transparent) var(--progress-fill, 0%), transparent var(--progress-fill, 0%))`,
-          }}
-        />
+        <>
+          <span
+            aria-hidden
+            className="absolute inset-0 rounded-md pointer-events-none overflow-hidden"
+            style={{
+              background: `linear-gradient(to right, color-mix(in srgb, ${group.color} 35%, transparent) var(--progress-fill, 0%), transparent var(--progress-fill, 0%))`,
+            }}
+          />
+          <span
+            aria-hidden
+            className="absolute left-1.5 right-1.5 bottom-0.5 h-[3px] pointer-events-none overflow-hidden"
+          >
+            {wordTicks.map((t, i) => (
+              <span
+                // biome-ignore lint/suspicious/noArrayIndexKey: order is stable for static word list
+                key={i}
+                className="absolute top-0 bottom-0 rounded-[1px]"
+                style={{
+                  left: `${t.leftPct}%`,
+                  width: `${t.widthPct}%`,
+                  background: group.color,
+                  opacity: 0.6,
+                }}
+              />
+            ))}
+          </span>
+        </>
       )}
     </motion.div>
   );
