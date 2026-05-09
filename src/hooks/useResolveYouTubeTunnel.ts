@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useEnsureAuth } from "@/hooks/useEnsureAuth";
-import { useAudioStore } from "@/stores/audio";
+import { type AudioSource, useAudioStore } from "@/stores/audio";
 import { useProjectStore } from "@/stores/project";
 import { getActiveCobaltInstance, isUsingDefaultCobaltInstance } from "@/stores/settings";
 import { CobaltApiError, formatCobaltErrorForToast, getAudio, getAudioFromStandardCobalt } from "@/utils/cobalt-api";
