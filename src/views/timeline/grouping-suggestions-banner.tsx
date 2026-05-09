@@ -37,59 +37,56 @@ const GroupingSuggestionsBanner: React.FC = () => {
     groupRepeatingSections(s.starts, s.length);
   };
 
-  if (visible.length === 1) {
-    const only = visible[0];
-    return (
-      <div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-composer-border bg-composer-accent/8 text-sm">
-        <div className="flex items-center gap-2 min-w-0">
-          <IconBulb className="w-4 h-4 shrink-0 text-composer-accent" />
-          <span className="text-composer-text truncate">{summarizeInline(only)}</span>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <Button size="sm" variant="primary" hasIcon onClick={() => acceptOne(only)}>
-            <IconLink className="w-3.5 h-3.5" />
-            Group them
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => dismissOne(only)}
-            className="h-7 w-7"
-            aria-label="Dismiss suggestion"
-          >
-            <IconX className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-composer-border bg-composer-accent/8 text-sm">
-        <div className="flex items-center gap-2 min-w-0">
-          <IconBulb className="w-4 h-4 shrink-0 text-composer-accent" />
-          <span className="text-composer-text truncate">
-            Found {visible.length} grouping suggestions across your lyrics
-          </span>
+      {visible.length === 1 ? (
+        <div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-composer-border bg-composer-accent/8 text-sm">
+          <div className="flex items-center gap-2 min-w-0">
+            <IconBulb className="w-4 h-4 shrink-0 text-composer-accent" />
+            <span className="text-composer-text truncate">{summarizeInline(visible[0])}</span>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <Button size="sm" variant="primary" hasIcon onClick={() => acceptOne(visible[0])}>
+              <IconLink className="w-3.5 h-3.5" />
+              Group them
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => dismissOne(visible[0])}
+              className="h-7 w-7"
+              aria-label="Dismiss suggestion"
+            >
+              <IconX className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <Button size="sm" variant="primary" onClick={() => setModalOpen(true)}>
-            Review {visible.length}
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={dismissAll}
-            className="h-7 w-7"
-            aria-label="Dismiss all suggestions"
-          >
-            <IconX className="w-4 h-4" />
-          </Button>
+      ) : (
+        <div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-composer-border bg-composer-accent/8 text-sm">
+          <div className="flex items-center gap-2 min-w-0">
+            <IconBulb className="w-4 h-4 shrink-0 text-composer-accent" />
+            <span className="text-composer-text truncate">
+              Found {visible.length} grouping suggestions across your lyrics
+            </span>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <Button size="sm" variant="primary" onClick={() => setModalOpen(true)}>
+              Review {visible.length}
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={dismissAll}
+              className="h-7 w-7"
+              aria-label="Dismiss all suggestions"
+            >
+              <IconX className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
       <SuggestionsModal
-        isOpen={modalOpen}
+        isOpen={modalOpen && visible.length > 0}
         onClose={() => setModalOpen(false)}
         suggestions={visible}
         onAccept={acceptOne}
