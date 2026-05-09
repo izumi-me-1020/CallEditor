@@ -1,15 +1,55 @@
 import { useAudioStore } from "@/stores/audio";
+import { useConfirmStore } from "@/stores/confirm-store";
 import { type LyricLine, useProjectStore } from "@/stores/project";
 import { useSettingsStore } from "@/stores/settings";
+import { showGroupActionToast } from "@/utils/group-toast";
 import { convertLineToWord } from "@/utils/sync-helpers";
 import { findMatchingShortcut } from "@/utils/shortcut-matcher";
 import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
 import { createGroupFromSelection, fillSelectionGaps, instanceToTemplate } from "@/views/timeline/group-ops";
+import { scrollToInstanceHeader } from "@/views/timeline/scroll-helpers";
 import { GUTTER_WIDTH, type WordSelection, useTimelineStore } from "@/views/timeline/timeline-store";
 import { useTimelineClipboard } from "@/views/timeline/use-timeline-clipboard";
-import { computeRowLayout, findWordAtTime, getLineTiming, isLineSynced } from "@/views/timeline/utils";
+import {
+  computeRowLayout,
+  findWordAtTime,
+  getLineTiming,
+  getWordsInInstance,
+  isLineSynced,
+} from "@/views/timeline/utils";
 import { type RefObject, useCallback, useEffect } from "react";
 import { toast } from "sonner";
+
+// -- Helpers ------------------------------------------------------------------
+
+function currentInstanceFromSelection(
+  lines: LyricLine[],
+  selectedWords: ReadonlyArray<{ lineId: string }>,
+): { groupId: string; instanceIdx: number } | null {
+  if (selectedWords.length === 0) return null;
+  let groupId: string | null = null;
+  let instanceIdx: number | null = null;
+  for (const sel of selectedWords) {
+    const line = lines.find((l) => l.id === sel.lineId);
+    if (!line || line.groupId === undefined || line.instanceIdx === undefined) return null;
+    if (groupId === null) {
+      groupId = line.groupId;
+      instanceIdx = line.instanceIdx;
+    } else if (line.groupId !== groupId || line.instanceIdx !== instanceIdx) {
+      return null;
+    }
+  }
+  if (groupId === null || instanceIdx === null) return null;
+  return { groupId, instanceIdx };
+}
+
+function listInstancesOfGroup(lines: LyricLine[], groupId: string): number[] {
+  const set = new Set<number>();
+  for (const line of lines) {
+    if (line.groupId === groupId && line.instanceIdx !== undefined) set.add(line.instanceIdx);
+  }
+  return [...set].sort((a, b) => a - b);
+}
 
 // -- Constants -----------------------------------------------------------------
 
@@ -497,6 +537,116 @@ function useTimelineKeyboard(
           }
           projectState.addInstance(groupId, template, playheadTime);
           toast.success("Linked instance added at playhead");
+          break;
+        }
+        case "timeline.toggleCollapseInstance": {
+          const inst = currentInstanceFromSelection(
+            useProjectStore.getState().lines,
+            useTimelineStore.getState().selectedWords,
+          );
+          if (!inst) {
+            toast.error("Select words inside one instance first");
+            break;
+          }
+          e.preventDefault();
+          useTimelineStore.getState().toggleInstanceCollapsed(`${inst.groupId}:${inst.instanceIdx}`);
+          break;
+        }
+        case "timeline.toggleAllCollapsed": {
+          e.preventDefault();
+          const { collapsedInstances, setInstanceCollapsed } = useTimelineStore.getState();
+          const projectLines = useProjectStore.getState().lines;
+          const keys = new Set<string>();
+          for (const line of projectLines) {
+            if (line.groupId !== undefined && line.instanceIdx !== undefined) {
+              keys.add(`${line.groupId}:${line.instanceIdx}`);
+            }
+          }
+          if (keys.size === 0) {
+            toast.error("No groups in this project");
+            break;
+          }
+          const anyExpanded = [...keys].some((k) => !collapsedInstances[k]);
+          for (const k of keys) setInstanceCollapsed(k, anyExpanded);
+          break;
+        }
+        case "timeline.jumpPrevInstance":
+        case "timeline.jumpNextInstance": {
+          const projectLines = useProjectStore.getState().lines;
+          const inst = currentInstanceFromSelection(projectLines, useTimelineStore.getState().selectedWords);
+          if (!inst) {
+            toast.error("Select words inside one instance first");
+            break;
+          }
+          const all = listInstancesOfGroup(projectLines, inst.groupId);
+          if (all.length < 2) {
+            toast.error("This group has only one instance");
+            break;
+          }
+          const here = all.indexOf(inst.instanceIdx);
+          const dir = matched === "timeline.jumpNextInstance" ? 1 : -1;
+          const nextIdx = all[(here + dir + all.length) % all.length];
+          e.preventDefault();
+          useTimelineStore.getState().setSelectedWords(getWordsInInstance(projectLines, inst.groupId, nextIdx));
+          scrollToInstanceHeader(inst.groupId, nextIdx);
+          break;
+        }
+        case "timeline.detachInstance": {
+          const inst = currentInstanceFromSelection(
+            useProjectStore.getState().lines,
+            useTimelineStore.getState().selectedWords,
+          );
+          if (!inst) {
+            toast.error("Select words inside one instance first");
+            break;
+          }
+          e.preventDefault();
+          useProjectStore.getState().removeInstance(inst.groupId, inst.instanceIdx);
+          showGroupActionToast("Instance detached");
+          break;
+        }
+        case "timeline.deleteGroup": {
+          const projectLines = useProjectStore.getState().lines;
+          const inst = currentInstanceFromSelection(projectLines, useTimelineStore.getState().selectedWords);
+          if (!inst) {
+            toast.error("Select words inside one instance first");
+            break;
+          }
+          const group = useProjectStore.getState().groups.find((g) => g.id === inst.groupId);
+          if (!group) break;
+          e.preventDefault();
+          const instanceCount = listInstancesOfGroup(projectLines, inst.groupId).length;
+          (async () => {
+            const ok = await useConfirmStore.getState().open({
+              title: `Delete the "${group.label}" group?`,
+              description: `All ${instanceCount} instance${instanceCount === 1 ? "" : "s"} will become standalone lines. They keep their text and timing, but stop updating together.`,
+              confirmLabel: "Delete group",
+              variant: "destructive",
+              settingsKey: "confirmGroupDissolution",
+              recoverable: true,
+            });
+            if (!ok) return;
+            useProjectStore.getState().removeGroup(inst.groupId);
+            showGroupActionToast("Group deleted");
+          })();
+          break;
+        }
+        case "timeline.pingSiblings": {
+          const inst = currentInstanceFromSelection(
+            useProjectStore.getState().lines,
+            useTimelineStore.getState().selectedWords,
+          );
+          if (!inst) {
+            toast.error("Select words inside one instance first");
+            break;
+          }
+          e.preventDefault();
+          useTimelineStore.getState().setPingingGroupId(inst.groupId);
+          window.setTimeout(() => {
+            if (useTimelineStore.getState().pingingGroupId === inst.groupId) {
+              useTimelineStore.getState().setPingingGroupId(null);
+            }
+          }, 700);
           break;
         }
       }

@@ -490,7 +490,7 @@ const GroupsSection: React.FC = () => (
       <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
         <li>
           <strong>Click anywhere on it</strong>: selects every word in the instance. Use this before arrow-key nudge,
-          {MOD_KEY} + C, etc.
+          {MOD_KEY} + C, or any of the keyboard shortcuts below.
         </li>
         <li>
           <strong>Drag horizontally</strong>: shifts the entire instance in time. Sibling instances stay put. The lines
@@ -509,9 +509,46 @@ const GroupsSection: React.FC = () => (
         </li>
         <li>
           <strong>Hover the "1 of N" badge</strong>: every sibling instance pings briefly with the group's color so you
-          can spot them on the timeline.
+          can spot them on the timeline. Or press <strong>H</strong> for the same effect from the keyboard.
         </li>
       </ul>
+    </div>
+
+    <div>
+      <h4 className={HEADING}>Keyboard shortcuts</h4>
+      <p className={PROSE}>
+        Most of these act on the instance containing your current selection. Click a banner first to "focus" an
+        instance.
+      </p>
+      <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
+        <li>
+          <strong>{MOD_KEY} + G</strong>: group selected lines.
+        </li>
+        <li>
+          <strong>{MOD_KEY} + D</strong>: add a linked instance at the playhead.
+        </li>
+        <li>
+          <strong>C</strong> / <strong>Shift + C</strong>: collapse the current instance, or every instance.
+        </li>
+        <li>
+          <strong>{MOD_KEY} + J</strong> / <strong>{MOD_KEY} + K</strong>: jump to the previous or next instance of the
+          same group. Wraps around.
+        </li>
+        <li>
+          <strong>Arrow Left</strong> / <strong>Arrow Right</strong>: nudge the current instance earlier or later by the
+          nudge amount in Settings.
+        </li>
+        <li>
+          <strong>H</strong>: ping every sibling instance.
+        </li>
+        <li>
+          <strong>{MOD_KEY} + Shift + D</strong>: detach the current instance from the group.
+        </li>
+        <li>
+          <strong>{MOD_KEY} + Shift + G</strong>: delete the current group (asks for confirmation first).
+        </li>
+      </ul>
+      <p className={`${PROSE} mt-2`}>All of these are remappable in Settings → Shortcuts.</p>
     </div>
 
     <div>

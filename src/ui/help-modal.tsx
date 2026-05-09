@@ -131,6 +131,22 @@ const SHORTCUT_SECTIONS: ShortcutSectionProps[] = [
     ],
   },
   {
+    title: "Linked Groups",
+    shortcuts: [
+      { keys: ["Mod", "G"], description: "Group selected lines", shortcutId: "timeline.createGroup" },
+      { keys: ["Mod", "D"], description: "Duplicate as linked instance", shortcutId: "timeline.duplicateAsLinked" },
+      { keys: ["C"], description: "Collapse / expand current instance", shortcutId: "timeline.toggleCollapseInstance" },
+      { keys: ["Shift", "C"], description: "Collapse / expand all", shortcutId: "timeline.toggleAllCollapsed" },
+      { keys: ["Mod", "J"], description: "Jump to previous instance", shortcutId: "timeline.jumpPrevInstance" },
+      { keys: ["Mod", "K"], description: "Jump to next instance", shortcutId: "timeline.jumpNextInstance" },
+      { keys: ["H"], description: "Ping sibling instances", shortcutId: "timeline.pingSiblings" },
+      { keys: ["ArrowLeft"], description: "Nudge instance earlier (when one instance selected)" },
+      { keys: ["ArrowRight"], description: "Nudge instance later (when one instance selected)" },
+      { keys: ["Mod", "Shift", "D"], description: "Detach current instance", shortcutId: "timeline.detachInstance" },
+      { keys: ["Mod", "Shift", "G"], description: "Delete current group", shortcutId: "timeline.deleteGroup" },
+    ],
+  },
+  {
     title: "Edit Mode",
     shortcuts: [
       { keys: ["Click"], description: "Select / deselect line" },

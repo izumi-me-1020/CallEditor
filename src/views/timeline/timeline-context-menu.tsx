@@ -11,9 +11,9 @@ import { isMac } from "@/utils/platform";
 import { convertLineToWord } from "@/utils/sync-helpers";
 import { findInsertionSlot, normalizeTrailingSpaces } from "@/utils/word-spaces";
 import { createGroupFromSelection, fillSelectionGaps, instanceToTemplate } from "@/views/timeline/group-ops";
-import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
-import { GUTTER_WIDTH, useTimelineStore } from "@/views/timeline/timeline-store";
-import { computeRowLayout, getEffectiveLines, isLineSynced } from "@/views/timeline/utils";
+import { scrollToInstanceHeader } from "@/views/timeline/scroll-helpers";
+import { type WordSelection, useTimelineStore } from "@/views/timeline/timeline-store";
+import { getEffectiveLines, isLineSynced } from "@/views/timeline/utils";
 import { IconCommand } from "@tabler/icons-react";
 import { FloatingPortal } from "@floating-ui/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -214,51 +214,12 @@ const TimelineContextMenu: React.FC = () => {
     clearContextMenu();
   }, [gutterLineGroupInfo, clearContextMenu]);
 
-  const scrollToInstanceHeader = useCallback((groupId: string, instanceIdx: number) => {
-    const container = document.querySelector<HTMLDivElement>("[data-scroll-container]");
-    if (!container) return;
-    const { rowHeights, defaultRowHeight, collapsedInstances, zoom } = useTimelineStore.getState();
-    const projectLines = useProjectStore.getState().lines;
-    const layout = computeRowLayout({
-      lines: projectLines,
-      rowHeights,
-      defaultRowHeight,
-      collapsedInstances,
-      waveformHeight: 80,
-      bgDropZoneHeight: 24,
-      groupHeaderHeight: GROUP_HEADER_HEIGHT,
-    });
-    const target = layout.headerTops.get(`${groupId}:${instanceIdx}`);
-    if (!target) return;
-
-    // Find the instance's start time (min word/line begin)
-    let instanceStart = Number.POSITIVE_INFINITY;
-    for (const line of projectLines) {
-      if (line.groupId !== groupId || line.instanceIdx !== instanceIdx) continue;
-      if (line.words?.length) {
-        for (const w of line.words) if (w.begin < instanceStart) instanceStart = w.begin;
-      }
-      if (line.begin !== undefined && line.begin < instanceStart) instanceStart = line.begin;
-    }
-
-    const viewportWidth = container.clientWidth;
-    const viewportHeight = container.clientHeight;
-    const scrollLeft = Number.isFinite(instanceStart)
-      ? Math.max(0, instanceStart * zoom - viewportWidth / 2 + GUTTER_WIDTH)
-      : container.scrollLeft;
-
-    const rowCenter = target.top + target.height / 2;
-    const scrollTop = Math.max(0, Math.min(container.scrollHeight - viewportHeight, rowCenter - viewportHeight / 2));
-
-    container.scrollTo({ left: scrollLeft, top: scrollTop, behavior: "smooth" });
-  }, []);
-
   const handleJumpToGroupFromBanner = useCallback(() => {
     if (!contextMenu || contextMenu.target.kind !== "group-banner") return;
     const { groupId, instanceIdx } = contextMenu.target;
     scrollToInstanceHeader(groupId, instanceIdx);
     clearContextMenu();
-  }, [contextMenu, scrollToInstanceHeader, clearContextMenu]);
+  }, [contextMenu, clearContextMenu]);
 
   const groupableSelection = useMemo(() => {
     if (!contextMenu) return null;
@@ -508,6 +469,52 @@ const TimelineContextMenu: React.FC = () => {
     showGroupActionToast("Group deleted");
   }, [contextMenu, groups, confirm, clearContextMenu]);
 
+  const handlePingSiblings = useCallback(() => {
+    if (!contextMenu || contextMenu.target.kind !== "group-banner") return;
+    const { groupId } = contextMenu.target;
+    useTimelineStore.getState().setPingingGroupId(groupId);
+    window.setTimeout(() => {
+      if (useTimelineStore.getState().pingingGroupId === groupId) {
+        useTimelineStore.getState().setPingingGroupId(null);
+      }
+    }, 700);
+    clearContextMenu();
+  }, [contextMenu, clearContextMenu]);
+
+  const handleJumpToInstanceOffset = useCallback(
+    (direction: 1 | -1) => {
+      if (!contextMenu || contextMenu.target.kind !== "group-banner") return;
+      const { groupId, instanceIdx } = contextMenu.target;
+      const projectLines = useProjectStore.getState().lines;
+      const indices = new Set<number>();
+      for (const l of projectLines) {
+        if (l.groupId === groupId && l.instanceIdx !== undefined) indices.add(l.instanceIdx);
+      }
+      const sorted = [...indices].sort((a, b) => a - b);
+      if (sorted.length < 2) return;
+      const here = sorted.indexOf(instanceIdx);
+      const next = sorted[(here + direction + sorted.length) % sorted.length];
+      const wordsInNext: WordSelection[] = [];
+      for (let li = 0; li < projectLines.length; li++) {
+        const line = projectLines[li];
+        if (line.groupId !== groupId || line.instanceIdx !== next) continue;
+        for (let wi = 0; wi < (line.words?.length ?? 0); wi++) {
+          wordsInNext.push({ lineId: line.id, lineIndex: li, wordIndex: wi, type: "word" });
+        }
+        for (let wi = 0; wi < (line.backgroundWords?.length ?? 0); wi++) {
+          wordsInNext.push({ lineId: line.id, lineIndex: li, wordIndex: wi, type: "bg" });
+        }
+      }
+      useTimelineStore.getState().setSelectedWords(wordsInNext);
+      scrollToInstanceHeader(groupId, next);
+      clearContextMenu();
+    },
+    [contextMenu, clearContextMenu],
+  );
+
+  const handleJumpPrevInstance = useCallback(() => handleJumpToInstanceOffset(-1), [handleJumpToInstanceOffset]);
+  const handleJumpNextInstance = useCallback(() => handleJumpToInstanceOffset(1), [handleJumpToInstanceOffset]);
+
   const handleRenameStart = useCallback(() => {
     if (!contextMenu || contextMenu.target.kind !== "group-banner") return;
     const { groupId } = contextMenu.target;
@@ -689,15 +696,35 @@ const TimelineContextMenu: React.FC = () => {
                     ? "Expand instance"
                     : "Collapse instance"
                 }
+                shortcut={getEffectiveKeysArray("timeline.toggleCollapseInstance")}
                 onClick={handleToggleCollapse}
               />
               <MenuItem
                 label={target.source === "gutter" ? "Jump to group" : "Jump to start"}
                 onClick={handleJumpToGroupFromBanner}
               />
+              <MenuItem
+                label="Ping siblings"
+                shortcut={getEffectiveKeysArray("timeline.pingSiblings")}
+                onClick={handlePingSiblings}
+              />
               <MenuDivider />
-              <MenuItem label="Add instance at playhead" onClick={handleAddInstanceAtPlayhead} />
+              <MenuItem
+                label="Add instance at playhead"
+                shortcut={getEffectiveKeysArray("timeline.duplicateAsLinked")}
+                onClick={handleAddInstanceAtPlayhead}
+              />
               <MenuItem label="Shift instance to playhead" onClick={handleShiftToPlayhead} />
+              <MenuItem
+                label="Jump to previous instance"
+                shortcut={getEffectiveKeysArray("timeline.jumpPrevInstance")}
+                onClick={handleJumpPrevInstance}
+              />
+              <MenuItem
+                label="Jump to next instance"
+                shortcut={getEffectiveKeysArray("timeline.jumpNextInstance")}
+                onClick={handleJumpNextInstance}
+              />
               <MenuDivider />
               <MenuItem label="Rename" onClick={handleRenameStart} />
               <MenuDivider />
@@ -715,8 +742,17 @@ const TimelineContextMenu: React.FC = () => {
                 ))}
               </div>
               <MenuDivider />
-              <MenuItem label="Detach instance" onClick={handleDetachInstance} />
-              <MenuItem label="Delete group" onClick={handleDeleteGroup} danger />
+              <MenuItem
+                label="Detach instance"
+                shortcut={getEffectiveKeysArray("timeline.detachInstance")}
+                onClick={handleDetachInstance}
+              />
+              <MenuItem
+                label="Delete group"
+                shortcut={getEffectiveKeysArray("timeline.deleteGroup")}
+                onClick={handleDeleteGroup}
+                danger
+              />
             </>
           ))}
       </div>

@@ -189,6 +189,48 @@ const SHORTCUT_REGISTRY: ShortcutDefinition[] = [
     description: "Duplicate as linked instance",
     defaultBinding: { key: "d", mod: true },
   },
+  {
+    id: "timeline.toggleCollapseInstance",
+    scope: "timeline",
+    description: "Collapse / expand current instance",
+    defaultBinding: { key: "c" },
+  },
+  {
+    id: "timeline.toggleAllCollapsed",
+    scope: "timeline",
+    description: "Collapse / expand all instances",
+    defaultBinding: { key: "c", shift: true },
+  },
+  {
+    id: "timeline.jumpPrevInstance",
+    scope: "timeline",
+    description: "Jump to previous instance of group",
+    defaultBinding: { key: "j", mod: true },
+  },
+  {
+    id: "timeline.jumpNextInstance",
+    scope: "timeline",
+    description: "Jump to next instance of group",
+    defaultBinding: { key: "k", mod: true },
+  },
+  {
+    id: "timeline.detachInstance",
+    scope: "timeline",
+    description: "Detach current instance from group",
+    defaultBinding: { key: "d", mod: true, shift: true },
+  },
+  {
+    id: "timeline.deleteGroup",
+    scope: "timeline",
+    description: "Delete current group",
+    defaultBinding: { key: "g", mod: true, shift: true },
+  },
+  {
+    id: "timeline.pingSiblings",
+    scope: "timeline",
+    description: "Ping sibling instances",
+    defaultBinding: { key: "h" },
+  },
 ];
 
 // -- Helpers ------------------------------------------------------------------
