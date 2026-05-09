@@ -2,6 +2,7 @@ import { useAudioStore } from "@/stores/audio";
 import { useConfirm } from "@/stores/confirm-store";
 import { type LyricLine, useProjectStore } from "@/stores/project";
 import { cn } from "@/utils/cn";
+import { fillEmptyLinesWithInstance } from "@/views/timeline/fill-empty-lines-with-instance";
 import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
 import { instanceToTemplate } from "@/views/timeline/group-ops";
 import type { ClipboardData } from "@/views/timeline/selection-types";
@@ -85,8 +86,26 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
           toast.error("Could not derive instance template");
           return;
         }
-        const insertAt = hoveredLineIndex >= 0 ? hoveredLineIndex : undefined;
-        useProjectStore.getState().addInstance(groupId, template, Math.max(0, cursorTime), insertAt);
+        if (hoveredLineIndex < 0) {
+          toast.error(
+            `Drop on ${template.length} empty line${template.length === 1 ? "" : "s"} to paste this instance`,
+          );
+          return;
+        }
+        const fill = fillEmptyLinesWithInstance({
+          lines,
+          groupId,
+          template,
+          startIndex: hoveredLineIndex,
+          instanceStart: Math.max(0, cursorTime),
+        });
+        if (!fill.ok) {
+          toast.error(
+            `Need ${template.length} empty line${template.length === 1 ? "" : "s"} starting here to paste this instance`,
+          );
+          return;
+        }
+        useProjectStore.getState().setLinesWithHistory(fill.updatedLines!);
         useTimelineStore.getState().setPasteMode({ status: "idle" });
         useTimelineStore.getState().clearSelection();
         toast.success("Linked instance added");
