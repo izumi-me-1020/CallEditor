@@ -9,10 +9,11 @@ import {
   IconEye,
   IconHandClick,
   IconKeyboard,
+  IconLayoutRows,
+  IconLink,
   IconMusic,
   IconPencil,
   IconRocket,
-  IconLayoutRows,
 } from "@tabler/icons-react";
 import { useState } from "react";
 
@@ -145,6 +146,7 @@ const HELP_SECTIONS: HelpSectionDef[] = [
   { id: "editing", label: "Editing Lyrics", icon: IconPencil },
   { id: "syncing", label: "Syncing", icon: IconHandClick },
   { id: "timeline", label: "Timeline", icon: IconLayoutRows },
+  { id: "groups", label: "Linked groups", icon: IconLink },
   { id: "preview", label: "Preview", icon: IconEye },
   { id: "exporting", label: "Exporting", icon: IconDownload },
 ];

@@ -394,32 +394,10 @@ const TimelineSection: React.FC = () => (
 
     <div>
       <h4 className={HEADING}>Linked groups</h4>
-      <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
-        <li>
-          Select a contiguous range of lines and press <strong>{MOD_KEY} + G</strong> to group them. The lines now share
-          a template: edits to text, agents, or splits propagate to every linked instance.
-        </li>
-        <li>
-          Select all words of one instance and press <strong>{MOD_KEY} + D</strong> to add a new linked instance at the
-          playhead. Structure and timing are inherited; subsequent timing edits stay local to that instance.
-        </li>
-        <li>
-          Drag the group banner horizontally to shift the entire instance in time. Sibling instances are unaffected.
-          Click the banner to select all words in the instance.
-        </li>
-        <li>
-          Hover the "1 of N" badge to ping every linked sibling so you can see at a glance where they sit on the
-          timeline.
-        </li>
-        <li>
-          Click the chevron on the banner to collapse the instance to a single strip. A subtle progress fill shows
-          playback position while collapsed.
-        </li>
-        <li>
-          Right-click any line in a group and choose <strong>Detach this line</strong> to make a single line diverge
-          (e.g. an extra "yeah" in the final chorus) without losing the rest of the link.
-        </li>
-      </ul>
+      <p className={PROSE}>
+        Mark repeating sections (chorus, verse, bridge) as a group so structural edits fan out to every instance. See
+        the <strong>Linked groups</strong> section in this help modal for the full walkthrough.
+      </p>
     </div>
 
     <div>
@@ -453,6 +431,152 @@ const TimelineSection: React.FC = () => (
           Press <strong>N</strong> with a word selected to insert a new empty line below it.
         </li>
         <li>The info panel at the bottom shows details for the selected word, including background text editing.</li>
+      </ul>
+    </div>
+  </div>
+);
+
+// -- Linked Groups ------------------------------------------------------------
+
+const GroupsSection: React.FC = () => (
+  <div className="space-y-5">
+    <p className={PROSE}>
+      A group is a set of contiguous lines that repeat in the song (chorus, verse, bridge). Group them once and edits to
+      text, splits, agents, or background vocals propagate to every instance. Each instance still owns its own absolute
+      timing, so you can shift one chorus by 5 seconds without moving the others.
+    </p>
+
+    <div>
+      <h4 className={HEADING}>Why bother</h4>
+      <p className={PROSE}>
+        If your song repeats the chorus four times, you'd otherwise edit four copies of every lyric tweak. Group them
+        and a fix in one place lands in all four. Same for splitting a syllable, switching a word to background vocals,
+        or reassigning an agent.
+      </p>
+    </div>
+
+    <div>
+      <h4 className={HEADING}>Creating a group</h4>
+      <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
+        <li>Select the lines you want to group (click, then Shift-click the last line, or drag down the gutter).</li>
+        <li>
+          Press <strong>{MOD_KEY} + G</strong>, or right-click any selected line and pick "Group N lines".
+        </li>
+        <li>
+          If your selection skips a line by accident, Composer fills the gap and tells you so in the toast. If a line in
+          the gap already belongs to another group, it refuses and asks you to fix the selection.
+        </li>
+        <li>The new group gets a color from the palette and shows up as a banner above the first line.</li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className={HEADING}>Adding more instances</h4>
+      <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
+        <li>
+          Click the banner of the instance you want to copy, then press <strong>{MOD_KEY} + D</strong>. A new linked
+          instance lands at the playhead.
+        </li>
+        <li>Or right-click any banner and pick "Add instance at playhead". Same result.</li>
+        <li>
+          You can also copy all words of an instance ({MOD_KEY} + C with the banner selected), then paste ({MOD_KEY} +
+          V) somewhere else. The paste creates a new linked instance at the cursor row, not a loose word dump.
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className={HEADING}>The banner</h4>
+      <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
+        <li>
+          <strong>Click anywhere on it</strong>: selects every word in the instance. Use this before arrow-key nudge,
+          {MOD_KEY} + C, etc.
+        </li>
+        <li>
+          <strong>Drag horizontally</strong>: shifts the entire instance in time. Sibling instances stay put. The lines
+          move along with the banner so you can line things up by eye.
+        </li>
+        <li>
+          <strong>Click the chevron</strong>: collapses the instance into a single strip. A faint progress bar fills the
+          strip during playback so you can still tell where you are in the section.
+        </li>
+        <li>
+          <strong>Right-click</strong>: opens the group menu (rename, recolor, add instance, shift to playhead, detach
+          instance, delete group).
+        </li>
+        <li>
+          <strong>Double-click the label</strong>: jumps straight into rename mode.
+        </li>
+        <li>
+          <strong>Hover the "1 of N" badge</strong>: every sibling instance pings briefly with the group's color so you
+          can spot them on the timeline.
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className={HEADING}>What propagates and what doesn't</h4>
+      <p className={PROSE}>Linked across all instances:</p>
+      <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
+        <li>Word text and line text edits.</li>
+        <li>Agent assignments.</li>
+        <li>Background vocal text.</li>
+        <li>Word splits and merges (sibling timing scales proportionally to its own span).</li>
+        <li>Moving a word between main and background tracks.</li>
+      </ul>
+      <p className={`${PROSE} mt-2`}>Stays local to one instance:</p>
+      <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
+        <li>Absolute begin and end times for each word.</li>
+        <li>Banner shifts and arrow-key nudge.</li>
+        <li>Anything you do on a line that's been detached.</li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className={HEADING}>Detaching</h4>
+      <p className={PROSE}>
+        Real songs aren't perfectly repetitive. The last chorus might add an extra "yeah" or land on a different agent.
+        Two ways to break the link:
+      </p>
+      <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
+        <li>
+          Right-click a line in the gutter and pick <strong>Detach this line</strong>. That single line stops syncing
+          with siblings; everything else stays linked.
+        </li>
+        <li>
+          Right-click the banner and pick <strong>Detach instance</strong>. The whole instance becomes plain standalone
+          lines. Other instances keep their group.
+        </li>
+      </ul>
+      <p className={`${PROSE} mt-2`}>
+        Both are undoable: the toast that appears has an Undo button, or press {MOD_KEY} + Z.
+      </p>
+    </div>
+
+    <div>
+      <h4 className={HEADING}>Deleting a group</h4>
+      <p className={PROSE}>
+        Right-click any banner and pick <strong>Delete group</strong>. A confirmation modal warns you that all instances
+        will become standalone (text and timing survive, they just stop syncing). You can disable the confirmation in
+        Settings if you'd rather skip it every time.
+      </p>
+    </div>
+
+    <div>
+      <h4 className={HEADING}>How groups look outside the Timeline</h4>
+      <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
+        <li>
+          <strong>Edit view</strong>: a colored divider with the group name and instance count appears before each
+          instance, plus a thin closing line at the end.
+        </li>
+        <li>
+          <strong>Sync view</strong>: the gutter cell shows a chain icon and an instance counter so you know which
+          chorus you're syncing.
+        </li>
+        <li>
+          <strong>TTML export</strong>: groups round-trip via a custom <code>composer:groups</code> registry plus
+          per-line attributes. Other TTML players ignore them; Composer reads them back exactly as saved.
+        </li>
       </ul>
     </div>
   </div>
@@ -532,6 +656,8 @@ const HelpSectionContent: React.FC<{ section: string }> = ({ section }) => {
       return <SyncSection />;
     case "timeline":
       return <TimelineSection />;
+    case "groups":
+      return <GroupsSection />;
     case "preview":
       return <PreviewSection />;
     case "exporting":
