@@ -99,13 +99,25 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
           startIndex: hoveredLineIndex,
           instanceStart: Math.max(0, cursorTime),
         });
-        if (!fill.ok) {
-          toast.error(
-            `Need ${template.length} empty line${template.length === 1 ? "" : "s"} starting here to paste this instance`,
-          );
+        if (fill.ok) {
+          useProjectStore.getState().setLinesWithHistory(fill.updatedLines!);
+          useTimelineStore.getState().setPasteMode({ status: "idle" });
+          useTimelineStore.getState().clearSelection();
+          toast.success("Linked instance added");
           return;
         }
-        useProjectStore.getState().setLinesWithHistory(fill.updatedLines!);
+        const ok = await confirm({
+          title: `Insert ${template.length} new row${template.length === 1 ? "" : "s"} here?`,
+          description: `There ${template.length === 1 ? "isn't an empty row" : `aren't ${template.length} empty rows`} at this position. Inserting will shift every row below down by ${template.length}.`,
+          confirmLabel: `Insert and paste`,
+          cancelLabel: "Cancel",
+          variant: "destructive",
+        });
+        if (!ok) {
+          useTimelineStore.getState().setPasteMode({ status: "idle" });
+          return;
+        }
+        useProjectStore.getState().addInstance(groupId, template, Math.max(0, cursorTime), hoveredLineIndex);
         useTimelineStore.getState().setPasteMode({ status: "idle" });
         useTimelineStore.getState().clearSelection();
         toast.success("Linked instance added");
