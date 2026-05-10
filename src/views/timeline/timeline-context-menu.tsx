@@ -7,7 +7,7 @@ import { useSettingsStore } from "@/stores/settings";
 import { formatKey } from "@/ui/help-modal";
 import { GROUP_COLORS } from "@/utils/group-colors";
 import { showGroupActionToast } from "@/utils/group-toast";
-import { isMac } from "@/utils/platform";
+import { isMac, MOD_KEY } from "@/utils/platform";
 import { convertLineToWord } from "@/utils/sync-helpers";
 import { findInsertionSlot, normalizeTrailingSpaces } from "@/utils/word-spaces";
 import { copyInstanceToClipboardAndPreview } from "@/views/timeline/copy-instance-to-clipboard";
@@ -450,7 +450,7 @@ const TimelineContextMenu: React.FC = () => {
       toast.success("Linked instance added at playhead");
     } else {
       copyInstanceToClipboardAndPreview(projectLines, groupId, instanceIdx);
-      toast("No room at the playhead. Cmd+V to paste somewhere clear.");
+      toast(`No room at the playhead. ${MOD_KEY}+V to paste somewhere clear.`);
     }
     clearContextMenu();
   }, [contextMenu, clearContextMenu]);

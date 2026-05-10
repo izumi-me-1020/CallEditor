@@ -1,11 +1,8 @@
 import { useSettingsStore } from "@/stores/settings";
 import { ShortcutSection, SHORTCUT_SECTIONS } from "@/ui/help-modal";
-import { isMac } from "@/utils/platform";
+import { ALT_KEY, MOD_KEY } from "@/utils/platform";
 
 // -- Constants ----------------------------------------------------------------
-
-const MOD_KEY = isMac ? "Cmd" : "Ctrl";
-const ALT_KEY = isMac ? "Option" : "Alt";
 
 const PROSE = "text-sm text-composer-text-secondary leading-relaxed";
 const HEADING = "text-sm font-medium";

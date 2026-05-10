@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDivergenceStore } from "@/stores/divergence-store";
 import { Button } from "@/ui/button";
 import { Modal } from "@/ui/modal";
+import { MOD_KEY } from "@/utils/platform";
 
 // -- Component ----------------------------------------------------------------
 
@@ -31,13 +32,18 @@ const DivergenceModalHost: React.FC = () => {
           {siblingNoun} will be affected.
           <br />
           <br />
-          <strong>Apply to all</strong> propagates the new structure to every instance, preserving each instance's
-          existing per-word timings wherever possible.
+          <strong>Apply to all</strong> (recommended)
+          <br />
+          Mirrors the new word structure across every instance. Words that didn't actually change keep their existing
+          timing, so per-instance rhythms you've already tuned stay intact. Only the split or merged word's slot gets
+          re-divided.
           <br />
           <br />
-          <strong>Detach</strong> keeps the change on this line only and unlinks it from the group.
+          <strong>Detach</strong>
+          <br />
+          Keeps the change on this line only and unlinks it from the group. Other instances stay exactly as they were.
         </div>
-        <div className="text-xs text-composer-text-muted">This can be undone with Cmd+Z.</div>
+        <div className="text-xs text-composer-text-muted">This can be undone with {MOD_KEY}+Z.</div>
 
         <div className="flex items-center justify-between pt-2">
           <label className="flex items-center gap-2 text-xs text-composer-text-muted cursor-pointer select-none">
@@ -47,7 +53,7 @@ const DivergenceModalHost: React.FC = () => {
               onChange={(e) => setDontAskAgain(e.target.checked)}
               className="h-3.5 w-3.5 rounded accent-composer-accent cursor-pointer"
             />
-            Don't ask again (use this choice next time)
+            Don't ask again
           </label>
           <div className="flex gap-2 select-none">
             <Button variant="secondary" size="sm" onClick={() => close("cancel")}>

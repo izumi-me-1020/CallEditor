@@ -5,6 +5,7 @@ import { type LyricLine, useProjectStore } from "@/stores/project";
 import { useSettingsStore } from "@/stores/settings";
 import { showGroupActionToast } from "@/utils/group-toast";
 import { handleWordChangeWithDivergenceCheck } from "@/utils/word-divergence-flow";
+import { MOD_KEY } from "@/utils/platform";
 import { convertLineToWord } from "@/utils/sync-helpers";
 import { findMatchingShortcut } from "@/utils/shortcut-matcher";
 import { copyInstanceToClipboardAndPreview } from "@/views/timeline/copy-instance-to-clipboard";
@@ -517,7 +518,7 @@ function useTimelineKeyboard(
             toast.success("Linked instance added at playhead");
           } else {
             copyInstanceToClipboardAndPreview(projectState.lines, groupId, sourceInstanceIdx);
-            toast("No room at the playhead. Cmd+V to paste somewhere clear.");
+            toast(`No room at the playhead. ${MOD_KEY}+V to paste somewhere clear.`);
           }
           break;
         }
