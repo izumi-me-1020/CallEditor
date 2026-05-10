@@ -64,7 +64,7 @@ function proportionalRemap(sourceAfter: WordTiming[], siblingWords: WordTiming[]
 // chosen ratios.
 //
 // Returns null when sibling has structurally diverged from sourceBefore (different
-// word count) — caller should fall back to proportional remap or handle separately.
+// word count). Caller should fall back to proportional remap or handle separately.
 function applySiblingWords(
   sourceAfter: WordTiming[] | undefined,
   sourceBefore: WordTiming[] | undefined,

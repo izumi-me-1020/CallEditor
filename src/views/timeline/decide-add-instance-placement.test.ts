@@ -24,7 +24,7 @@ const wordSyncedLine = (id: string, begin: number, end: number): LyricLine => ({
   words: [{ text: "x", begin, end }],
 });
 
-// A grouped + word-timed line (a "real" group instance line) — never fillable
+// A grouped + word-timed line (a "real" group instance line): never fillable
 const groupedTimedLine = (id: string, gid: string, instIdx: number, begin: number, end: number): LyricLine => ({
   id,
   text: "x",
@@ -35,7 +35,7 @@ const groupedTimedLine = (id: string, gid: string, instIdx: number, begin: numbe
   words: [{ text: "x", begin, end }],
 });
 
-// A standalone untimed empty placeholder (no groupId, no words, no begin/end) — fillable
+// A standalone untimed empty placeholder (no groupId, no words, no begin/end): fillable
 const emptyPlaceholderLine = (id: string, text = ""): LyricLine => ({ id, text, agentId: "v1" });
 
 describe("templateDuration", () => {
@@ -126,7 +126,7 @@ describe("decideAddInstancePlacement · fill path (matches paste-as-instance)", 
       groupedTimedLine("B1", "verse", 0, 30, 40),
     ];
     const result = decideAddInstancePlacement({ lines, groupId: "cannon", template, playheadTime: 20 });
-    // Falls through to insert path — gap from 10..30 fits a 1s template
+    // Falls through to insert path: gap from 10..30 fits a 1s template
     expect(result.kind).toBe("insert");
   });
 
@@ -144,7 +144,7 @@ describe("decideAddInstancePlacement · fill path (matches paste-as-instance)", 
     const lines: LyricLine[] = [
       groupedTimedLine("A1", "cannon", 0, 0, 10),
       emptyPlaceholderLine("P1", "x"),
-      // Only one empty row, then a real row — template needs 2 consecutive empties
+      // Only one empty row, then a real row: template needs 2 consecutive empties
       groupedTimedLine("B1", "verse", 0, 30, 40),
     ];
     const result = decideAddInstancePlacement({

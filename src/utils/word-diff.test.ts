@@ -59,7 +59,7 @@ describe("applySiblingWords · split preserves unchanged-word timing", () => {
   it("split: 'love' → 'lo'+'ve' preserves sibling 'I' and 'you' timings exactly", () => {
     // The headline scenario: source split 'love' 50/50; sibling has different
     // per-word rhythm than source. Smart sync MUST keep sibling 'I' at 30..30.4
-    // and 'you' at 30.7..31.2 — not retime them via proportional remap.
+    // and 'you' at 30.7..31.2, not retime them via proportional remap.
     const sourceBefore: WordTiming[] = [
       { text: "I ", begin: 0, end: 0.3 },
       { text: "love ", begin: 0.3, end: 0.6 },

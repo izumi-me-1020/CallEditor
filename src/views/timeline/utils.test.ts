@@ -367,7 +367,7 @@ describe("getEffectiveRows", () => {
     expect(rows.map((r) => r.kind)).toEqual(["line", "line"]);
   });
 
-  it("emits a header for a line-synced instance (begin/end set, no words) — that's real timing", () => {
+  it("emits a header for a line-synced instance (begin/end set, no words), that's real timing", () => {
     const lines: LyricLine[] = [l("a", { groupId: "g1", instanceIdx: 0, templateLineIdx: 0, begin: 5, end: 7 })];
     const rows = getEffectiveRows(lines);
     expect(rows[0].kind).toBe("group-header");
@@ -405,7 +405,7 @@ describe("getEffectiveRows", () => {
   });
 
   it("suppresses header for partially-empty instance only when ALL of its lines have no timing", () => {
-    // Instance has line A timed and line B empty — header still appears (instance is partially alive)
+    // Instance has line A timed and line B empty: header still appears (instance is partially alive)
     const lines: LyricLine[] = [
       l("a", { groupId: "g1", instanceIdx: 0, templateLineIdx: 0, words: [{ text: "x", begin: 5, end: 6 }] }),
       l("b", { groupId: "g1", instanceIdx: 0, templateLineIdx: 1 }),
@@ -494,7 +494,7 @@ describe("instanceTimingBounds", () => {
         end: 200,
         words: [{ text: "hello", begin: 5, end: 6 }],
       },
-      // Truly line-synced — no words, line.begin/end is the source of truth
+      // Truly line-synced: no words, line.begin/end is the source of truth
       { id: "b", text: "y", agentId: "v1", begin: 10, end: 12 },
     ];
     const bounds = instanceTimingBounds(lines);

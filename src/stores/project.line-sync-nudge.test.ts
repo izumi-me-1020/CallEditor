@@ -62,7 +62,7 @@ describe("project store · line-sync nudge granularity", () => {
 //
 // User mental model: clicking a banner selects all the words in that instance.
 // Pressing arrow then nudges all those words by the same delta. The user
-// experiences this as "the whole instance shifted" — but the underlying code
+// experiences this as "the whole instance shifted", but the underlying code
 // is just the regular nudge handler operating on every selected word at once.
 // These tests pin that behavior so future refactors of the nudge path can't
 // silently break the instance-shift use case.
@@ -153,7 +153,7 @@ describe("instance shift = nudging every selected word at once", () => {
     store.updateLineWithHistory("A1", { words: [{ text: "x", begin: 10.5, end: 11.5 }] });
     const after = useProjectStore.getState().lines;
     expect(after.find((l) => l.id === "A1")?.words?.[0].begin).toBeCloseTo(10.5);
-    // Instance 1 unchanged — proves shift is per-selection, not group-wide
+    // Instance 1 unchanged, proving shift is per-selection, not group-wide
     expect(after.find((l) => l.id === "A2")?.words?.[0].begin).toBe(30);
   });
 });

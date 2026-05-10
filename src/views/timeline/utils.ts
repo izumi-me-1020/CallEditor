@@ -137,8 +137,8 @@ function getEffectiveRows(lines: LyricLine[]): EffectiveRow[] {
     if (first.groupId !== undefined && first.instanceIdx !== undefined) {
       // Skip the header for instances with no timed content. Without this
       // guard, instanceTimingBounds returns its { 0, 0 } no-finite-value
-      // fallback and the banner renders at x=0 with min-width — confusing
-      // because there's nothing actually placed at time 0.
+      // fallback and the banner renders at x=0 with min-width, which is
+      // confusing because there's nothing actually placed at time 0.
       const hasAnyTiming = slice.some(
         (line) =>
           (line.words?.length ?? 0) > 0 ||
@@ -313,7 +313,7 @@ function partitionNudgeSelections(
 // Runs both nudgeSelectedWords and shiftLineSyncedRows under a single shared
 // clamp so that mixed instances (some line-synced rows + some word-synced rows
 // in the same selection) move uniformly. Without this, the two helpers would
-// each compute their own clamp and could apply different deltas — producing
+// each compute their own clamp and could apply different deltas, producing
 // asymmetric instance shifts that stretch the group banner.
 function shiftSelectionsTogether(
   rawLines: LyricLine[],

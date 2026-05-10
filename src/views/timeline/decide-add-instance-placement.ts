@@ -68,13 +68,13 @@ interface DecideInput {
 // Decide where an Add-Instance-At-Playhead action should land.
 //
 // Resolution order (mirrors paste-as-instance):
-//   1. **Fill** — if there are template.length consecutive empty fillable rows
+//   1. **Fill**: if there are template.length consecutive empty fillable rows
 //      starting at the natural target row (first row after the last timed line
 //      ending at or before the playhead, or row 0 if no such line), fill them
 //      in place. Empty fillable = no groupId AND no words.
-//   2. **Insert** — if the playhead falls in a clean time gap large enough to
+//   2. **Insert**: if the playhead falls in a clean time gap large enough to
 //      fit the template duration, insert new rows there.
-//   3. **Fallback** — playhead is inside an existing line, the gap is too
+//   3. **Fallback**: playhead is inside an existing line, the gap is too
 //      small, or the playhead is past the last timed line. Caller should
 //      route into the paste-preview clipboard flow.
 //
@@ -100,7 +100,7 @@ function decideAddInstancePlacement({ lines, groupId, template, playheadTime }: 
   }
   const fillAnchor = prevTimedListIndex + 1;
 
-  // 1. Try the fill path first — same primary behavior as paste-as-instance.
+  // 1. Try the fill path first (same primary behavior as paste-as-instance).
   if (template.length > 0 && fillAnchor + template.length <= lines.length) {
     const fill = fillEmptyLinesWithInstance({
       lines: lines as LyricLine[],
