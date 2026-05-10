@@ -124,7 +124,6 @@ interface ProjectActions {
   addInstance: (groupId: string, structure: LineTemplate[], instanceStart: number, insertAtIndex?: number) => void;
   removeInstance: (groupId: string, instanceIdx: number) => void;
   detachLine: (lineId: string) => void;
-  propagateLinkedEdit: (groupId: string, templateLineIdx: number, lineUpdates: Partial<LyricLine>) => void;
   shiftInstance: (groupId: string, instanceIdx: number, deltaSeconds: number) => void;
   applyWordCountChange: (
     lineId: string,
@@ -652,18 +651,6 @@ const useProjectStore = create<ProjectState & ProjectActions>((set, get) => ({
               }
             : line,
         ),
-      }),
-    ),
-
-  propagateLinkedEdit: (groupId, templateLineIdx, lineUpdates) =>
-    set((state) =>
-      commitHistory(state, {
-        lines: state.lines.map((line) => {
-          if (line.groupId !== groupId) return line;
-          if (line.templateLineIdx !== templateLineIdx) return line;
-          if (line.detached) return line;
-          return { ...line, ...lineUpdates };
-        }),
       }),
     ),
 

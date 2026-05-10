@@ -328,59 +328,6 @@ describe("project store · instance mutators", () => {
   });
 });
 
-describe("project store · propagateLinkedEdit", () => {
-  function seedTwoInstances() {
-    useProjectStore.getState().addGroup(seedGroup("g1"));
-    useProjectStore.setState({
-      lines: [
-        { id: "a0", text: "I love you", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
-        { id: "b0", text: "yeah", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 1 },
-        { id: "a1", text: "I love you", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 0 },
-        { id: "b1", text: "yeah", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 1 },
-      ],
-    });
-  }
-
-  it("applies updates to all sibling lines with the same templateLineIdx", () => {
-    seedTwoInstances();
-
-    useProjectStore.getState().propagateLinkedEdit("g1", 0, { text: "I really love you" });
-
-    const lines = useProjectStore.getState().lines;
-    expect(lines.find((l) => l.id === "a0")?.text).toBe("I really love you");
-    expect(lines.find((l) => l.id === "a1")?.text).toBe("I really love you");
-    expect(lines.find((l) => l.id === "b0")?.text).toBe("yeah");
-    expect(lines.find((l) => l.id === "b1")?.text).toBe("yeah");
-  });
-
-  it("skips detached lines", () => {
-    seedTwoInstances();
-    useProjectStore.setState((state) => ({
-      lines: state.lines.map((l) => (l.id === "a1" ? { ...l, detached: true } : l)),
-    }));
-
-    useProjectStore.getState().propagateLinkedEdit("g1", 0, { text: "I really love you" });
-
-    const lines = useProjectStore.getState().lines;
-    expect(lines.find((l) => l.id === "a0")?.text).toBe("I really love you");
-    expect(lines.find((l) => l.id === "a1")?.text).toBe("I love you");
-  });
-
-  it("does not touch lines from other groups", () => {
-    seedTwoInstances();
-    useProjectStore.setState((state) => ({
-      lines: [
-        ...state.lines,
-        { id: "x", text: "verse line", agentId: "v1", groupId: "g2", instanceIdx: 0, templateLineIdx: 0 },
-      ],
-    }));
-
-    useProjectStore.getState().propagateLinkedEdit("g1", 0, { text: "changed" });
-
-    expect(useProjectStore.getState().lines.find((l) => l.id === "x")?.text).toBe("verse line");
-  });
-});
-
 describe("project store · shiftInstance", () => {
   it("shifts begin/end on lines and words for the target instance only", () => {
     useProjectStore.getState().addGroup(seedGroup("g1"));
