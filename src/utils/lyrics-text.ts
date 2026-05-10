@@ -76,4 +76,4 @@ function textToLyricLines(text: string, defaultAgentId: string, existingLines: L
 
 // -- Exports ------------------------------------------------------------------
 
-export { textToLyricLines };
+export { remapWordTextsPreservingTiming, textToLyricLines };

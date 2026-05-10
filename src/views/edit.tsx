@@ -5,7 +5,7 @@ import { Button } from "@/ui/button";
 import { Popover } from "@/ui/popover";
 import { Scroll } from "@/ui/scroll";
 import { type ParseResult, parseLyricsFile } from "@/utils/lyrics-parsers";
-import { textToLyricLines } from "@/utils/lyrics-text";
+import { remapWordTextsPreservingTiming, textToLyricLines } from "@/utils/lyrics-text";
 import { stripSplitCharacter } from "@/utils/split-character";
 import { AgentManager } from "@/views/edit/agent-manager";
 import {
@@ -323,7 +323,19 @@ const EditPanel: React.FC = () => {
   }, []);
 
   const handleBackgroundChange = useCallback((lineId: string, text: string) => {
-    useProjectStore.getState().updateLineWithHistory(lineId, { backgroundText: text || undefined });
+    const newBgText = text || undefined;
+    const target = useProjectStore.getState().lines.find((l) => l.id === lineId);
+
+    const updates: Partial<LyricLine> = { backgroundText: newBgText };
+    if (newBgText && target?.backgroundWords?.length) {
+      const remapped = remapWordTextsPreservingTiming(target.backgroundWords, newBgText);
+      if (remapped) updates.backgroundWords = remapped;
+      else updates.backgroundWords = undefined;
+    } else if (!newBgText) {
+      updates.backgroundWords = undefined;
+    }
+
+    useProjectStore.getState().updateLineWithHistory(lineId, updates);
   }, []);
 
   const handleLineSelect = useCallback(
