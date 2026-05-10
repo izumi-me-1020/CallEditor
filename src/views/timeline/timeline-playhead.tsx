@@ -1,5 +1,6 @@
 import { useAudioStore } from "@/stores/audio";
 import { useProjectStore } from "@/stores/project";
+import { getBannerNodes } from "@/views/timeline/banner-progress-registry";
 import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
 import { GUTTER_WIDTH, useTimelineStore } from "@/views/timeline/timeline-store";
 import { computeRowLayout, getLineTiming } from "@/views/timeline/utils";
@@ -125,8 +126,8 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
         playheadRef.current.style.height = `${container.scrollHeight}px`;
       }
 
-      // Update progress fill on collapsed banner DOM nodes
-      const banners = document.querySelectorAll<HTMLElement>("[data-banner-progress]");
+      // Update progress fill on collapsed banner DOM nodes (registered via mount)
+      const banners = getBannerNodes();
       for (const banner of banners) {
         const startStr = banner.dataset.instanceStart;
         const endStr = banner.dataset.instanceEnd;

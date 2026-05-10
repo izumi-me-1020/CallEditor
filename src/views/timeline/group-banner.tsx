@@ -1,11 +1,12 @@
 import { type LinkGroup, useProjectStore } from "@/stores/project";
 import { buildGroupPingVariants } from "@/utils/animationVariants";
 import { cn } from "@/utils/cn";
+import { registerBanner } from "@/views/timeline/banner-progress-registry";
 import { useTimelineStore } from "@/views/timeline/timeline-store";
 import { getWordsInInstance } from "@/views/timeline/utils";
 import { IconChevronDown, IconLink } from "@tabler/icons-react";
 import { motion } from "motion/react";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // -- Types ---------------------------------------------------------------------
 
@@ -45,6 +46,13 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
   const [dragOffsetPx, setDragOffsetPx] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStateRef = useRef<{ startX: number; moved: boolean; cleanup: () => void } | null>(null);
+  const bannerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const node = bannerRef.current;
+    if (!node) return;
+    return registerBanner(node);
+  }, []);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -158,6 +166,7 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
 
   return (
     <motion.div
+      ref={bannerRef}
       data-banner-progress=""
       data-instance-key={`${group.id}:${instanceIdx}`}
       data-instance-start={instanceStart}
