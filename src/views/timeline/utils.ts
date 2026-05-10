@@ -289,6 +289,44 @@ function partitionNudgeSelections(
   return { wordSynced, lineSynced };
 }
 
+// Runs both nudgeSelectedWords and shiftLineSyncedRows under a single shared
+// clamp so that mixed instances (some line-synced rows + some word-synced rows
+// in the same selection) move uniformly. Without this, the two helpers would
+// each compute their own clamp and could apply different deltas — producing
+// asymmetric instance shifts that stretch the group banner.
+function shiftSelectionsTogether(
+  rawLines: LyricLine[],
+  partitioned: PartitionedSelections,
+  requestedDelta: number,
+  duration: number,
+): NudgeResult {
+  if (requestedDelta === 0) return { appliedDelta: 0, updates: [] };
+  const wordHasSelection = partitioned.wordSynced.length > 0;
+  const lineHasSelection = partitioned.lineSynced.length > 0;
+  if (!wordHasSelection && !lineHasSelection) return { appliedDelta: 0, updates: [] };
+  const direction = requestedDelta < 0 ? -1 : 1;
+
+  const wordProbe = nudgeSelectedWords(rawLines, partitioned.wordSynced, requestedDelta, duration);
+  const lineProbe = shiftLineSyncedRows(rawLines, partitioned.lineSynced, requestedDelta, duration);
+  const wordMag = wordHasSelection ? Math.abs(wordProbe.appliedDelta) : Number.POSITIVE_INFINITY;
+  const lineMag = lineHasSelection ? Math.abs(lineProbe.appliedDelta) : Number.POSITIVE_INFINITY;
+  const unifiedMag = Math.min(wordMag, lineMag, Math.abs(requestedDelta));
+  if (unifiedMag === 0) return { appliedDelta: 0, updates: [] };
+
+  const unifiedDelta = direction * unifiedMag;
+
+  const wordFinal =
+    !wordHasSelection || Math.abs(wordProbe.appliedDelta) === unifiedMag
+      ? wordProbe
+      : nudgeSelectedWords(rawLines, partitioned.wordSynced, unifiedDelta, duration);
+  const lineFinal =
+    !lineHasSelection || Math.abs(lineProbe.appliedDelta) === unifiedMag
+      ? lineProbe
+      : shiftLineSyncedRows(rawLines, partitioned.lineSynced, unifiedDelta, duration);
+
+  return { appliedDelta: unifiedDelta, updates: [...wordFinal.updates, ...lineFinal.updates] };
+}
+
 function shiftLineSyncedRows(
   rawLines: LyricLine[],
   selections: ReadonlyArray<NudgeSelection>,
@@ -411,6 +449,7 @@ export {
   nudgeSelectedWords,
   partitionNudgeSelections,
   shiftLineSyncedRows,
+  shiftSelectionsTogether,
 };
 export type {
   EffectiveRow,

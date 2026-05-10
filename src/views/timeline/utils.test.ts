@@ -15,6 +15,7 @@ import {
   instanceTimingBounds,
   partitionNudgeSelections,
   shiftLineSyncedRows,
+  shiftSelectionsTogether,
 } from "./utils";
 
 // -- distributeWordsInLine -----------------------------------------------------
@@ -816,5 +817,131 @@ describe("shiftLineSyncedRows", () => {
     const result = shiftLineSyncedRows(lines, [{ lineId: "L1", type: "word", wordIndex: 0 }], 0.5, 60);
     expect(result.appliedDelta).toBe(0);
     expect(result.updates).toEqual([]);
+  });
+});
+
+// -- shiftSelectionsTogether (unified clamp) ----------------------------------
+
+describe("shiftSelectionsTogether", () => {
+  it("uses a single clamp across word-synced and line-synced partitions so a mixed instance moves uniformly", () => {
+    // The bug this prevents: nudgeSelectedWords clamps based on word-synced
+    // headroom, shiftLineSyncedRows clamps based on line-synced headroom.
+    // If they apply different deltas, the group banner stretches asymmetrically.
+    const lines: LyricLine[] = [
+      // Word-synced row whose first word starts at 0.05 → max left shift = 0.05
+      { id: "A", text: "x", agentId: "v1", words: [{ text: "x", begin: 0.05, end: 1 }] },
+      // Line-synced row with much more left headroom (begin=10)
+      { id: "B", text: "y", agentId: "v1", begin: 10, end: 11 },
+    ];
+    const partitioned = partitionNudgeSelections(lines, [
+      { lineId: "A", type: "word", wordIndex: 0 },
+      { lineId: "B", type: "word", wordIndex: 0 },
+    ]);
+    const result = shiftSelectionsTogether(lines, partitioned, -0.5, 60);
+    // Without the unified clamp: A shifts by -0.05, B shifts by -0.5 → asymmetric.
+    // With unified clamp: both shift by -0.05.
+    expect(result.appliedDelta).toBeCloseTo(-0.05);
+    const aUpdate = result.updates.find((u) => u.id === "A");
+    const bUpdate = result.updates.find((u) => u.id === "B");
+    expect((aUpdate?.updates.words as { begin: number }[])?.[0].begin).toBeCloseTo(0);
+    expect((bUpdate?.updates as { begin: number }).begin).toBeCloseTo(9.95);
+  });
+
+  it("works when only the line-synced partition has selections", () => {
+    const lines: LyricLine[] = [{ id: "A", text: "x", agentId: "v1", begin: 5, end: 6 }];
+    const partitioned = partitionNudgeSelections(lines, [{ lineId: "A", type: "word", wordIndex: 0 }]);
+    const result = shiftSelectionsTogether(lines, partitioned, 0.1, 60);
+    expect(result.appliedDelta).toBeCloseTo(0.1);
+    expect((result.updates[0].updates as { begin: number }).begin).toBeCloseTo(5.1);
+  });
+
+  it("works when only the word-synced partition has selections", () => {
+    const lines: LyricLine[] = [{ id: "A", text: "x", agentId: "v1", words: [{ text: "x", begin: 5, end: 6 }] }];
+    const partitioned = partitionNudgeSelections(lines, [{ lineId: "A", type: "word", wordIndex: 0 }]);
+    const result = shiftSelectionsTogether(lines, partitioned, 0.1, 60);
+    expect(result.appliedDelta).toBeCloseTo(0.1);
+    expect((result.updates[0].updates.words as { begin: number }[])[0].begin).toBeCloseTo(5.1);
+  });
+
+  it("returns empty when both partitions are empty", () => {
+    const result = shiftSelectionsTogether([], { wordSynced: [], lineSynced: [] }, 0.5, 60);
+    expect(result.appliedDelta).toBe(0);
+    expect(result.updates).toEqual([]);
+  });
+
+  it("clamps to the smaller of word-synced and line-synced headroom (line-synced wins)", () => {
+    const lines: LyricLine[] = [
+      // Word-synced row with tons of headroom on both sides
+      { id: "A", text: "x", agentId: "v1", words: [{ text: "x", begin: 30, end: 31 }] },
+      // Line-synced row with only 0.01s headroom on the right (close to duration=60)
+      { id: "B", text: "y", agentId: "v1", begin: 58.99, end: 59.99 },
+    ];
+    const partitioned = partitionNudgeSelections(lines, [
+      { lineId: "A", type: "word", wordIndex: 0 },
+      { lineId: "B", type: "word", wordIndex: 0 },
+    ]);
+    const result = shiftSelectionsTogether(lines, partitioned, 0.5, 60);
+    expect(result.appliedDelta).toBeCloseTo(0.01);
+  });
+
+  it("preserves direction when clamping (negative requestedDelta yields negative applied)", () => {
+    const lines: LyricLine[] = [{ id: "A", text: "x", agentId: "v1", words: [{ text: "x", begin: 0.05, end: 1 }] }];
+    const partitioned = partitionNudgeSelections(lines, [{ lineId: "A", type: "word", wordIndex: 0 }]);
+    const result = shiftSelectionsTogether(lines, partitioned, -0.5, 60);
+    expect(result.appliedDelta).toBeLessThan(0);
+    expect(result.appliedDelta).toBeCloseTo(-0.05);
+  });
+
+  it("yields a fully symmetric instance shift across all selected rows in a multi-line instance", () => {
+    // The user-reported bug: instance with all members selected, nudge left,
+    // header right edge stays affixed while left edge moves. Unified clamp prevents.
+    const lines: LyricLine[] = [
+      {
+        id: "L1",
+        text: "I love",
+        agentId: "v1",
+        groupId: "g1",
+        instanceIdx: 0,
+        templateLineIdx: 0,
+        words: [
+          { text: "I ", begin: 10, end: 10.3 },
+          { text: "love", begin: 10.3, end: 10.8 },
+        ],
+      },
+      {
+        id: "L2",
+        text: "all night",
+        agentId: "v1",
+        groupId: "g1",
+        instanceIdx: 0,
+        templateLineIdx: 1,
+        words: [
+          { text: "all ", begin: 11, end: 11.4 },
+          { text: "night", begin: 11.4, end: 12 },
+        ],
+      },
+    ];
+    const partitioned = partitionNudgeSelections(lines, [
+      { lineId: "L1", type: "word", wordIndex: 0 },
+      { lineId: "L1", type: "word", wordIndex: 1 },
+      { lineId: "L2", type: "word", wordIndex: 0 },
+      { lineId: "L2", type: "word", wordIndex: 1 },
+    ]);
+    const result = shiftSelectionsTogether(lines, partitioned, -0.5, 60);
+    expect(result.appliedDelta).toBeCloseTo(-0.5);
+    const l1Words = (result.updates.find((u) => u.id === "L1")?.updates.words ?? []) as {
+      begin: number;
+      end: number;
+    }[];
+    const l2Words = (result.updates.find((u) => u.id === "L2")?.updates.words ?? []) as {
+      begin: number;
+      end: number;
+    }[];
+    // Min begin shifts by exactly -0.5 (10 → 9.5)
+    expect(l1Words[0].begin).toBeCloseTo(9.5);
+    // Max end shifts by exactly -0.5 (12 → 11.5)
+    expect(l2Words[1].end).toBeCloseTo(11.5);
+    // Width preserved exactly
+    expect(l2Words[1].end - l1Words[0].begin).toBeCloseTo(2);
   });
 });
