@@ -503,8 +503,16 @@ function useTimelineKeyboard(
             toast.error("Could not derive instance template");
             break;
           }
-          const placement = decideAddInstancePlacement(projectState.lines, template, playheadTime);
-          if (placement.kind === "insert") {
+          const placement = decideAddInstancePlacement({
+            lines: projectState.lines,
+            groupId,
+            template,
+            playheadTime,
+          });
+          if (placement.kind === "fill") {
+            projectState.setLinesWithHistory(placement.updatedLines);
+            toast.success("Linked instance placed in empty rows");
+          } else if (placement.kind === "insert") {
             projectState.addInstance(groupId, template, placement.instanceStart, placement.insertAtIndex);
             toast.success("Linked instance added at playhead");
           } else {

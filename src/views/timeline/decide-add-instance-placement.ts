@@ -1,7 +1,14 @@
 import type { LineTemplate, LyricLine } from "@/stores/project";
+import { fillEmptyLinesWithInstance } from "@/views/timeline/fill-empty-lines-with-instance";
 import { instanceTimingBounds } from "@/views/timeline/utils";
 
 // -- Types --------------------------------------------------------------------
+
+interface PlacementFill {
+  kind: "fill";
+  updatedLines: LyricLine[];
+  instanceIdx: number;
+}
 
 interface PlacementInsert {
   kind: "insert";
@@ -14,7 +21,7 @@ interface PlacementFallback {
   reason: "playhead-inside-line" | "gap-too-small" | "past-last-line";
 }
 
-type Placement = PlacementInsert | PlacementFallback;
+type Placement = PlacementFill | PlacementInsert | PlacementFallback;
 
 // -- Pure helpers --------------------------------------------------------------
 
@@ -51,22 +58,29 @@ function lineTimeRange(line: LyricLine): { begin: number; end: number } | null {
   return { begin: bounds.start, end: bounds.end };
 }
 
+interface DecideInput {
+  lines: ReadonlyArray<LyricLine>;
+  groupId: string;
+  template: LineTemplate[];
+  playheadTime: number;
+}
+
 // Decide where an Add-Instance-At-Playhead action should land.
 //
-// Rules:
-//   - Find the line whose time range immediately precedes / contains the playhead.
-//   - If the playhead falls inside an existing line's time range → fallback (no room without overlap).
-//   - If the playhead falls in a gap and the gap is large enough to fit the
-//     source instance's duration → insert. List position lands after the gap's
-//     prev line (so the visual order matches time order).
-//   - If the playhead falls past the last line's end → fallback (don't silently
-//     append at end-of-list which is non-visible).
-//   - Untimed lines are skipped when computing neighbor ranges.
-function decideAddInstancePlacement(
-  lines: ReadonlyArray<LyricLine>,
-  template: LineTemplate[],
-  playheadTime: number,
-): Placement {
+// Resolution order (mirrors paste-as-instance):
+//   1. **Fill** — if there are template.length consecutive empty fillable rows
+//      starting at the natural target row (first row after the last timed line
+//      ending at or before the playhead, or row 0 if no such line), fill them
+//      in place. Empty fillable = no groupId AND no words.
+//   2. **Insert** — if the playhead falls in a clean time gap large enough to
+//      fit the template duration, insert new rows there.
+//   3. **Fallback** — playhead is inside an existing line, the gap is too
+//      small, or the playhead is past the last timed line. Caller should
+//      route into the paste-preview clipboard flow.
+//
+// Untimed lines (no words, no begin/end) are skipped when computing time
+// neighbors but are valid fill candidates if `isEmptyFillable`.
+function decideAddInstancePlacement({ lines, groupId, template, playheadTime }: DecideInput): Placement {
   const duration = templateDuration(template);
 
   // Build a list of timed-line entries with their original list index, sorted by time
@@ -78,26 +92,44 @@ function decideAddInstancePlacement(
   }
   timed.sort((a, b) => a.begin - b.begin);
 
-  // Empty project: insert at the start of the list, no gap constraint
+  // Find the natural fill anchor: first row after the last timed line ending
+  // at or before the playhead. If no timed line precedes the playhead, anchor = 0.
+  let prevTimedListIndex = -1;
+  for (const t of timed) {
+    if (t.end <= playheadTime) prevTimedListIndex = Math.max(prevTimedListIndex, t.index);
+  }
+  const fillAnchor = prevTimedListIndex + 1;
+
+  // 1. Try the fill path first — same primary behavior as paste-as-instance.
+  if (template.length > 0 && fillAnchor + template.length <= lines.length) {
+    const fill = fillEmptyLinesWithInstance({
+      lines: lines as LyricLine[],
+      groupId,
+      template,
+      startIndex: fillAnchor,
+      instanceStart: playheadTime,
+    });
+    if (fill.ok && fill.updatedLines && fill.instanceIdx !== undefined) {
+      return { kind: "fill", updatedLines: fill.updatedLines, instanceIdx: fill.instanceIdx };
+    }
+  }
+
+  // Empty project (no timed lines) and no fill path: insert at start.
   if (timed.length === 0) {
     return { kind: "insert", instanceStart: playheadTime, insertAtIndex: 0 };
   }
 
-  // Playhead inside any existing line's time range → fallback
+  // 2. Try insert in a clean time gap.
   for (const t of timed) {
     if (playheadTime >= t.begin && playheadTime <= t.end) {
       return { kind: "fallback", reason: "playhead-inside-line" };
     }
   }
-
-  // Playhead past the last timed line's end → fallback (don't silently land at end-of-list)
   const lastTimed = timed[timed.length - 1];
   if (playheadTime > lastTimed.end) {
     return { kind: "fallback", reason: "past-last-line" };
   }
 
-  // Playhead is in a gap. Find the gap's prev and next line entries.
-  // prev = last timed line whose end <= playhead; next = first timed line whose begin >= playhead.
   let prev: { index: number; begin: number; end: number } | null = null;
   let next: { index: number; begin: number; end: number } | null = null;
   for (const t of timed) {
@@ -114,7 +146,6 @@ function decideAddInstancePlacement(
     return { kind: "fallback", reason: "gap-too-small" };
   }
 
-  // Insert after prev's list-position. If no prev (playhead before first line), insert at index 0.
   const insertAtIndex = prev !== null ? prev.index + 1 : 0;
   return { kind: "insert", instanceStart: playheadTime, insertAtIndex };
 }
@@ -122,4 +153,4 @@ function decideAddInstancePlacement(
 // -- Exports ------------------------------------------------------------------
 
 export { decideAddInstancePlacement, templateDuration };
-export type { Placement, PlacementInsert, PlacementFallback };
+export type { Placement, PlacementFill, PlacementInsert, PlacementFallback };

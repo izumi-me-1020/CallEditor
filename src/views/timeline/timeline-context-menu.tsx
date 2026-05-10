@@ -436,8 +436,16 @@ const TimelineContextMenu: React.FC = () => {
       toast.error("Could not derive instance template");
       return;
     }
-    const placement = decideAddInstancePlacement(projectLines, template, playheadTime);
-    if (placement.kind === "insert") {
+    const placement = decideAddInstancePlacement({
+      lines: projectLines,
+      groupId,
+      template,
+      playheadTime,
+    });
+    if (placement.kind === "fill") {
+      useProjectStore.getState().setLinesWithHistory(placement.updatedLines);
+      toast.success("Linked instance placed in empty rows");
+    } else if (placement.kind === "insert") {
       useProjectStore.getState().addInstance(groupId, template, placement.instanceStart, placement.insertAtIndex);
       toast.success("Linked instance added at playhead");
     } else {
