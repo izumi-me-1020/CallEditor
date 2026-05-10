@@ -16,6 +16,7 @@ import {
   getNudgeAmount,
   type SyncState,
   convertLineToWord,
+  createBgWordsFromLine,
   getLineTiming,
   getSyncedLineCount,
   getSyncedWordCount,
@@ -88,6 +89,19 @@ const SyncPanel: React.FC = () => {
     setShowPulse,
     setIsPlaying,
   });
+
+  const updateLine = useProjectStore((s) => s.updateLine);
+
+  useEffect(() => {
+    for (const line of lines) {
+      if (line.backgroundText && !line.backgroundWords?.length) {
+        const bgWords = createBgWordsFromLine(line);
+        if (bgWords) {
+          updateLine(line.id, { backgroundWords: bgWords });
+        }
+      }
+    }
+  }, [lines, updateLine]);
 
   // RAF animation loop for smooth word progress updates (reads audioElement.currentTime directly)
   useEffect(() => {

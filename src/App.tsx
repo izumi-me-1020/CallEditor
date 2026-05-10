@@ -1,6 +1,5 @@
 import { AudioEngine } from "@/audio/audio-engine";
 import { AudioPlayer } from "@/audio/audio-player";
-import { useBackgroundWordsAutoInit } from "@/hooks/useBackgroundWordsAutoInit";
 import { useGlobalShortcuts } from "@/hooks/useGlobalShortcuts";
 import { usePersistence } from "@/hooks/usePersistence";
 import { useAudioStore } from "@/stores/audio";
@@ -44,7 +43,6 @@ const AppContent: React.FC = () => {
   }, [shouldShowTour]);
 
   usePersistence();
-  useBackgroundWordsAutoInit();
 
   const setHelpOpenCb = useCallback((open: boolean) => setHelpOpen(open), []);
   const setSettingsOpenCb = useCallback((open: boolean) => setSettingsOpen(open), []);

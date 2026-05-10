@@ -7,7 +7,6 @@ import { Scroll } from "@/ui/scroll";
 import { type ParseResult, parseLyricsFile } from "@/utils/lyrics-parsers";
 import { textToLyricLines } from "@/utils/lyrics-text";
 import { stripSplitCharacter } from "@/utils/split-character";
-import { createBgWordsFromLine } from "@/utils/sync-helpers";
 import { AgentManager } from "@/views/edit/agent-manager";
 import {
   detachInstancesFromLines,
@@ -324,23 +323,7 @@ const EditPanel: React.FC = () => {
   }, []);
 
   const handleBackgroundChange = useCallback((lineId: string, text: string) => {
-    const store = useProjectStore.getState();
-    const newBgText = text || undefined;
-
-    store.updateLineWithHistory(lineId, { backgroundText: newBgText });
-
-    if (!newBgText) return;
-
-    const wordUpdates: Array<{ id: string; updates: Partial<LyricLine> }> = [];
-    for (const line of useProjectStore.getState().lines) {
-      if (!line.backgroundText) continue;
-      if (line.backgroundWords?.length) continue;
-      const bgWords = createBgWordsFromLine(line);
-      if (bgWords) wordUpdates.push({ id: line.id, updates: { backgroundWords: bgWords } });
-    }
-    for (const update of wordUpdates) {
-      store.updateLine(update.id, update.updates);
-    }
+    useProjectStore.getState().updateLineWithHistory(lineId, { backgroundText: text || undefined });
   }, []);
 
   const handleLineSelect = useCallback(
