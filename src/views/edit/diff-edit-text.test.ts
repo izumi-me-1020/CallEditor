@@ -324,6 +324,48 @@ describe("findStructurallyImpactedInstances", () => {
     expect(findStructurallyImpactedInstances(old, next)).toEqual([]);
   });
 
+  it("flags an instance when a non-grouped line is inserted between its grouped lines", () => {
+    const old: LyricLine[] = [
+      { id: "L0", text: "A", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L1", text: "B", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 1 },
+    ];
+    const next: LyricLine[] = [
+      { id: "L0", text: "A", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "NEW", text: "x", agentId: "v1" },
+      { id: "L1", text: "B", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 1 },
+    ];
+    expect(findStructurallyImpactedInstances(old, next)).toEqual([{ groupId: "g1", instanceIdx: 0 }]);
+  });
+
+  it("does not flag when a non-grouped line lives between two DIFFERENT instances", () => {
+    const old: LyricLine[] = [
+      { id: "L0", text: "A", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L1", text: "A", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 0 },
+    ];
+    const next: LyricLine[] = [
+      { id: "L0", text: "A", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "NEW", text: "x", agentId: "v1" },
+      { id: "L1", text: "A", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 0 },
+    ];
+    expect(findStructurallyImpactedInstances(old, next)).toEqual([]);
+  });
+
+  it("dedups when both id-set and positional detection point at the same instance", () => {
+    const old: LyricLine[] = [
+      { id: "L0", text: "A", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L1", text: "B", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 1 },
+      { id: "L2", text: "C", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 2 },
+    ];
+    const next: LyricLine[] = [
+      { id: "L0", text: "A", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "NEW", text: "x", agentId: "v1" },
+      { id: "L2", text: "C", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 2 },
+    ];
+    const impacted = findStructurallyImpactedInstances(old, next);
+    expect(impacted).toHaveLength(1);
+    expect(impacted[0]).toEqual({ groupId: "g1", instanceIdx: 0 });
+  });
+
   it("flags only the instance whose ids actually differ", () => {
     const old: LyricLine[] = [
       { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },

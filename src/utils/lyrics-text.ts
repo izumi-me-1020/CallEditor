@@ -24,6 +24,11 @@ function textToLyricLines(text: string, defaultAgentId: string, existingLines: L
 
   const usedExistingIds = new Set<string>();
   const newLines = text.split("\n").filter((line) => line.trim() !== "");
+  // Position-based fallback only makes sense when the user is editing-in-place
+  // (same number of typed lines as existing lines). If the count changed, the
+  // user inserted or deleted rows: position-match would silently overwrite the
+  // wrong existing line, so we generate a fresh id for any unmatched typed line.
+  const allowPositionMatch = newLines.length === existingLines.length;
 
   return newLines.map((lineText, index) => {
     const trimmed = lineText.trim();
@@ -46,24 +51,26 @@ function textToLyricLines(text: string, defaultAgentId: string, existingLines: L
       return { ...exactMatch };
     }
 
-    const positionMatch = existingLines[index];
-    if (positionMatch && !usedExistingIds.has(positionMatch.id)) {
-      usedExistingIds.add(positionMatch.id);
+    if (allowPositionMatch) {
+      const positionMatch = existingLines[index];
+      if (positionMatch && !usedExistingIds.has(positionMatch.id)) {
+        usedExistingIds.add(positionMatch.id);
 
-      if (positionMatch.words?.length) {
-        const remapped = remapWordTextsPreservingTiming(positionMatch.words, cleanedText);
-        if (remapped) {
-          return { ...positionMatch, text: cleanedText, words: remapped };
+        if (positionMatch.words?.length) {
+          const remapped = remapWordTextsPreservingTiming(positionMatch.words, cleanedText);
+          if (remapped) {
+            return { ...positionMatch, text: cleanedText, words: remapped };
+          }
         }
-      }
 
-      return {
-        ...positionMatch,
-        text: cleanedText,
-        words: undefined,
-        begin: undefined,
-        end: undefined,
-      };
+        return {
+          ...positionMatch,
+          text: cleanedText,
+          words: undefined,
+          begin: undefined,
+          end: undefined,
+        };
+      }
     }
 
     return {

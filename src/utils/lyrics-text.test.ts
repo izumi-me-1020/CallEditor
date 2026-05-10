@@ -189,6 +189,36 @@ describe("textToLyricLines · group attrs preservation", () => {
     expect(result[0].words).toBeUndefined();
   });
 
+  it("does NOT position-match across an insertion (typed line count > existing)", () => {
+    const existing: LyricLine[] = [
+      { id: "L0", text: "A", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L1", text: "B", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 1 },
+      { id: "L2", text: "verse", agentId: "v1" },
+    ];
+    // User adds a new line "x" between A and B
+    const result = textToLyricLines("A\nx\nB\nverse", "v1", existing);
+    expect(result).toHaveLength(4);
+    expect(result[0].id).toBe("L0");
+    expect(result[1].id).not.toBe("L1");
+    expect(result[1].text).toBe("x");
+    expect(result[1].groupId).toBeUndefined();
+    expect(result[2].id).toBe("L1");
+    expect(result[3].id).toBe("L2");
+  });
+
+  it("does NOT position-match across a deletion (typed line count < existing)", () => {
+    const existing: LyricLine[] = [
+      { id: "L0", text: "A", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L1", text: "B", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 1 },
+      { id: "L2", text: "verse", agentId: "v1" },
+    ];
+    // User deletes B
+    const result = textToLyricLines("A\nverse", "v1", existing);
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe("L0");
+    expect(result[1].id).toBe("L2");
+  });
+
   it("typo on first instance preserves the second instance's words", () => {
     const existing: LyricLine[] = [
       {

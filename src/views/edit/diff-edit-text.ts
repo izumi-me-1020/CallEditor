@@ -81,7 +81,17 @@ function findStructurallyImpactedInstances(oldLines: LyricLine[], newLines: Lyri
   const oldByKey = instancesByKey(oldLines);
   const newByKey = instancesByKey(newLines);
 
+  const seen = new Set<string>();
   const impacted: ImpactedInstance[] = [];
+
+  const push = (groupId: string, instanceIdx: number) => {
+    const key = `${groupId}:${instanceIdx}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    impacted.push({ groupId, instanceIdx });
+  };
+
+  // Detection 1: an instance gained or lost line ids between old and new.
   for (const [key, oldIds] of oldByKey) {
     const newIds = newByKey.get(key) ?? new Set<string>();
     let differs = oldIds.size !== newIds.size;
@@ -95,9 +105,25 @@ function findStructurallyImpactedInstances(oldLines: LyricLine[], newLines: Lyri
     }
     if (differs) {
       const [groupId, instanceIdxStr] = key.split(":");
-      impacted.push({ groupId, instanceIdx: Number.parseInt(instanceIdxStr, 10) });
+      push(groupId, Number.parseInt(instanceIdxStr, 10));
     }
   }
+
+  // Detection 2: a non-grouped line was inserted positionally between two
+  // grouped lines from the same instance. The id-set check above misses this
+  // when textToLyricLines preserved every existing id and only added a fresh
+  // ungrouped row in the middle of an instance.
+  for (let i = 1; i < newLines.length - 1; i++) {
+    const middle = newLines[i];
+    if (middle.groupId !== undefined) continue;
+    const prev = newLines[i - 1];
+    const next = newLines[i + 1];
+    if (prev.groupId === undefined || next.groupId === undefined) continue;
+    if (prev.groupId !== next.groupId) continue;
+    if (prev.instanceIdx === undefined || prev.instanceIdx !== next.instanceIdx) continue;
+    push(prev.groupId, prev.instanceIdx);
+  }
+
   return impacted;
 }
 

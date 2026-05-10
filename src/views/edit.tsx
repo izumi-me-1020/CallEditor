@@ -290,6 +290,8 @@ const EditPanel: React.FC = () => {
   const confirm = useConfirm();
 
   const [rawText, setRawText] = useState(() => (lines.length > 0 ? lines.map((l) => l.text).join("\n") : ""));
+  const rawTextRef = useRef(rawText);
+  rawTextRef.current = rawText;
   const linesSetByUs = useRef<LyricLine[] | null>(null);
   const modalPendingRef = useRef(false);
   const [importResult, setImportResult] = useState<{
@@ -413,9 +415,23 @@ const EditPanel: React.FC = () => {
         modalPending: modalPendingRef.current,
       });
 
-      if (action.kind === "ignore-modal-pending") return;
+      // Snap the controlled DOM input back to the source-of-truth rawText whenever
+      // we choose not to setRawText. Without this, React skips reconciling the
+      // textarea on a state-less return path and the user's keystrokes persist
+      // visually even though the store rejected them.
+      const snapBack = () => {
+        if (e.target.value !== rawTextRef.current) {
+          e.target.value = rawTextRef.current;
+        }
+      };
+
+      if (action.kind === "ignore-modal-pending") {
+        snapBack();
+        return;
+      }
 
       if (action.kind === "needs-confirm") {
+        snapBack();
         modalPendingRef.current = true;
         const labelText =
           action.labels.length === 0
