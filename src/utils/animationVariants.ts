@@ -122,7 +122,7 @@ function buildGroupPingVariants(color: string): Variants {
     },
     ping: {
       boxShadow: [`0 0 0 0 ${visible}`, `0 0 0 8px ${transparent}`],
-      transition: { duration: 0.6, ease: "easeOut" },
+      transition: { type: "spring", stiffness: 120, damping: 20, mass: 0.6 },
     },
   };
 }
