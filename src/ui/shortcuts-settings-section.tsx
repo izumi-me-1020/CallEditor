@@ -39,7 +39,10 @@ const ShortcutsSettingsSection: React.FC = () => {
 
   useEffect(() => {
     const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 0);
+    return () => window.clearTimeout(focusTimer);
+  }, []);
 
+  useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const target = e.target as HTMLElement | null;
@@ -51,11 +54,7 @@ const ShortcutsSettingsSection: React.FC = () => {
       setQuery((prev) => prev + e.key);
     };
     document.addEventListener("keydown", handler);
-
-    return () => {
-      window.clearTimeout(focusTimer);
-      document.removeEventListener("keydown", handler);
-    };
+    return () => document.removeEventListener("keydown", handler);
   }, [scrollPanelToTop]);
 
   const handleResetShortcuts = async () => {
