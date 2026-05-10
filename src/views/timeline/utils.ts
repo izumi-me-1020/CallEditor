@@ -259,6 +259,65 @@ interface NudgeResult {
   updates: NudgeUpdate[];
 }
 
+interface PartitionedSelections {
+  wordSynced: NudgeSelection[];
+  lineSynced: NudgeSelection[];
+}
+
+function partitionNudgeSelections(
+  rawLines: LyricLine[],
+  selections: ReadonlyArray<NudgeSelection>,
+): PartitionedSelections {
+  const wordSynced: NudgeSelection[] = [];
+  const lineSynced: NudgeSelection[] = [];
+  const seenLineSyncedIds = new Set<string>();
+  for (const sel of selections) {
+    const line = rawLines.find((l) => l.id === sel.lineId);
+    if (!line) continue;
+    if (sel.type === "bg") {
+      wordSynced.push(sel);
+      continue;
+    }
+    if (line.words?.length) {
+      wordSynced.push(sel);
+    } else if (line.begin !== undefined && line.end !== undefined) {
+      if (seenLineSyncedIds.has(sel.lineId)) continue;
+      seenLineSyncedIds.add(sel.lineId);
+      lineSynced.push(sel);
+    }
+  }
+  return { wordSynced, lineSynced };
+}
+
+function shiftLineSyncedRows(
+  rawLines: LyricLine[],
+  selections: ReadonlyArray<NudgeSelection>,
+  requestedDelta: number,
+  duration: number,
+): NudgeResult {
+  if (selections.length === 0 || requestedDelta === 0) {
+    return { appliedDelta: 0, updates: [] };
+  }
+  const direction = requestedDelta < 0 ? -1 : 1;
+  let allowedMagnitude = Math.abs(requestedDelta);
+  const targets: LyricLine[] = [];
+  for (const sel of selections) {
+    const line = rawLines.find((l) => l.id === sel.lineId);
+    if (!line || line.begin === undefined || line.end === undefined) continue;
+    targets.push(line);
+    const headroom = direction < 0 ? line.begin : duration - line.end;
+    if (headroom < allowedMagnitude) allowedMagnitude = headroom;
+    if (allowedMagnitude <= 0) return { appliedDelta: 0, updates: [] };
+  }
+  if (targets.length === 0) return { appliedDelta: 0, updates: [] };
+  const appliedDelta = direction * allowedMagnitude;
+  const updates: NudgeUpdate[] = targets.map((line) => ({
+    id: line.id,
+    updates: { begin: (line.begin as number) + appliedDelta, end: (line.end as number) + appliedDelta },
+  }));
+  return { appliedDelta, updates };
+}
+
 function nudgeSelectedWords(
   lines: LyricLine[],
   selections: ReadonlyArray<NudgeSelection>,
@@ -350,6 +409,8 @@ export {
   getWordsInInstance,
   computeRowLayout,
   nudgeSelectedWords,
+  partitionNudgeSelections,
+  shiftLineSyncedRows,
 };
 export type {
   EffectiveRow,
@@ -360,4 +421,5 @@ export type {
   NudgeSelection,
   NudgeUpdate,
   NudgeResult,
+  PartitionedSelections,
 };

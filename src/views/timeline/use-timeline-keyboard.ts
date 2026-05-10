@@ -18,6 +18,8 @@ import {
   getWordsInInstance,
   isLineSynced,
   nudgeSelectedWords,
+  partitionNudgeSelections,
+  shiftLineSyncedRows,
 } from "@/views/timeline/utils";
 import { type RefObject, useCallback, useEffect } from "react";
 import { toast } from "sonner";
@@ -658,12 +660,16 @@ function useTimelineKeyboard(
           e.preventDefault();
           const nudgeAmount = useSettingsStore.getState().nudgeAmount;
           const requestedDelta = matched === "timeline.nudgeLeft" ? -nudgeAmount : nudgeAmount;
-          const result = nudgeSelectedWords(lines, nudgeSel, requestedDelta, duration);
-          if (result.appliedDelta === 0) break;
-          if (result.updates.length === 1) {
-            useProjectStore.getState().updateLineWithHistory(result.updates[0].id, result.updates[0].updates);
+          const rawLines = useProjectStore.getState().lines;
+          const { wordSynced, lineSynced } = partitionNudgeSelections(rawLines, nudgeSel);
+          const wordResult = nudgeSelectedWords(rawLines, wordSynced, requestedDelta, duration);
+          const lineResult = shiftLineSyncedRows(rawLines, lineSynced, requestedDelta, duration);
+          const allUpdates = [...wordResult.updates, ...lineResult.updates];
+          if (allUpdates.length === 0) break;
+          if (allUpdates.length === 1) {
+            useProjectStore.getState().updateLineWithHistory(allUpdates[0].id, allUpdates[0].updates);
           } else {
-            useProjectStore.getState().updateLinesWithHistory(result.updates);
+            useProjectStore.getState().updateLinesWithHistory(allUpdates);
           }
           break;
         }
