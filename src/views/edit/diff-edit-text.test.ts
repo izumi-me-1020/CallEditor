@@ -1,0 +1,307 @@
+/**
+ * @vitest-environment node
+ */
+import type { LyricLine } from "@/stores/project";
+import { describe, expect, it } from "vitest";
+import {
+  detachInstancesFromLines,
+  diffEditTextChange,
+  findStructurallyImpactedInstances,
+  propagateContentUpdates,
+} from "./diff-edit-text";
+
+describe("diffEditTextChange", () => {
+  it("returns no updates and no structural change when nothing differs", () => {
+    const lines: LyricLine[] = [
+      { id: "L1", text: "first", agentId: "v1" },
+      { id: "L2", text: "second", agentId: "v1" },
+    ];
+    const result = diffEditTextChange(lines, lines);
+    expect(result.contentUpdates).toHaveLength(0);
+    expect(result.hasStructuralChange).toBe(false);
+  });
+
+  it("emits a content update for a same-id text change", () => {
+    const old: LyricLine[] = [{ id: "L1", text: "I love you", agentId: "v1" }];
+    const next: LyricLine[] = [{ id: "L1", text: "I luv you", agentId: "v1" }];
+    const result = diffEditTextChange(old, next);
+    expect(result.hasStructuralChange).toBe(false);
+    expect(result.contentUpdates).toEqual([{ id: "L1", updates: { text: "I luv you" } }]);
+  });
+
+  it("forwards explicit undefined for words/begin/end when source clears them", () => {
+    const old: LyricLine[] = [
+      {
+        id: "L1",
+        text: "I love",
+        agentId: "v1",
+        begin: 0,
+        end: 1,
+        words: [{ text: "I love", begin: 0, end: 1 }],
+      },
+    ];
+    const next: LyricLine[] = [{ id: "L1", text: "I luv", agentId: "v1" }];
+    const result = diffEditTextChange(old, next);
+    expect(result.hasStructuralChange).toBe(false);
+    expect(result.contentUpdates).toHaveLength(1);
+    const u = result.contentUpdates[0];
+    expect(u.id).toBe("L1");
+    expect(u.updates.text).toBe("I luv");
+    expect("words" in u.updates).toBe(true);
+    expect(u.updates.words).toBeUndefined();
+    expect("begin" in u.updates).toBe(true);
+    expect(u.updates.begin).toBeUndefined();
+    expect("end" in u.updates).toBe(true);
+    expect(u.updates.end).toBeUndefined();
+  });
+
+  it("flags hasStructuralChange when length differs (insertion)", () => {
+    const old: LyricLine[] = [{ id: "L1", text: "first", agentId: "v1" }];
+    const next: LyricLine[] = [
+      { id: "L1", text: "first", agentId: "v1" },
+      { id: "L2", text: "second", agentId: "v1" },
+    ];
+    const result = diffEditTextChange(old, next);
+    expect(result.hasStructuralChange).toBe(true);
+  });
+
+  it("flags hasStructuralChange when length differs (deletion)", () => {
+    const old: LyricLine[] = [
+      { id: "L1", text: "first", agentId: "v1" },
+      { id: "L2", text: "second", agentId: "v1" },
+    ];
+    const next: LyricLine[] = [{ id: "L1", text: "first", agentId: "v1" }];
+    const result = diffEditTextChange(old, next);
+    expect(result.hasStructuralChange).toBe(true);
+  });
+
+  it("flags hasStructuralChange when ids reorder", () => {
+    const old: LyricLine[] = [
+      { id: "L1", text: "first", agentId: "v1" },
+      { id: "L2", text: "second", agentId: "v1" },
+    ];
+    const next: LyricLine[] = [
+      { id: "L2", text: "second", agentId: "v1" },
+      { id: "L1", text: "first", agentId: "v1" },
+    ];
+    const result = diffEditTextChange(old, next);
+    expect(result.hasStructuralChange).toBe(true);
+  });
+
+  it("flags hasStructuralChange when an id is replaced", () => {
+    const old: LyricLine[] = [
+      { id: "L1", text: "first", agentId: "v1" },
+      { id: "L2", text: "second", agentId: "v1" },
+    ];
+    const next: LyricLine[] = [
+      { id: "L1", text: "first", agentId: "v1" },
+      { id: "L3", text: "second", agentId: "v1" },
+    ];
+    const result = diffEditTextChange(old, next);
+    expect(result.hasStructuralChange).toBe(true);
+  });
+
+  it("emits backgroundText update when only background differs", () => {
+    const old: LyricLine[] = [{ id: "L1", text: "main", agentId: "v1" }];
+    const next: LyricLine[] = [{ id: "L1", text: "main", agentId: "v1", backgroundText: "ah" }];
+    const result = diffEditTextChange(old, next);
+    expect(result.hasStructuralChange).toBe(false);
+    expect(result.contentUpdates).toEqual([{ id: "L1", updates: { backgroundText: "ah" } }]);
+  });
+
+  it("does not emit updates for fields untouched by the new line", () => {
+    const old: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+    ];
+    const next: LyricLine[] = [
+      { id: "L1", text: "a edited", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+    ];
+    const result = diffEditTextChange(old, next);
+    expect(result.contentUpdates).toHaveLength(1);
+    const u = result.contentUpdates[0];
+    expect(Object.keys(u.updates)).toEqual(["text"]);
+    expect(u.updates.text).toBe("a edited");
+  });
+
+  it("treats a length-equal mix of content edits as content-only", () => {
+    const old: LyricLine[] = [
+      { id: "L1", text: "first", agentId: "v1" },
+      { id: "L2", text: "second", agentId: "v1" },
+    ];
+    const next: LyricLine[] = [
+      { id: "L1", text: "first edit", agentId: "v1" },
+      { id: "L2", text: "second", agentId: "v1" },
+    ];
+    const result = diffEditTextChange(old, next);
+    expect(result.hasStructuralChange).toBe(false);
+    expect(result.contentUpdates).toEqual([{ id: "L1", updates: { text: "first edit" } }]);
+  });
+});
+
+describe("propagateContentUpdates", () => {
+  it("returns input unchanged when there are no updates", () => {
+    const lines: LyricLine[] = [{ id: "L1", text: "a", agentId: "v1" }];
+    expect(propagateContentUpdates(lines, [])).toBe(lines);
+  });
+
+  it("does nothing when the source line is not grouped", () => {
+    const lines: LyricLine[] = [
+      { id: "L1", text: "edited", agentId: "v1" },
+      { id: "L2", text: "other", agentId: "v1" },
+    ];
+    const out = propagateContentUpdates(lines, [{ id: "L1", updates: { text: "edited" } }]);
+    expect(out[1].text).toBe("other");
+  });
+
+  it("propagates text to linked siblings (same groupId + templateLineIdx)", () => {
+    const lines: LyricLine[] = [
+      { id: "L1", text: "edited", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L2", text: "stale", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 0 },
+    ];
+    const out = propagateContentUpdates(lines, [{ id: "L1", updates: { text: "edited" } }]);
+    expect(out[0].text).toBe("edited");
+    expect(out[1].text).toBe("edited");
+  });
+
+  it("clears sibling words/begin/end when source clears them via text edit", () => {
+    const lines: LyricLine[] = [
+      { id: "L1", text: "I luv", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      {
+        id: "L2",
+        text: "stale",
+        agentId: "v1",
+        groupId: "g1",
+        instanceIdx: 1,
+        templateLineIdx: 0,
+        begin: 10,
+        end: 11,
+        words: [{ text: "I love", begin: 10, end: 11 }],
+      },
+    ];
+    const out = propagateContentUpdates(lines, [
+      { id: "L1", updates: { text: "I luv", words: undefined, begin: undefined, end: undefined } },
+    ]);
+    expect(out[1].text).toBe("I luv");
+    expect(out[1].words).toBeUndefined();
+    expect(out[1].begin).toBeUndefined();
+    expect(out[1].end).toBeUndefined();
+  });
+
+  it("skips detached siblings", () => {
+    const lines: LyricLine[] = [
+      { id: "L1", text: "edited", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L2", text: "stale", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 0, detached: true },
+    ];
+    const out = propagateContentUpdates(lines, [{ id: "L1", updates: { text: "edited" } }]);
+    expect(out[1].text).toBe("stale");
+  });
+
+  it("skips lines from other groups", () => {
+    const lines: LyricLine[] = [
+      { id: "L1", text: "edited", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L2", text: "stale", agentId: "v1", groupId: "g2", instanceIdx: 0, templateLineIdx: 0 },
+    ];
+    const out = propagateContentUpdates(lines, [{ id: "L1", updates: { text: "edited" } }]);
+    expect(out[1].text).toBe("stale");
+  });
+
+  it("skips siblings with a different templateLineIdx", () => {
+    const lines: LyricLine[] = [
+      { id: "L1", text: "edited", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L2", text: "stale", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 1 },
+    ];
+    const out = propagateContentUpdates(lines, [{ id: "L1", updates: { text: "edited" } }]);
+    expect(out[1].text).toBe("stale");
+  });
+
+  it("does not touch the target line itself", () => {
+    const lines: LyricLine[] = [
+      { id: "L1", text: "edited", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L2", text: "stale", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 0 },
+    ];
+    const out = propagateContentUpdates(lines, [{ id: "L1", updates: { text: "edited" } }]);
+    expect(out[0]).toBe(lines[0]);
+  });
+});
+
+describe("findStructurallyImpactedInstances", () => {
+  it("returns nothing when both sides have the same instance line ids", () => {
+    const old: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L2", text: "b", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 1 },
+    ];
+    expect(findStructurallyImpactedInstances(old, old)).toEqual([]);
+  });
+
+  it("flags an instance that lost a line", () => {
+    const old: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L2", text: "b", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 1 },
+    ];
+    const next: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+    ];
+    const impacted = findStructurallyImpactedInstances(old, next);
+    expect(impacted).toEqual([{ groupId: "g1", instanceIdx: 0 }]);
+  });
+
+  it("flags an instance whose entire line set disappeared", () => {
+    const old: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 0 },
+    ];
+    const next: LyricLine[] = [];
+    expect(findStructurallyImpactedInstances(old, next)).toEqual([{ groupId: "g1", instanceIdx: 1 }]);
+  });
+
+  it("does not flag standalone insertions outside any group", () => {
+    const old: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+    ];
+    const next: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L2", text: "added", agentId: "v1" },
+    ];
+    expect(findStructurallyImpactedInstances(old, next)).toEqual([]);
+  });
+
+  it("flags only the instance whose ids actually differ", () => {
+    const old: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L2", text: "b", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 1 },
+      { id: "L3", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 0 },
+      { id: "L4", text: "b", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 1 },
+    ];
+    const next: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+      { id: "L3", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 0 },
+      { id: "L4", text: "b", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 1 },
+    ];
+    const impacted = findStructurallyImpactedInstances(old, next);
+    expect(impacted).toEqual([{ groupId: "g1", instanceIdx: 0 }]);
+  });
+});
+
+describe("detachInstancesFromLines", () => {
+  it("returns the same array when no instances impacted", () => {
+    const lines: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0 },
+    ];
+    expect(detachInstancesFromLines(lines, [])).toBe(lines);
+  });
+
+  it("clears group attrs on all lines of impacted instances only", () => {
+    const lines: LyricLine[] = [
+      { id: "L1", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 0, detached: true },
+      { id: "L2", text: "b", agentId: "v1", groupId: "g1", instanceIdx: 0, templateLineIdx: 1 },
+      { id: "L3", text: "a", agentId: "v1", groupId: "g1", instanceIdx: 1, templateLineIdx: 0 },
+    ];
+    const out = detachInstancesFromLines(lines, [{ groupId: "g1", instanceIdx: 0 }]);
+    expect(out[0].groupId).toBeUndefined();
+    expect(out[0].instanceIdx).toBeUndefined();
+    expect(out[0].templateLineIdx).toBeUndefined();
+    expect(out[0].detached).toBeUndefined();
+    expect(out[1].groupId).toBeUndefined();
+    expect(out[2].groupId).toBe("g1");
+    expect(out[2].instanceIdx).toBe(1);
+  });
+});

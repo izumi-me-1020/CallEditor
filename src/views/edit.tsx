@@ -8,6 +8,12 @@ import { type ParseResult, parseLyricsFile } from "@/utils/lyrics-parsers";
 import { textToLyricLines } from "@/utils/lyrics-text";
 import { stripSplitCharacter } from "@/utils/split-character";
 import { AgentManager } from "@/views/edit/agent-manager";
+import {
+  detachInstancesFromLines,
+  diffEditTextChange,
+  findStructurallyImpactedInstances,
+  propagateContentUpdates,
+} from "@/views/edit/diff-edit-text";
 import { IconAlertTriangle, IconFileImport, IconMicrophone, IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
@@ -104,6 +110,8 @@ const LinePreview: React.FC<{
   agents: { id: string; name?: string }[];
   isSelected: boolean;
   hasMultipleSelected: boolean;
+  groupColor?: string;
+  groupTooltip?: string;
   onSelect: (lineNumber: number, shiftKey: boolean) => void;
   onAgentChange: (lineId: string, agentId: string) => void;
   onBulkAgentChange: (agentId: string) => void;
@@ -116,6 +124,8 @@ const LinePreview: React.FC<{
   agents,
   isSelected,
   hasMultipleSelected,
+  groupColor,
+  groupTooltip,
   onSelect,
   onAgentChange,
   onBulkAgentChange,
@@ -174,12 +184,20 @@ const LinePreview: React.FC<{
 
   return (
     <div
-      className={`flex items-center gap-2 px-3 py-0.5 group cursor-pointer ${
+      className={`relative flex items-center gap-2 px-3 py-0.5 group cursor-pointer ${
         isSelected ? "bg-composer-accent/15" : line.hasBrackets ? "bg-composer-error/5" : "hover:bg-composer-button/30"
       }`}
       onMouseDown={handleMouseDown}
       onClick={handleClick}
+      title={groupTooltip}
     >
+      {groupColor && (
+        <span
+          aria-hidden
+          className="absolute top-0 bottom-0 left-0 w-0.5 pointer-events-none"
+          style={{ backgroundColor: groupColor }}
+        />
+      )}
       <span
         className="w-8 font-mono text-xs text-right shrink-0 text-composer-text-muted tabular-nums select-none cursor-pointer"
         onMouseDown={(e) => onGutterMouseDown(line.lineNumber, e)}
@@ -272,7 +290,6 @@ const EditPanel: React.FC = () => {
   const groups = useProjectStore((s) => s.groups);
   const setLines = useProjectStore((s) => s.setLines);
   const setMetadata = useProjectStore((s) => s.setMetadata);
-  const updateLine = useProjectStore((s) => s.updateLine);
   const addAgent = useProjectStore((s) => s.addAgent);
   const confirm = useConfirm();
 
@@ -305,12 +322,9 @@ const EditPanel: React.FC = () => {
     useProjectStore.getState().updateLineWithHistory(lineId, { agentId });
   }, []);
 
-  const handleBackgroundChange = useCallback(
-    (lineId: string, text: string) => {
-      updateLine(lineId, { backgroundText: text || undefined });
-    },
-    [updateLine],
-  );
+  const handleBackgroundChange = useCallback((lineId: string, text: string) => {
+    useProjectStore.getState().updateLineWithHistory(lineId, { backgroundText: text || undefined });
+  }, []);
 
   const handleLineSelect = useCallback(
     (lineNumber: number, shiftKey: boolean) => {
@@ -383,13 +397,60 @@ const EditPanel: React.FC = () => {
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const text = e.target.value;
       setRawText(text);
+      setImportResult(null);
 
       const lyricLines = textToLyricLines(text, defaultAgentId, lines);
-      linesSetByUs.current = lyricLines;
-      setLines(lyricLines);
-      setImportResult(null);
+      const diff = diffEditTextChange(lines, lyricLines);
+
+      if (diff.hasStructuralChange) {
+        const impacted = findStructurallyImpactedInstances(lines, lyricLines);
+        if (impacted.length > 0) {
+          const labels = Array.from(
+            new Set(impacted.map((i) => groups.find((g) => g.id === i.groupId)?.label).filter(Boolean) as string[]),
+          );
+          const labelText =
+            labels.length === 0
+              ? `${impacted.length} instance${impacted.length === 1 ? "" : "s"}`
+              : labels.length === 1
+                ? `[${labels[0]}]`
+                : labels.map((l) => `[${l}]`).join(", ");
+
+          confirm({
+            title: `Detach ${labelText} to apply this edit?`,
+            description: `Adding or removing rows inside ${
+              labels.length === 1 ? `the ${labelText} group` : "these groups"
+            } will detach ${impacted.length === 1 ? "this instance" : "these instances"} from the link. Other instances stay linked.`,
+            confirmLabel: "Detach and apply",
+            variant: "destructive",
+            recoverable: true,
+          }).then((ok) => {
+            if (ok) {
+              const detached = detachInstancesFromLines(lyricLines, impacted);
+              const remainingGroupIds = new Set(detached.map((l) => l.groupId).filter(Boolean) as string[]);
+              const nextGroups = groups.filter((g) => remainingGroupIds.has(g.id));
+              linesSetByUs.current = detached;
+              setLines(detached);
+              if (nextGroups.length !== groups.length) {
+                useProjectStore.getState().setGroups(nextGroups);
+              }
+            } else {
+              setRawText(lines.length > 0 ? lines.map((l) => l.text).join("\n") : "");
+            }
+          });
+          return;
+        }
+
+        linesSetByUs.current = lyricLines;
+        setLines(lyricLines);
+        return;
+      }
+
+      const finalLines =
+        diff.contentUpdates.length === 0 ? lyricLines : propagateContentUpdates(lyricLines, diff.contentUpdates);
+      linesSetByUs.current = finalLines;
+      setLines(finalLines);
     },
-    [defaultAgentId, lines, setLines],
+    [confirm, defaultAgentId, groups, lines, setLines],
   );
 
   const handleFileImport = useCallback(
@@ -585,6 +646,10 @@ Or drag and drop a lyrics file (.txt, .lrc, .srt, .ttml)"
                           .map((l) => l.instanceIdx),
                       ).size
                     : 0;
+                  const groupTooltip =
+                    group && totalInstances > 1
+                      ? `Part of ${group.label} · linked to ${totalInstances - 1} other instance${totalInstances - 1 === 1 ? "" : "s"}. Edits propagate.`
+                      : undefined;
                   return (
                     <div key={line.lineNumber}>
                       {isFirstOfInstance && group && (
@@ -604,6 +669,8 @@ Or drag and drop a lyrics file (.txt, .lrc, .srt, .ttml)"
                         agents={agents}
                         isSelected={selectedLines.has(line.lineNumber)}
                         hasMultipleSelected={selectedLines.size > 1}
+                        groupColor={group?.color}
+                        groupTooltip={groupTooltip}
                         onSelect={handleLineSelect}
                         onAgentChange={handleAgentChange}
                         onBulkAgentChange={handleBulkAgentChange}
