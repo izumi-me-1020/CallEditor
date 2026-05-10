@@ -526,17 +526,18 @@ const CobaltInstanceRow: React.FC<{
       {displayHostFromUrl(instance.url)}
     </span>
     {onRemove ? (
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon"
         aria-label="Remove instance"
         onClick={(e) => {
           e.stopPropagation();
           onRemove();
         }}
-        className="w-6 h-6 rounded flex items-center justify-center text-composer-text-faint hover:text-composer-error transition-colors cursor-pointer shrink-0"
+        className="w-6 h-6 rounded text-composer-text-faint hover:text-composer-error hover:bg-transparent shrink-0"
       >
         <IconTrash size={14} />
-      </button>
+      </Button>
     ) : (
       <span aria-hidden className="w-6 h-6 shrink-0 flex items-center justify-center text-composer-text-faint">
         <IconLock size={13} />

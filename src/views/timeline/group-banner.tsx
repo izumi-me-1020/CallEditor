@@ -1,4 +1,5 @@
 import { type LinkGroup, useProjectStore } from "@/stores/project";
+import { Button } from "@/ui/button";
 import { buildGroupPingVariants } from "@/utils/animationVariants";
 import { cn } from "@/utils/cn";
 import { registerBanner } from "@/views/timeline/banner-progress-registry";
@@ -191,18 +192,19 @@ const GroupBannerComponent: React.FC<GroupBannerProps> = ({
         cursor: isDragging ? "grabbing" : "grab",
       }}
     >
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon"
         aria-label={isCollapsed ? "Expand instance" : "Collapse instance"}
         onClick={handleChevronClick}
         onPointerDown={handleChevronPointerDown}
         onDoubleClick={(e) => e.stopPropagation()}
-        className="shrink-0 cursor-pointer opacity-70 hover:opacity-100 transition-opacity p-0.5 relative before:content-[''] before:absolute before:-inset-2"
+        className="shrink-0 w-auto h-auto p-0.5 opacity-70 hover:opacity-100 hover:bg-transparent text-current relative before:content-[''] before:absolute before:-inset-2"
       >
         <IconChevronDown
           className={cn("w-3 h-3 transition-transform duration-200 ease-out", isCollapsed && "-rotate-90")}
         />
-      </button>
+      </Button>
       <span className="font-semibold whitespace-nowrap">{group.label}</span>
       <span
         className="flex items-center gap-1 text-composer-text-muted tabular-nums whitespace-nowrap ml-auto"
