@@ -10,14 +10,6 @@ interface CreateGroupResult {
 
 // -- Selection helpers --------------------------------------------------------
 
-function uniqueLineIdsInOrder(lines: LyricLine[], selectedLineIds: ReadonlySet<string>): string[] {
-  const out: string[] = [];
-  for (const line of lines) {
-    if (selectedLineIds.has(line.id)) out.push(line.id);
-  }
-  return out;
-}
-
 function lineIdsAreContiguous(lines: LyricLine[], selectedLineIds: ReadonlySet<string>): boolean {
   if (selectedLineIds.size === 0) return false;
   const indices: number[] = [];
@@ -179,7 +171,6 @@ function instanceToTemplate(lines: LyricLine[], groupId: string, instanceIdx: nu
 
 export {
   createGroupFromSelection,
-  uniqueLineIdsInOrder,
   lineIdsAreContiguous,
   fillSelectionGaps,
   selectionTouchesAnyGroup,
