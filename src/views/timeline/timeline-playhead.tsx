@@ -13,6 +13,41 @@ interface TimelinePlayheadProps {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
+// -- Constants -----------------------------------------------------------------
+
+const MASK_BUFFER_PX = 0;
+const MASK_DIM_ALPHA = 0.5;
+const WORD_CORNER_RADIUS_PX = 12;
+
+function cornerYInset(distFromEdge: number, radius: number): number {
+  if (distFromEdge >= radius || distFromEdge <= 0) return 0;
+  const d = radius - distFromEdge;
+  return radius - Math.sqrt(radius * radius - d * d);
+}
+
+// -- Helpers -------------------------------------------------------------------
+
+function buildPlayheadMask(ranges: { top: number; bottom: number }[]): string {
+  if (ranges.length === 0) return "";
+  const sorted = [...ranges].sort((a, b) => a.top - b.top);
+  const merged: { top: number; bottom: number }[] = [{ ...sorted[0] }];
+  for (let i = 1; i < sorted.length; i++) {
+    const last = merged[merged.length - 1];
+    if (sorted[i].top <= last.bottom) {
+      last.bottom = Math.max(last.bottom, sorted[i].bottom);
+    } else {
+      merged.push({ ...sorted[i] });
+    }
+  }
+  const dim = `rgba(0,0,0,${MASK_DIM_ALPHA})`;
+  const stops: string[] = ["black 0"];
+  for (const r of merged) {
+    stops.push(`black ${r.top}px`, `${dim} ${r.top}px`, `${dim} ${r.bottom}px`, `black ${r.bottom}px`);
+  }
+  stops.push("black 100%");
+  return `linear-gradient(to bottom, ${stops.join(", ")})`;
+}
+
 // -- Component -----------------------------------------------------------------
 
 const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, scrollContainerRef }) => {
@@ -28,6 +63,9 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
   const rafRef = useRef<number | null>(null);
   const lastFollowedLineRef = useRef<number>(-1);
   const verticalTargetRef = useRef<number | null>(null);
+  const lastMaskRef = useRef<string>("");
+  const playheadCenterXLocalRef = useRef<number>(0);
+  const containerLeftRef = useRef<number>(0);
 
   // RAF loop - always runs, reads directly from audio element and stores
   useEffect(() => {
@@ -126,6 +164,38 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
         playheadRef.current.style.height = `${container.scrollHeight}px`;
       }
 
+      const containerRect = containerRef.current?.getBoundingClientRect();
+      if (containerRect) {
+        const playheadCenterXLocal = displayTime * zoom - actualScrollLeft + GUTTER_WIDTH;
+        const playheadCenterXViewport = playheadCenterXLocal + containerRect.left;
+        playheadCenterXLocalRef.current = playheadCenterXLocal;
+        containerLeftRef.current = containerRect.left;
+        const wordBlocks = document.querySelectorAll("[data-word-block]");
+        const ranges: { top: number; bottom: number }[] = [];
+        for (const wb of wordBlocks) {
+          const el = wb as HTMLElement;
+          const r = el.getBoundingClientRect();
+          if (playheadCenterXViewport >= r.left && playheadCenterXViewport <= r.right) {
+            const sylPos = el.dataset.syllablePosition ?? "none";
+            const leftR = sylPos === "middle" || sylPos === "last" ? 0 : WORD_CORNER_RADIUS_PX;
+            const rightR = sylPos === "middle" || sylPos === "first" ? 0 : WORD_CORNER_RADIUS_PX;
+            const distLeft = playheadCenterXViewport - r.left;
+            const distRight = r.right - playheadCenterXViewport;
+            const yInset = Math.max(cornerYInset(distLeft, leftR), cornerYInset(distRight, rightR));
+            ranges.push({
+              top: r.top - containerRect.top - MASK_BUFFER_PX + yInset,
+              bottom: r.bottom - containerRect.top + MASK_BUFFER_PX - yInset,
+            });
+          }
+        }
+        const mask = buildPlayheadMask(ranges);
+        if (mask !== lastMaskRef.current) {
+          lastMaskRef.current = mask;
+          playheadRef.current.style.maskImage = mask;
+          playheadRef.current.style.webkitMaskImage = mask;
+        }
+      }
+
       // Update progress fill on collapsed banner DOM nodes (registered via mount)
       const banners = getBannerNodes();
       for (const banner of banners) {
@@ -153,9 +223,45 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
     };
   }, [scrollContainerRef]);
 
+  useEffect(() => {
+    const playhead = playheadRef.current;
+    if (!playhead) return;
+    let yielded = false;
+
+    const onMove = (e: MouseEvent) => {
+      const playheadCenterXViewport = containerLeftRef.current + playheadCenterXLocalRef.current;
+      const HIT_BUFFER = 18;
+      const nearPlayhead =
+        e.clientX >= playheadCenterXViewport - HIT_BUFFER && e.clientX <= playheadCenterXViewport + HIT_BUFFER;
+
+      if (!nearPlayhead) {
+        if (yielded) {
+          yielded = false;
+          playhead.classList.remove("playhead-yield");
+        }
+        return;
+      }
+
+      const stack = document.elementsFromPoint(e.clientX, e.clientY);
+      const overWord = stack.some(
+        (el) =>
+          el instanceof HTMLElement && el !== playhead && !playhead.contains(el) && el.closest("[data-word-block]"),
+      );
+
+      if (overWord !== yielded) {
+        yielded = overWord;
+        playhead.classList.toggle("playhead-yield", overWord);
+      }
+    };
+
+    document.addEventListener("mousemove", onMove);
+    return () => document.removeEventListener("mousemove", onMove);
+  }, []);
+
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
       if (e.button !== 0) return;
+
       e.preventDefault();
       setIsPlaying(false);
 
@@ -163,7 +269,18 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
       const actualTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
       setDraggingPlayhead(true, actualTime);
 
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const DRAG_THRESHOLD_SQ = 9;
+      let didDrag = false;
+
       const handleMouseMove = (moveEvent: MouseEvent) => {
+        if (!didDrag) {
+          const dx = moveEvent.clientX - startX;
+          const dy = moveEvent.clientY - startY;
+          if (dx * dx + dy * dy < DRAG_THRESHOLD_SQ) return;
+          didDrag = true;
+        }
         const parentRect = containerRef.current?.getBoundingClientRect();
         if (!parentRect) return;
         const { scrollLeft, zoom } = useTimelineStore.getState();
@@ -173,12 +290,14 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
       };
 
       const handleMouseUp = (moveEvent: MouseEvent) => {
-        const parentRect = containerRef.current?.getBoundingClientRect();
-        if (parentRect) {
-          const { scrollLeft, zoom } = useTimelineStore.getState();
-          const x = moveEvent.clientX - parentRect.left - GUTTER_WIDTH + scrollLeft;
-          const finalTime = Math.max(0, Math.min(duration, x / zoom));
-          seekTo(finalTime);
+        if (didDrag) {
+          const parentRect = containerRef.current?.getBoundingClientRect();
+          if (parentRect) {
+            const { scrollLeft, zoom } = useTimelineStore.getState();
+            const x = moveEvent.clientX - parentRect.left - GUTTER_WIDTH + scrollLeft;
+            const finalTime = Math.max(0, Math.min(duration, x / zoom));
+            seekTo(finalTime);
+          }
         }
         setDraggingPlayhead(false);
         document.removeEventListener("mousemove", handleMouseMove);
@@ -206,6 +325,12 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
           height: containerHeight,
           willChange: "transform",
           transition: "transform 32ms linear",
+          maskPosition: "-16px 0",
+          WebkitMaskPosition: "-16px 0",
+          maskSize: "calc(100% + 32px) 100%",
+          WebkitMaskSize: "calc(100% + 32px) 100%",
+          maskClip: "no-clip",
+          WebkitMaskClip: "no-clip",
         }}
         onMouseDown={handleMouseDown}
       >
