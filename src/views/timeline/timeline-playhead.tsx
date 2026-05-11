@@ -2,6 +2,7 @@ import { useAudioStore } from "@/stores/audio";
 import { useProjectStore } from "@/stores/project";
 import { getBannerNodes } from "@/views/timeline/banner-progress-registry";
 import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
+import { buildPlayheadMask } from "@/views/timeline/timeline-playhead-mask";
 import { GUTTER_WIDTH, useTimelineStore } from "@/views/timeline/timeline-store";
 import { computeRowLayout, getLineTiming } from "@/views/timeline/utils";
 import { useCallback, useEffect, useRef } from "react";
@@ -15,38 +16,7 @@ interface TimelinePlayheadProps {
 
 // -- Constants -----------------------------------------------------------------
 
-const MASK_BUFFER_PX = 0;
-const MASK_DIM_ALPHA = 0.5;
-const WORD_CORNER_RADIUS_PX = 12;
-
-function cornerYInset(distFromEdge: number, radius: number): number {
-  if (distFromEdge >= radius || distFromEdge <= 0) return 0;
-  const d = radius - distFromEdge;
-  return radius - Math.sqrt(radius * radius - d * d);
-}
-
-// -- Helpers -------------------------------------------------------------------
-
-function buildPlayheadMask(ranges: { top: number; bottom: number }[]): string {
-  if (ranges.length === 0) return "";
-  const sorted = [...ranges].sort((a, b) => a.top - b.top);
-  const merged: { top: number; bottom: number }[] = [{ ...sorted[0] }];
-  for (let i = 1; i < sorted.length; i++) {
-    const last = merged[merged.length - 1];
-    if (sorted[i].top <= last.bottom) {
-      last.bottom = Math.max(last.bottom, sorted[i].bottom);
-    } else {
-      merged.push({ ...sorted[i] });
-    }
-  }
-  const dim = `rgba(0,0,0,${MASK_DIM_ALPHA})`;
-  const stops: string[] = ["black 0"];
-  for (const r of merged) {
-    stops.push(`black ${r.top}px`, `${dim} ${r.top}px`, `${dim} ${r.bottom}px`, `black ${r.bottom}px`);
-  }
-  stops.push("black 100%");
-  return `linear-gradient(to bottom, ${stops.join(", ")})`;
-}
+const HIT_BUFFER_PX = 18;
 
 // -- Component -----------------------------------------------------------------
 
@@ -170,25 +140,7 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
         const playheadCenterXViewport = playheadCenterXLocal + containerRect.left;
         playheadCenterXLocalRef.current = playheadCenterXLocal;
         containerLeftRef.current = containerRect.left;
-        const wordBlocks = document.querySelectorAll("[data-word-block]");
-        const ranges: { top: number; bottom: number }[] = [];
-        for (const wb of wordBlocks) {
-          const el = wb as HTMLElement;
-          const r = el.getBoundingClientRect();
-          if (playheadCenterXViewport >= r.left && playheadCenterXViewport <= r.right) {
-            const sylPos = el.dataset.syllablePosition ?? "none";
-            const leftR = sylPos === "middle" || sylPos === "last" ? 0 : WORD_CORNER_RADIUS_PX;
-            const rightR = sylPos === "middle" || sylPos === "first" ? 0 : WORD_CORNER_RADIUS_PX;
-            const distLeft = playheadCenterXViewport - r.left;
-            const distRight = r.right - playheadCenterXViewport;
-            const yInset = Math.max(cornerYInset(distLeft, leftR), cornerYInset(distRight, rightR));
-            ranges.push({
-              top: r.top - containerRect.top - MASK_BUFFER_PX + yInset,
-              bottom: r.bottom - containerRect.top + MASK_BUFFER_PX - yInset,
-            });
-          }
-        }
-        const mask = buildPlayheadMask(ranges);
+        const mask = buildPlayheadMask(playheadCenterXViewport, containerRect.top);
         if (mask !== lastMaskRef.current) {
           lastMaskRef.current = mask;
           playheadRef.current.style.maskImage = mask;
@@ -224,15 +176,15 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
   }, [scrollContainerRef]);
 
   useEffect(() => {
-    const playhead = playheadRef.current;
-    if (!playhead) return;
     let yielded = false;
 
     const onMove = (e: MouseEvent) => {
+      const playhead = playheadRef.current;
+      if (!playhead) return;
+
       const playheadCenterXViewport = containerLeftRef.current + playheadCenterXLocalRef.current;
-      const HIT_BUFFER = 18;
       const nearPlayhead =
-        e.clientX >= playheadCenterXViewport - HIT_BUFFER && e.clientX <= playheadCenterXViewport + HIT_BUFFER;
+        e.clientX >= playheadCenterXViewport - HIT_BUFFER_PX && e.clientX <= playheadCenterXViewport + HIT_BUFFER_PX;
 
       if (!nearPlayhead) {
         if (yielded) {
@@ -269,18 +221,7 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
       const actualTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
       setDraggingPlayhead(true, actualTime);
 
-      const startX = e.clientX;
-      const startY = e.clientY;
-      const DRAG_THRESHOLD_SQ = 9;
-      let didDrag = false;
-
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        if (!didDrag) {
-          const dx = moveEvent.clientX - startX;
-          const dy = moveEvent.clientY - startY;
-          if (dx * dx + dy * dy < DRAG_THRESHOLD_SQ) return;
-          didDrag = true;
-        }
         const parentRect = containerRef.current?.getBoundingClientRect();
         if (!parentRect) return;
         const { scrollLeft, zoom } = useTimelineStore.getState();
@@ -290,14 +231,12 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
       };
 
       const handleMouseUp = (moveEvent: MouseEvent) => {
-        if (didDrag) {
-          const parentRect = containerRef.current?.getBoundingClientRect();
-          if (parentRect) {
-            const { scrollLeft, zoom } = useTimelineStore.getState();
-            const x = moveEvent.clientX - parentRect.left - GUTTER_WIDTH + scrollLeft;
-            const finalTime = Math.max(0, Math.min(duration, x / zoom));
-            seekTo(finalTime);
-          }
+        const parentRect = containerRef.current?.getBoundingClientRect();
+        if (parentRect) {
+          const { scrollLeft, zoom } = useTimelineStore.getState();
+          const x = moveEvent.clientX - parentRect.left - GUTTER_WIDTH + scrollLeft;
+          const finalTime = Math.max(0, Math.min(duration, x / zoom));
+          seekTo(finalTime);
         }
         setDraggingPlayhead(false);
         document.removeEventListener("mousemove", handleMouseMove);
