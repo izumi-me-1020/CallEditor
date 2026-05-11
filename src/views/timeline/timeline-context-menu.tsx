@@ -8,7 +8,7 @@ import { formatKey } from "@/ui/help-modal";
 import { GROUP_COLORS } from "@/utils/group-colors";
 import { showGroupActionToast } from "@/utils/group-toast";
 import { isMac, MOD_KEY } from "@/utils/platform";
-import { convertLineToWord } from "@/utils/sync-helpers";
+import { convertLineToWord, splitIntoWordsWithMeta } from "@/utils/sync-helpers";
 import { findInsertionSlot, normalizeTrailingSpaces } from "@/utils/word-spaces";
 import { copyInstanceToClipboardAndPreview } from "@/views/timeline/copy-instance-to-clipboard";
 import { decideAddInstancePlacement } from "@/views/timeline/decide-add-instance-placement";
@@ -187,6 +187,21 @@ const TimelineContextMenu: React.FC = () => {
     useTimelineStore.getState().setEditingWord({ lineId, wordIndex: newIndex, type });
     clearContextMenu();
   }, [contextMenu, lines, duration, updateLineWithHistory, clearContextMenu]);
+
+  const handlePlaceLineHere = useCallback(() => {
+    if (!contextMenu || contextMenu.target.kind !== "track") return;
+    const { lineId, time } = contextMenu.target;
+    const line = rawLines.find((l) => l.id === lineId);
+    if (!line) return;
+    const wordDuration = useSettingsStore.getState().defaultWordDuration;
+    const wordCount = splitIntoWordsWithMeta(line.text).parts.length;
+    const lineDuration = Math.max(wordCount, 1) * wordDuration;
+    updateLineWithHistory(lineId, {
+      begin: time,
+      end: time + lineDuration,
+    });
+    clearContextMenu();
+  }, [contextMenu, rawLines, updateLineWithHistory, clearContextMenu]);
 
   const handleAddLine = useCallback(
     (position: "above" | "below") => {
@@ -609,6 +624,15 @@ const TimelineContextMenu: React.FC = () => {
         {target.kind === "track" && (
           <>
             <MenuItem label="Add word here" shortcut={["Double Click"]} onClick={handleAddWordHere} />
+            {(() => {
+              const targetLine = rawLines.find((l) => l.id === target.lineId);
+              const canPlace =
+                targetLine &&
+                targetLine.text.trim() !== "" &&
+                !targetLine.words?.length &&
+                targetLine.begin === undefined;
+              return canPlace ? <MenuItem label="Place line here" onClick={handlePlaceLineHere} /> : null;
+            })()}
             {groupableSelection && (
               <>
                 <MenuDivider />

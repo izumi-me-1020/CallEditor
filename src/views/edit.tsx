@@ -10,54 +10,10 @@ import { stripSplitCharacter } from "@/utils/split-character";
 import { AgentManager } from "@/views/edit/agent-manager";
 import { decideEditTextAction } from "@/views/edit/decide-edit-text-action";
 import { detachInstancesFromLines } from "@/views/edit/diff-edit-text";
+import { parseLyrics } from "@/views/edit/parse-lyrics";
+import type { ParsedLine } from "@/views/edit/parse-lyrics";
 import { IconAlertTriangle, IconFileImport, IconMicrophone, IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-
-// -- Types --------------------------------------------------------------------
-
-interface ParsedLine {
-  lineNumber: number;
-  lineId: string;
-  text: string;
-  isEmpty: boolean;
-  hasBrackets: boolean;
-  hasTiming: boolean;
-  agentId: string;
-  backgroundText?: string;
-  groupId?: string;
-  instanceIdx?: number;
-  templateLineIdx?: number;
-}
-
-// -- Helpers ------------------------------------------------------------------
-
-function parseLyrics(text: string, lines: LyricLine[], defaultAgentId: string): ParsedLine[] {
-  const textLines = text.split("\n");
-  let nonEmptyIndex = 0;
-
-  return textLines.map((line, index) => {
-    const trimmed = line.trim();
-    const isEmpty = trimmed === "";
-
-    // Match non-empty lines to stored lines by index (skipping empty lines)
-    const lyricLine = isEmpty ? undefined : lines[nonEmptyIndex++];
-    const hasTiming = lyricLine?.begin !== undefined || (lyricLine?.words?.length ?? 0) > 0;
-
-    return {
-      lineNumber: index + 1,
-      lineId: lyricLine?.id ?? "",
-      text: lyricLine?.text ?? line,
-      isEmpty,
-      hasBrackets: /\[.*?\]/.test(line),
-      hasTiming,
-      agentId: lyricLine?.agentId ?? defaultAgentId,
-      backgroundText: lyricLine?.backgroundText,
-      groupId: lyricLine?.groupId,
-      instanceIdx: lyricLine?.instanceIdx,
-      templateLineIdx: lyricLine?.templateLineIdx,
-    };
-  });
-}
 
 // -- Components ---------------------------------------------------------------
 

@@ -1,3 +1,4 @@
+import { bindAudioStateEvents } from "@/audio/audio-state-events";
 import { useAudioStore } from "@/stores/audio";
 import { useEffect, useRef } from "react";
 
@@ -56,12 +57,14 @@ const AudioEngine: React.FC = () => {
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
+    const unbindStateEvents = bindAudioStateEvents(audio, setIsPlaying);
 
     return () => {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("error", handleError);
+      unbindStateEvents();
       audio.pause();
       audio.src = "";
       audio.remove();
