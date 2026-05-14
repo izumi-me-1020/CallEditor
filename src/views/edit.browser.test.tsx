@@ -4,12 +4,6 @@ import { useProjectStore } from "@/stores/project";
 import { render } from "@/test/render";
 
 describe("EditPanel", () => {
-  it("renders without crashing for an empty project", async () => {
-    useProjectStore.setState({ lines: [] });
-    const screen = await render(<EditPanel />);
-    expect(screen.container).not.toBeNull();
-  });
-
   it("renders a textarea or contenteditable region for editing lyrics", async () => {
     useProjectStore.setState({ lines: [] });
     const screen = await render(<EditPanel />);

@@ -16,7 +16,7 @@ describe("GuideCard", () => {
     expect(screen.container.textContent).toContain("Step 1 of 3");
   });
 
-  it("calls onSkip when the skip button is clicked", async () => {
+  it("calls onSkip when the Skip button is clicked", async () => {
     let skipped = 0;
     const screen = await render(
       <GuideCard
@@ -24,9 +24,7 @@ describe("GuideCard", () => {
         onSkip={() => skipped++}
       />,
     );
-    const buttons = Array.from(screen.container.querySelectorAll("button"));
-    const skipButton = buttons.find((b) => /skip|dismiss|exit|close/i.test(b.textContent ?? ""));
-    skipButton?.click();
-    expect(skipped).toBeGreaterThanOrEqual(0);
+    await screen.getByRole("button", { name: "Skip" }).click();
+    expect(skipped).toBe(1);
   });
 });

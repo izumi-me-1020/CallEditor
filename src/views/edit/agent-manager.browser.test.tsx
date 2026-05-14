@@ -4,16 +4,17 @@ import { DEFAULT_AGENTS, useProjectStore } from "@/stores/project";
 import { render } from "@/test/render";
 
 describe("AgentManager", () => {
-  it("renders the default agent set", async () => {
+  it("renders one badge per agent in the project store", async () => {
     useProjectStore.setState({ agents: [...DEFAULT_AGENTS] });
     const screen = await render(<AgentManager />);
-    expect(screen.container.textContent ?? "").not.toBe("");
+    for (const agent of DEFAULT_AGENTS) {
+      expect(screen.container.textContent).toContain(agent.id);
+    }
   });
 
-  it("renders an 'Add' button or trigger", async () => {
+  it("renders the Add button to create new agents", async () => {
     useProjectStore.setState({ agents: [...DEFAULT_AGENTS] });
     const screen = await render(<AgentManager />);
-    const buttons = screen.container.querySelectorAll("button");
-    expect(buttons.length).toBeGreaterThan(0);
+    await expect.element(screen.getByRole("button", { name: /Add/ })).toBeInTheDocument();
   });
 });

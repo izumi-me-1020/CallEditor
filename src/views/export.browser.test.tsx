@@ -4,9 +4,9 @@ import { useProjectStore } from "@/stores/project";
 import { render } from "@/test/render";
 
 describe("ExportPanel", () => {
-  it("renders without crashing", async () => {
+  it("shows the 'No lyrics to export' empty state when there are no lines", async () => {
     useProjectStore.setState({ lines: [] });
     const screen = await render(<ExportPanel />);
-    expect(screen.container).not.toBeNull();
+    await expect.element(screen.getByText("No lyrics to export")).toBeInTheDocument();
   });
 });

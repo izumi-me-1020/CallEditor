@@ -4,25 +4,31 @@ import { useTimelineStore } from "@/views/timeline/timeline-store";
 import { render } from "@/test/render";
 
 describe("TimelineHeader", () => {
-  it("renders zoom controls", async () => {
-    await render(<TimelineHeader />);
-    expect(document.body.textContent ?? "").not.toBe("");
+  it("renders the Timeline heading and core toolbar buttons", async () => {
+    const screen = await render(<TimelineHeader />);
+    await expect.element(screen.getByRole("heading", { name: "Timeline" })).toBeInTheDocument();
+    await expect.element(screen.getByRole("button", { name: /Follow/ })).toBeInTheDocument();
   });
 
-  it("dispatches zoom changes via the timeline store", async () => {
-    const initial = useTimelineStore.getState().zoom;
-    await render(<TimelineHeader />);
-    useTimelineStore.getState().zoomIn();
-    expect(useTimelineStore.getState().zoom).toBeGreaterThan(initial);
+  it("toggles followEnabled in the timeline store when the Follow button is clicked", async () => {
+    const initial = useTimelineStore.getState().followEnabled;
+    const screen = await render(<TimelineHeader />);
+    await screen.getByRole("button", { name: /Follow/ }).click();
+    expect(useTimelineStore.getState().followEnabled).toBe(!initial);
   });
 
-  it("invokes onImportLyrics when the import button is clicked (if rendered)", async () => {
+  it("does not render the Import button when onImportLyrics is omitted", async () => {
+    const screen = await render(<TimelineHeader />);
+    const importButton = Array.from(screen.container.querySelectorAll("button")).find((b) =>
+      /^Import/i.test(b.textContent ?? ""),
+    );
+    expect(importButton).toBeUndefined();
+  });
+
+  it("invokes onImportLyrics when the Import button is clicked", async () => {
     let clicks = 0;
     const screen = await render(<TimelineHeader onImportLyrics={() => clicks++} />);
-    const importButton = Array.from(screen.container.querySelectorAll("button")).find((b) =>
-      /import/i.test(b.textContent ?? ""),
-    );
-    importButton?.click();
-    expect(clicks >= 0).toBe(true);
+    await screen.getByRole("button", { name: /^Import/ }).click();
+    expect(clicks).toBe(1);
   });
 });

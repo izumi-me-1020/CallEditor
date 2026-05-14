@@ -4,9 +4,9 @@ import { useTimelineStore } from "@/views/timeline/timeline-store";
 import { render } from "@/test/render";
 
 describe("TimelineInfoPanel", () => {
-  it("renders without crashing when no selection is active", async () => {
+  it("renders nothing visible when no words are selected", async () => {
     useTimelineStore.setState({ selectedWords: [] });
     const screen = await render(<TimelineInfoPanel />);
-    expect(screen.container).not.toBeNull();
+    expect(screen.container.textContent?.trim() ?? "").toBe("");
   });
 });

@@ -14,13 +14,18 @@ describe("InlineKeyBadge", () => {
     await expect.element(screen.getByText("P")).toBeInTheDocument();
   });
 
-  it("renders an icon for the Mod key on macOS, plain text on other platforms", async () => {
+  it("renders the Mod key, with an icon on macOS and Ctrl text elsewhere", async () => {
     const screen = await render(<InlineKeyBadge keys={["Mod"]} />);
     const badges = screen.container.querySelectorAll("span > span");
     expect(badges.length).toBe(1);
-    const text = badges[0]?.textContent ?? "";
-    const containsIcon = !!badges[0]?.querySelector("svg");
-    expect(containsIcon || text.length > 0).toBe(true);
+    const badge = badges[0] as HTMLElement;
+    const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
+    if (isMac) {
+      expect(badge.querySelector("svg")).not.toBeNull();
+    } else {
+      expect(badge.querySelector("svg")).toBeNull();
+      expect(badge.textContent).toBe("Ctrl");
+    }
   });
 
   it("preserves the supplied key order", async () => {
