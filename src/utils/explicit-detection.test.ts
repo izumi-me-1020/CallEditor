@@ -1,17 +1,18 @@
 /**
  * @vitest-environment node
  */
-import type { LinkGroup, LyricLine } from "@/stores/project";
+import type { LinkGroup } from "@/domain/group/template";
+import { reconcileLine, type LooseLine, type LyricLine } from "@/domain/line/model";
 import { findExplicitWords } from "@/utils/explicit-detection";
 import { describe, expect, it } from "vitest";
 
-function lineWithText(id: string, text: string, words?: LyricLine["words"]): LyricLine {
-  return {
+function lineWithText(id: string, text: string, words?: LooseLine["words"]): LyricLine {
+  return reconcileLine({
     id,
     text,
     agentId: "v1",
     ...(words ? { words } : {}),
-  };
+  });
 }
 
 describe("findExplicitWords", () => {
@@ -149,6 +150,14 @@ describe("findExplicitWords · syllable-split words", () => {
     ]);
     expect(result).toHaveLength(1);
     expect(result[0].wordIndices).toEqual([1, 2]);
+  });
+
+  it("maps indices correctly for a profane word that follows a syllable-split word", () => {
+    const result = findExplicitWords([lineWithText("L1", "shit hel|lo fuck")]);
+    expect(result).toHaveLength(2);
+    const indices = result.map((r) => r.wordIndices);
+    expect(indices).toContainEqual([0]);
+    expect(indices).toContainEqual([3]);
   });
 });
 

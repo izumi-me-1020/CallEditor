@@ -1,8 +1,10 @@
+import { isWordSelected } from "@/domain/selection/identity";
 import { FileDropZone } from "@/audio/file-drop-zone";
 import { cn } from "@/utils/cn";
 import { useAudioStore } from "@/stores/audio";
-import { getAgentColor, useProjectStore } from "@/stores/project";
-import type { LyricLine } from "@/stores/project";
+import { useProjectStore } from "@/stores/project";
+import { getAgentColor } from "@/domain/agent/colors";
+import type { LyricLine } from "@/domain/line/model";
 import { selfKey } from "@/views/timeline/snap";
 import { useSnapBypass } from "@/views/timeline/use-snap-bypass";
 import { useTimelineSnap } from "@/views/timeline/use-timeline-snap";
@@ -20,14 +22,20 @@ import { SnapGuideline } from "@/views/timeline/snap-guideline";
 import { TimelinePlayhead } from "@/views/timeline/timeline-playhead";
 import { TimelinePreviewSidebar } from "@/views/timeline/timeline-preview-sidebar";
 import { TimelineRows } from "@/views/timeline/timeline-rows";
-import { GUTTER_WIDTH, MAX_ZOOM, MIN_ZOOM, isWordSelected, useTimelineStore } from "@/views/timeline/timeline-store";
+import { GUTTER_WIDTH, MAX_ZOOM, MIN_ZOOM, useTimelineStore } from "@/views/timeline/timeline-store";
 import { TimelineWaveform } from "@/views/timeline/timeline-waveform";
 import { useMarquee } from "@/views/timeline/use-marquee";
-import { expandSelectionToGroupmates, getSyllablePositions, type SyllablePosition } from "@/utils/syllable-groups";
+import {
+  expandSelectionToGroupmates,
+  getSyllablePositions,
+  type SyllablePosition,
+} from "@/domain/word/syllable-groups";
 import { useTimelineDnd } from "@/views/timeline/use-timeline-dnd";
 import { useTimelineKeyboard } from "@/views/timeline/use-timeline-keyboard";
 import { useTimelinePan } from "@/views/timeline/use-timeline-pan";
-import { computeRowLayout, distributeLinesTiming, getEffectiveLines } from "@/views/timeline/utils";
+import { mainBounds } from "@/domain/line/bounds";
+import { getEffectiveLines } from "@/domain/line/effective-words";
+import { computeRowLayout, distributeLinesTiming } from "@/views/timeline/utils";
 import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
 import { Button } from "@/ui/button";
 import { IconFileImport, IconFileMusic, IconMusic } from "@tabler/icons-react";
@@ -171,7 +179,7 @@ const TimelinePanel: React.FC = () => {
     if (duration <= 0 || lines.length === 0) return;
     if (lastDistributedDurationRef.current === duration) return;
 
-    const hasAnyTiming = lines.some((l) => l.words?.length || (l.begin !== undefined && l.end !== undefined));
+    const hasAnyTiming = lines.some((l) => mainBounds(l) !== null);
 
     if (!hasAnyTiming) {
       const distributed = distributeLinesTiming(lines, duration);
@@ -430,9 +438,7 @@ const TimelinePanel: React.FC = () => {
         if (!data?.snap) return;
         const { selectedWords } = useTimelineStore.getState();
         const lines = useProjectStore.getState().lines;
-        const isLeaderInSelection = selectedWords.some(
-          (s) => s.lineId === data.lineId && s.wordIndex === data.wordIndex && s.type === data.trackType,
-        );
+        const isLeaderInSelection = isWordSelected(selectedWords, data.lineId, data.wordIndex, data.trackType);
         const draggedSet =
           isLeaderInSelection && selectedWords.length > 0
             ? selectedWords

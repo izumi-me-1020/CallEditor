@@ -1,4 +1,4 @@
-import type { WordTiming } from "@/stores/project";
+import type { WordTiming } from "@/domain/word/timing";
 import { nanoid } from "nanoid";
 
 // -- Types --------------------------------------------------------------------
@@ -162,6 +162,16 @@ function inferSyllableGroupIds(words: WordTiming[]): WordTiming[] {
   return result;
 }
 
+function hasIntraGroupGap(words: WordTiming[]): boolean {
+  for (let i = 0; i < words.length - 1; i++) {
+    const id = words[i].syllableGroupId;
+    if (id === undefined) continue;
+    if (words[i + 1].syllableGroupId !== id) continue;
+    if (words[i].end < words[i + 1].begin) return true;
+  }
+  return false;
+}
+
 function closeIntraGroupGaps(words: WordTiming[]): WordTiming[] {
   if (words.length < 2) return words;
   let changed = false;
@@ -183,9 +193,11 @@ function closeIntraGroupGaps(words: WordTiming[]): WordTiming[] {
 export {
   absorbDeletedSyllablesIntoNeighbors,
   closeIntraGroupGaps,
+  computeByGroupId,
   computeSyllableGroups,
   expandSelectionToGroupmates,
   getSyllablePositions,
+  hasIntraGroupGap,
   inferSyllableGroupIds,
 };
 export type { SyllablePosition };

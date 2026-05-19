@@ -1,7 +1,9 @@
 import { useAudioStore } from "@/stores/audio";
 import { useConfirm } from "@/stores/confirm-store";
 import { useModalStackStore } from "@/stores/modal-stack";
-import { type LineTemplate, type LyricLine, useProjectStore } from "@/stores/project";
+import { useProjectStore } from "@/stores/project";
+import type { LineTemplate } from "@/domain/group/template";
+import type { LyricLine } from "@/domain/line/model";
 import { cn } from "@/utils/cn";
 import { decidePasteInstanceAction } from "@/views/timeline/decide-paste-instance-action";
 import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
@@ -194,9 +196,9 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
           lineUpdates.words = [...(line.words ?? []), ...newWords].sort((a, b) => a.begin - b.begin);
         }
         if (newBgWords.length > 0) {
-          const merged = [...(line.backgroundWords ?? []), ...newBgWords].sort((a, b) => a.begin - b.begin);
-          lineUpdates.backgroundWords = merged;
-          lineUpdates.backgroundText = merged.map((w) => w.text).join("");
+          lineUpdates.backgroundWords = [...(line.backgroundWords ?? []), ...newBgWords].sort(
+            (a, b) => a.begin - b.begin,
+          );
         }
 
         updates.push({ id: line.id, updates: lineUpdates });

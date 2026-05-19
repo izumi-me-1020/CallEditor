@@ -1,4 +1,6 @@
-import type { LyricLine } from "@/stores/project";
+import { linesOfInstance } from "@/domain/instance/enumerate";
+import { isLinked } from "@/domain/instance/predicates";
+import type { LyricLine } from "@/domain/line/model";
 
 // -- Helpers -------------------------------------------------------------------
 
@@ -38,13 +40,13 @@ function findMatchingTemplate(
 ): { groupId: string; instanceIdx: number } | null {
   const seen = new Set<string>();
   for (const line of lines) {
-    if (line.groupId === undefined || line.instanceIdx === undefined) continue;
+    if (!isLinked(line)) continue;
     const key = `${line.groupId}:${line.instanceIdx}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    const instanceLines = lines
-      .filter((l) => l.groupId === line.groupId && l.instanceIdx === line.instanceIdx)
-      .sort((p, q) => (p.templateLineIdx ?? 0) - (q.templateLineIdx ?? 0));
+    const instanceLines = linesOfInstance(lines, line.groupId, line.instanceIdx).toSorted(
+      (p, q) => (p.templateLineIdx ?? 0) - (q.templateLineIdx ?? 0),
+    );
     if (structurallyEqualLineSequences(candidate, instanceLines)) {
       return { groupId: line.groupId, instanceIdx: line.instanceIdx };
     }

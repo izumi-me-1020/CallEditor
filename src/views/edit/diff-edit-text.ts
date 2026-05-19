@@ -1,5 +1,7 @@
-import { extractLinkedFields, propagateWordChanges } from "@/stores/project";
-import type { LyricLine } from "@/stores/project";
+import { extractLinkedFields } from "@/domain/group/linking";
+import { propagateWordChanges } from "@/domain/group/smart-sync";
+import { isLinked } from "@/domain/instance/predicates";
+import { reconcileLine, type LooseLine, type LyricLine } from "@/domain/line/model";
 
 // -- Types --------------------------------------------------------------------
 
@@ -65,7 +67,7 @@ interface ImpactedInstance {
 function instancesByKey(lines: LyricLine[]): Map<string, Set<string>> {
   const out = new Map<string, Set<string>>();
   for (const line of lines) {
-    if (line.groupId === undefined || line.instanceIdx === undefined) continue;
+    if (!isLinked(line)) continue;
     const key = `${line.groupId}:${line.instanceIdx}`;
     let bucket = out.get(key);
     if (!bucket) {
@@ -132,7 +134,7 @@ function detachInstancesFromLines(lines: LyricLine[], instances: ImpactedInstanc
   const impactedKeys = new Set(instances.map((i) => `${i.groupId}:${i.instanceIdx}`));
 
   return lines.map((line) => {
-    if (line.groupId === undefined || line.instanceIdx === undefined) return line;
+    if (!isLinked(line)) return line;
     if (!impactedKeys.has(`${line.groupId}:${line.instanceIdx}`)) return line;
     return {
       ...line,
@@ -199,7 +201,7 @@ function propagateContentUpdates(
     if (updatesById.has(line.id)) return line;
     if (line.groupId === undefined || line.templateLineIdx === undefined || line.detached) return line;
 
-    const merged: Partial<LyricLine> = {};
+    const merged: Partial<LooseLine> = {};
     for (const scope of linkedScopes) {
       if (line.groupId !== scope.groupId) continue;
       if (line.templateLineIdx !== scope.templateLineIdx) continue;
@@ -214,7 +216,7 @@ function propagateContentUpdates(
       if (propagatedBg) merged.backgroundWords = propagatedBg;
     }
     if (Object.keys(merged).length === 0) return line;
-    return { ...line, ...merged };
+    return reconcileLine({ ...line, ...merged });
   });
 }
 

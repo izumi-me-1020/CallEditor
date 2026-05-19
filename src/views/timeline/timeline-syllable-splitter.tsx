@@ -1,6 +1,6 @@
 import { useAudioStore } from "@/stores/audio";
 import { useProjectStore } from "@/stores/project";
-import type { WordTiming } from "@/stores/project";
+import type { WordTiming } from "@/domain/word/timing";
 import { Modal } from "@/ui/modal";
 import { distributeTiming } from "@/utils/syllable-utils";
 import { splitSourceWord } from "@/utils/word-timing";
@@ -87,19 +87,7 @@ const TimelineSyllableSplitter: React.FC = () => {
 
     const updatedWords = [...wordsArray.slice(0, wordIndex), ...newWords, ...wordsArray.slice(wordIndex + 1)];
 
-    if (type === "word") {
-      const newLineText = updatedWords
-        .map((w) => w.text)
-        .join("")
-        .trimEnd();
-      void handleWordChangeWithDivergenceCheck(lineId, updatedWords, "words", { text: newLineText });
-    } else {
-      const newBgText = updatedWords
-        .map((w) => w.text)
-        .join("")
-        .trimEnd();
-      void handleWordChangeWithDivergenceCheck(lineId, updatedWords, "backgroundWords", { backgroundText: newBgText });
-    }
+    void handleWordChangeWithDivergenceCheck(lineId, updatedWords, type === "word" ? "words" : "backgroundWords");
 
     setIsOpen(false);
     setTarget(null);

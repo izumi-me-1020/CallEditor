@@ -1,7 +1,10 @@
-import type { Agent, LinkGroup, LyricLine, ProjectMetadata } from "@/stores/project";
+import type { Agent } from "@/domain/agent/model";
+import type { LinkGroup } from "@/domain/group/template";
+import type { LyricLine } from "@/domain/line/model";
+import type { ProjectMetadata } from "@/domain/project/metadata";
 import { formatTime } from "@/utils/format-time";
 import { stripSplitCharacter } from "@/utils/split-character";
-import { getLineTiming } from "@/utils/sync-helpers";
+import { effectiveBounds } from "@/domain/line/bounds";
 
 // -- Helpers ------------------------------------------------------------------
 
@@ -72,7 +75,7 @@ function generateTTML({ metadata, agents, lines, groups, granularity, minify = f
   parts.push(`${ind(2)}<div>`);
 
   for (const line of lines) {
-    const timing = getLineTiming(line);
+    const timing = effectiveBounds(line);
     if (!timing) continue;
 
     const agentAttr = line.agentId ? ` ttm:agent="${escapeXml(line.agentId)}"` : "";

@@ -1,14 +1,15 @@
 import { useAudioStore } from "@/stores/audio";
 import { useConfirm } from "@/stores/confirm-store";
 import { useProjectStore } from "@/stores/project";
-import type { LyricLine, WordTiming } from "@/stores/project";
+import type { LyricLine } from "@/domain/line/model";
+import type { WordTiming } from "@/domain/word/timing";
 import { useSettingsStore } from "@/stores/settings";
+import { effectiveBounds } from "@/domain/line/bounds";
 import {
   commitHeldWord,
   commitTappedWord,
   type SyncState,
   createInitialBgWords,
-  getLineTiming,
   splitIntoWords,
   splitIntoWordsWithMeta,
 } from "@/utils/sync-helpers";
@@ -315,7 +316,7 @@ function useSyncHandlers({
   const handleJumpToLine = useCallback(
     (index: number) => {
       if (editMode) {
-        const timing = getLineTiming(lines[index]);
+        const timing = effectiveBounds(lines[index]);
         if (timing) {
           seekTo(timing.begin);
         }

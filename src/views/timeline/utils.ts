@@ -1,15 +1,21 @@
-import type { LyricLine, WordTiming } from "@/stores/project";
+import { instanceBounds } from "@/domain/instance/bounds";
+import { isLinked } from "@/domain/instance/predicates";
+import { getEffectiveLines } from "@/domain/line/effective-words";
+import { isLineSynced, isWordSynced } from "@/domain/line/predicates";
+import type { LyricLine } from "@/domain/line/model";
+import type { WordTiming } from "@/domain/word/timing";
 import { formatTime as formatTimeBase } from "@/utils/format-time";
-import { stripSplitCharacter } from "@/utils/split-character";
-import { expandSelectionToGroupmates } from "@/utils/syllable-groups";
-import { distributeWordsInLine, getLineTiming } from "@/utils/sync-helpers";
+import { expandSelectionToGroupmates } from "@/domain/word/syllable-groups";
+import { distributeWordsInLine } from "@/utils/sync-helpers";
 
 // -- Functions -----------------------------------------------------------------
 
+// Distributed lines are word-synced: the per-line span lives in `words`, not in
+// line-level begin/end. Emitting both would produce an invalid both-state line.
 function distributeLinesTiming<T extends { id: string; text: string }>(
   lines: T[],
   duration: number,
-): (T & { begin: number; end: number; words: WordTiming[] })[] {
+): (T & { words: WordTiming[] })[] {
   if (lines.length === 0) return [];
 
   const lineDuration = duration / lines.length;
@@ -19,8 +25,6 @@ function distributeLinesTiming<T extends { id: string; text: string }>(
     const end = (index + 1) * lineDuration;
     return {
       ...line,
-      begin,
-      end,
       words: distributeWordsInLine(line.text, begin, end),
     };
   });
@@ -61,20 +65,6 @@ function findWordAtTime(lines: LyricLine[], time: number): WordAtTimeResult | nu
   return null;
 }
 
-function isLineSynced(line: LyricLine): boolean {
-  return !line.words?.length && line.begin !== undefined && line.end !== undefined;
-}
-
-function getEffectiveLines(lines: LyricLine[]): LyricLine[] {
-  return lines.map((line) => {
-    if (!isLineSynced(line)) return line;
-    return {
-      ...line,
-      words: [{ text: stripSplitCharacter(line.text), begin: line.begin!, end: line.end! }],
-    };
-  });
-}
-
 interface GroupHeaderRow {
   kind: "group-header";
   groupId: string;
@@ -93,37 +83,6 @@ interface LineEffectiveRow {
 
 type EffectiveRow = GroupHeaderRow | LineEffectiveRow;
 
-function instanceTimingBounds(lines: LyricLine[]): { start: number; end: number } {
-  let start = Number.POSITIVE_INFINITY;
-  let end = Number.NEGATIVE_INFINITY;
-  for (const line of lines) {
-    const hasWords = !!line.words?.length;
-    const hasBgWords = !!line.backgroundWords?.length;
-    if (hasWords) {
-      for (const w of line.words!) {
-        if (w.begin < start) start = w.begin;
-        if (w.end > end) end = w.end;
-      }
-    }
-    if (hasBgWords) {
-      for (const w of line.backgroundWords!) {
-        if (w.begin < start) start = w.begin;
-        if (w.end > end) end = w.end;
-      }
-    }
-    // Only fall back to line-level begin/end for truly line-synced rows.
-    // For lines that have words or bg words, those arrays are the source of
-    // truth; line.begin/end may be stale (TTML import populates both, and
-    // word edits don't write back to the line-level cache).
-    if (!hasWords && !hasBgWords) {
-      if (line.begin !== undefined && line.begin < start) start = line.begin;
-      if (line.end !== undefined && line.end > end) end = line.end;
-    }
-  }
-  if (!Number.isFinite(start) || !Number.isFinite(end)) return { start: 0, end: 0 };
-  return { start, end };
-}
-
 function getEffectiveRows(lines: LyricLine[]): EffectiveRow[] {
   const effective = getEffectiveLines(lines);
   const rows: EffectiveRow[] = [];
@@ -135,27 +94,16 @@ function getEffectiveRows(lines: LyricLine[]): EffectiveRow[] {
     const slice = effective.slice(bufferStart, endExclusive);
     const first = slice[0];
 
-    if (first.groupId !== undefined && first.instanceIdx !== undefined) {
-      // Skip the header for instances with no timed content. Without this
-      // guard, instanceTimingBounds returns its { 0, 0 } no-finite-value
-      // fallback and the banner renders at x=0 with min-width, which is
-      // confusing because there's nothing actually placed at time 0.
-      const hasAnyTiming = slice.some(
-        (line) =>
-          (line.words?.length ?? 0) > 0 ||
-          (line.backgroundWords?.length ?? 0) > 0 ||
-          line.begin !== undefined ||
-          line.end !== undefined,
-      );
-      if (hasAnyTiming) {
-        const { start, end } = instanceTimingBounds(slice);
+    if (isLinked(first)) {
+      const bounds = instanceBounds(slice);
+      if (bounds) {
         rows.push({
           kind: "group-header",
           groupId: first.groupId,
           instanceIdx: first.instanceIdx,
           lineCount: slice.length,
-          instanceStart: start,
-          instanceEnd: end,
+          instanceStart: bounds.begin,
+          instanceEnd: bounds.end,
           firstLineId: first.id,
         });
       }
@@ -167,8 +115,7 @@ function getEffectiveRows(lines: LyricLine[]): EffectiveRow[] {
 
   for (let i = 0; i < effective.length; i++) {
     const line = effective[i];
-    const key =
-      line.groupId !== undefined && line.instanceIdx !== undefined ? `${line.groupId}:${line.instanceIdx}` : null;
+    const key = isLinked(line) ? `${line.groupId}:${line.instanceIdx}` : null;
     if (key !== currentKey) {
       flushBuffer(i);
       bufferStart = i;
@@ -241,8 +188,7 @@ function computeRowLayout({
   let lastInstanceKey: string | null = null;
 
   for (const line of lines) {
-    const inst =
-      line.groupId !== undefined && line.instanceIdx !== undefined ? `${line.groupId}:${line.instanceIdx}` : null;
+    const inst = isLinked(line) ? `${line.groupId}:${line.instanceIdx}` : null;
 
     if (inst !== lastInstanceKey && inst !== null) {
       headerTops.set(inst, { top: rowTop, height: groupHeaderHeight });
@@ -316,9 +262,9 @@ function partitionNudgeSelections(
       pushWordSynced(sel, line);
       continue;
     }
-    if (line.words?.length) {
+    if (isWordSynced(line)) {
       pushWordSynced(sel, line);
-    } else if (line.begin !== undefined && line.end !== undefined) {
+    } else if (isLineSynced(line)) {
       if (seenLineSyncedIds.has(sel.lineId)) continue;
       seenLineSyncedIds.add(sel.lineId);
       lineSynced.push(sel);
@@ -479,13 +425,9 @@ function nudgeSelectedWords(
 export {
   distributeWordsInLine,
   distributeLinesTiming,
-  getLineTiming,
   formatTime,
   findWordAtTime,
-  isLineSynced,
-  getEffectiveLines,
   getEffectiveRows,
-  instanceTimingBounds,
   getWordsInInstance,
   computeRowLayout,
   nudgeSelectedWords,

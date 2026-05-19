@@ -1,13 +1,13 @@
 {
   "name": "composer",
   "private": true,
-  "version": "1.14.0",
+  "version": "1.14.1",
   "type": "module",
   "scripts": {
     "dev": "vite-react-ssg dev",
     "build": "tsc -b && vite-react-ssg build",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "pnpm test:unit && pnpm test:component",
     "test:watch": "vitest",
     "test:unit": "vitest run --project unit",
     "test:component": "vitest run --project browser",
@@ -16,7 +16,8 @@
     "lint:fix": "biome lint --write . && biome format --write .",
     "typecheck": "tsc --noEmit",
     "knip": "knip",
-    "knip:production": "knip --production"
+    "knip:production": "knip --production",
+    "jscpd": "jscpd"
   },
   "dependencies": {
     "@braccato/core": "^0.1.4",
@@ -66,6 +67,7 @@
     "@vitest/browser": "^4.1.6",
     "@vitest/browser-playwright": "^4.1.6",
     "@vitest/coverage-v8": "^4.1.6",
+    "jscpd": "^4.2.3",
     "jsdom": "^29.0.1",
     "knip": "^6.13.1",
     "playwright": "^1.60.0",

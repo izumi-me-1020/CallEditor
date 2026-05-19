@@ -1,15 +1,10 @@
+import type { WordSelection } from "@/domain/selection/model";
+import { toggleWordSelection } from "@/domain/selection/set-ops";
 import { useSettingsStore } from "@/stores/settings";
 import type { ClipboardData, PasteMode } from "@/views/timeline/selection-types";
 import { create } from "zustand";
 
 // -- Types ---------------------------------------------------------------------
-
-interface WordSelection {
-  lineId: string;
-  lineIndex: number;
-  wordIndex: number;
-  type: "word" | "bg";
-}
 
 type ContextMenuTarget =
   | { kind: "word"; lineId: string; lineIndex: number; wordIndex: number; type: "word" | "bg" }
@@ -132,21 +127,7 @@ const useTimelineStore = create<TimelineState & TimelineActions>((set, get) => {
     togglePreviewSidebar: () => set((s) => ({ previewSidebarOpen: !s.previewSidebarOpen })),
     setSelectedWords: (selectedWords) => set({ selectedWords }),
 
-    toggleSelection: (selection) =>
-      set((s) => {
-        const exists = s.selectedWords.some(
-          (w) => w.lineId === selection.lineId && w.wordIndex === selection.wordIndex && w.type === selection.type,
-        );
-        if (exists) {
-          return {
-            selectedWords: s.selectedWords.filter(
-              (w) =>
-                !(w.lineId === selection.lineId && w.wordIndex === selection.wordIndex && w.type === selection.type),
-            ),
-          };
-        }
-        return { selectedWords: [...s.selectedWords, selection] };
-      }),
+    toggleSelection: (selection) => set((s) => ({ selectedWords: toggleWordSelection(s.selectedWords, selection) })),
     clearSelection: () => set({ selectedWords: [] }),
     setClipboard: (clipboard) => set({ clipboard }),
     setPasteMode: (pasteMode) => set({ pasteMode }),
@@ -179,11 +160,6 @@ const useTimelineStore = create<TimelineState & TimelineActions>((set, get) => {
   };
 });
 
-function isWordSelected(selectedWords: WordSelection[], lineId: string, wordIndex: number, type: "word" | "bg") {
-  return selectedWords.some((w) => w.lineId === lineId && w.wordIndex === wordIndex && w.type === type);
-}
-
 // -- Exports -------------------------------------------------------------------
 
-export { useTimelineStore, isWordSelected, GUTTER_WIDTH, MIN_ZOOM, MAX_ZOOM, DEFAULT_ROW_HEIGHT };
-export type { WordSelection };
+export { useTimelineStore, GUTTER_WIDTH, MIN_ZOOM, MAX_ZOOM, DEFAULT_ROW_HEIGHT };

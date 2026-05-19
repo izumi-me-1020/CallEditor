@@ -1,9 +1,12 @@
 import { useAudioStore } from "@/stores/audio";
-import { getAgentColor, useProjectStore } from "@/stores/project";
+import { useProjectStore } from "@/stores/project";
+import { getAgentColor } from "@/domain/agent/colors";
 import { Button } from "@/ui/button";
 import { createBgWordsFromLine } from "@/utils/sync-helpers";
 import { useTimelineStore } from "@/views/timeline/timeline-store";
-import { formatTime, getEffectiveLines, isLineSynced } from "@/views/timeline/utils";
+import { isLineSynced } from "@/domain/line/predicates";
+import { getEffectiveLines } from "@/domain/line/effective-words";
+import { formatTime } from "@/views/timeline/utils";
 import { IconBracketsContainEnd, IconBracketsContainStart, IconLink } from "@tabler/icons-react";
 import { useCallback, useMemo, useState } from "react";
 

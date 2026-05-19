@@ -1,10 +1,14 @@
+import { isWordSelected } from "@/domain/selection/identity";
 import { useAudioStore } from "@/stores/audio";
-import { type LyricLine, type WordTiming, useProjectStore } from "@/stores/project";
-import { expandSelectionToGroupmates } from "@/utils/syllable-groups";
+import { useProjectStore } from "@/stores/project";
+import type { LyricLine } from "@/domain/line/model";
+import type { WordTiming } from "@/domain/word/timing";
+import { expandSelectionToGroupmates } from "@/domain/word/syllable-groups";
 import { cloneWord } from "@/utils/word-timing";
 import { addTrailingSpaceIfMissing, trimTrailingSpaceFromLast } from "@/utils/word-spaces";
 import { wouldDropCrossInstance } from "@/views/timeline/dnd-group-guard";
-import { type WordSelection, isWordSelected, useTimelineStore } from "@/views/timeline/timeline-store";
+import type { WordSelection } from "@/domain/selection/model";
+import { useTimelineStore } from "@/views/timeline/timeline-store";
 import { type DragEndEvent, type DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { nanoid } from "nanoid";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -148,9 +152,7 @@ function handleAltDuplicate(event: DragEndEvent, lines: LyricLine[], zoom: numbe
         const prevLast = existing[existing.length - 1];
         const sorted = [...existing, ...bgDups].sort((a, b) => a.begin - b.begin);
         const reconciled = prevLast ? addTrailingSpaceIfMissing(sorted, prevLast) : sorted;
-        const merged = trimTrailingSpaceFromLast(reconciled);
-        lineUpdates.backgroundWords = merged;
-        lineUpdates.backgroundText = merged.map((w) => w.text).join("");
+        lineUpdates.backgroundWords = trimTrailingSpaceFromLast(reconciled);
       }
     }
 
@@ -340,11 +342,7 @@ function useTimelineDnd(lines: LyricLine[]) {
               words[words.length - 1] = { ...last, begin: last.begin - overflow, end: duration };
             }
 
-            const normalized = trimTrailingSpaceFromLast(words);
-            lineUpdates[trackKey] = normalized;
-            if (trackKey === "backgroundWords") {
-              lineUpdates.backgroundText = normalized.map((w) => w.text).join("");
-            }
+            lineUpdates[trackKey] = trimTrailingSpaceFromLast(words);
           }
 
           if (Object.keys(lineUpdates).length > 0) {
@@ -388,10 +386,7 @@ function useTimelineDnd(lines: LyricLine[]) {
         if (activeData.trackType === "word") {
           updateLineWithHistory(activeData.lineId, { words: normalized });
         } else {
-          updateLineWithHistory(activeData.lineId, {
-            backgroundWords: normalized,
-            backgroundText: normalized.map((w) => w.text).join(""),
-          });
+          updateLineWithHistory(activeData.lineId, { backgroundWords: normalized });
         }
       }
     },

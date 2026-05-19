@@ -1,14 +1,15 @@
 /**
  * @vitest-environment node
  */
-import { type LyricLine, useProjectStore } from "@/stores/project";
-import { getSyllablePositions } from "@/utils/syllable-groups";
+import { useProjectStore } from "@/stores/project";
+import { reconcileLine, type LooseLine, type LyricLine } from "@/domain/line/model";
+import { getSyllablePositions } from "@/domain/word/syllable-groups";
 import { beforeEach, describe, expect, it } from "vitest";
 
 const DURATION = 30;
 
-function seedLine(overrides: Partial<LyricLine> = {}): LyricLine {
-  return {
+function seedLine(overrides: Partial<LooseLine> = {}): LyricLine {
+  return reconcileLine({
     id: "line-1",
     text: "hello world goodbye",
     agentId: "v1",
@@ -18,7 +19,7 @@ function seedLine(overrides: Partial<LyricLine> = {}): LyricLine {
       { text: "goodbye", begin: 2, end: 3 },
     ],
     ...overrides,
-  };
+  });
 }
 
 beforeEach(() => {
@@ -68,7 +69,7 @@ describe("moveWordToBg", () => {
           { text: "ah", begin: 0, end: 0.5 },
           { text: "ooh", begin: 0.5, end: 1 },
         ],
-        backgroundText: "ahooh",
+        backgroundText: "ah|ooh",
       }),
     ]);
 
@@ -76,7 +77,7 @@ describe("moveWordToBg", () => {
 
     const line = useProjectStore.getState().lines[0];
     expect(line.backgroundWords?.map((w) => w.text)).toEqual(["ah", "ooh ", "goodbye"]);
-    expect(line.backgroundText).toBe("ahooh goodbye");
+    expect(line.backgroundText).toBe("ah|ooh goodbye");
   });
 
   it("resolves overlap when moved word collides with an existing bg word", () => {
@@ -347,13 +348,13 @@ describe("moveWordToBg · linked propagation", () => {
     useProjectStore.setState((state) => ({
       lines: state.lines.map((l) =>
         l.id === "a1"
-          ? {
+          ? reconcileLine({
               ...l,
               words: [
                 { text: "hello ", begin: 10, end: 11 },
                 { text: "goodbye", begin: 12, end: 13 },
               ],
-            }
+            })
           : l,
       ),
     }));
@@ -494,8 +495,6 @@ describe("moveWordToBg clears line.begin/end when main empties", () => {
         id: "line-1",
         text: "beautiful",
         agentId: "v1",
-        begin: 9.51,
-        end: 15.335,
         words: [
           { text: "beau", begin: 9.51, end: 11.463, syllableGroupId: "g_beautiful" },
           { text: "ti", begin: 11.463, end: 13.58, syllableGroupId: "g_beautiful" },

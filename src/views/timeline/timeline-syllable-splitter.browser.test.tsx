@@ -133,10 +133,8 @@ describe("TimelineSyllableSplitter", () => {
       expect(words.length).toBe(3);
     });
     const lineAfter = useProjectStore.getState().lines[0];
-    const joined = (lineAfter.words ?? [])
-      .map((w) => w.text)
-      .join("")
-      .trimEnd();
-    expect(lineAfter.text).toBe(joined);
+    // text is reconciled via reconstructLineText: the split char marks the
+    // syllable joints so line.text tokenizes 1:1 back to line.words.
+    expect(lineAfter.text).toBe("ev|er|y");
   });
 });

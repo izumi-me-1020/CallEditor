@@ -1,5 +1,9 @@
-import type { LyricLine } from "@/stores/project";
-import { absorbDeletedSyllablesIntoNeighbors } from "@/utils/syllable-groups";
+import { isLinked } from "@/domain/instance/predicates";
+import { isLineSynced } from "@/domain/line/predicates";
+import { reconstructLineText } from "@/domain/line/reconstruct-text";
+import { reconcileLine, type LyricLine } from "@/domain/line/model";
+import { getSplitCharacter } from "@/utils/split-character";
+import { absorbDeletedSyllablesIntoNeighbors } from "@/domain/word/syllable-groups";
 
 interface DeletionSelection {
   lineId: string;
@@ -18,6 +22,8 @@ function isLineFullyEmpty(line: LyricLine): boolean {
 
 function applyWordDeletion(lines: LyricLine[], selectedWords: ReadonlyArray<DeletionSelection>): LyricLine[] {
   if (selectedWords.length === 0) return lines;
+
+  const splitChar = getSplitCharacter();
 
   const byLine = new Map<string, { mainIdxs: Set<number>; bgIdxs: Set<number> }>();
   for (const sel of selectedWords) {
@@ -40,11 +46,11 @@ function applyWordDeletion(lines: LyricLine[], selectedWords: ReadonlyArray<Dele
     if (!line) continue;
 
     const realMainCount = line.words?.length ?? 0;
-    const isLineSynced = realMainCount === 0 && line.begin !== undefined && line.end !== undefined;
+    const lineSynced = isLineSynced(line);
 
     let nextMain = line.words;
     let willHaveNoMainWords = realMainCount === 0;
-    if (isLineSynced && mainIdxs.has(0)) {
+    if (lineSynced && mainIdxs.has(0)) {
       nextMain = undefined;
       willHaveNoMainWords = true;
     } else if (realMainCount > 0 && mainIdxs.size > 0 && line.words) {
@@ -54,25 +60,20 @@ function applyWordDeletion(lines: LyricLine[], selectedWords: ReadonlyArray<Dele
     }
 
     let nextBg = line.backgroundWords;
-    let nextBgText = line.backgroundText;
     if ((line.backgroundWords?.length ?? 0) > 0 && bgIdxs.size > 0 && line.backgroundWords) {
       const absorbed = absorbDeletedSyllablesIntoNeighbors(line.backgroundWords, bgIdxs);
       const remaining = absorbed.filter((_, i) => !bgIdxs.has(i));
       nextBg = remaining.length > 0 ? remaining : undefined;
-      nextBgText = remaining.length > 0 ? remaining.map((w) => w.text).join("") : undefined;
     }
 
-    const updatedLine: LyricLine = {
+    const updatedLine = reconcileLine({
       ...line,
       words: nextMain,
       backgroundWords: nextBg,
-      backgroundText: nextBgText,
-    };
-
-    if (willHaveNoMainWords && (line.begin !== undefined || line.end !== undefined)) {
-      updatedLine.begin = undefined;
-      updatedLine.end = undefined;
-    }
+      text: nextMain && nextMain.length > 0 ? reconstructLineText(nextMain, splitChar) : line.text,
+      backgroundText: nextBg && nextBg.length > 0 ? reconstructLineText(nextBg, splitChar) : undefined,
+      ...(willHaveNoMainWords ? { begin: undefined, end: undefined } : {}),
+    });
 
     updatedById.set(lineId, updatedLine);
   }
@@ -87,7 +88,7 @@ function applyWordDeletion(lines: LyricLine[], selectedWords: ReadonlyArray<Dele
   const affectedInstanceKeys = new Set<string>();
   for (const sel of selectedWords) {
     const updated = updatedById.get(sel.lineId);
-    if (updated?.groupId !== undefined && updated.instanceIdx !== undefined) {
+    if (updated && isLinked(updated)) {
       affectedInstanceKeys.add(`${updated.groupId}:${updated.instanceIdx}`);
     }
   }
@@ -95,7 +96,7 @@ function applyWordDeletion(lines: LyricLine[], selectedWords: ReadonlyArray<Dele
   if (affectedInstanceKeys.size > 0) {
     const linesByInstanceKey = new Map<string, LyricLine[]>();
     for (const l of result) {
-      if (l.groupId === undefined || l.instanceIdx === undefined) continue;
+      if (!isLinked(l)) continue;
       const key = `${l.groupId}:${l.instanceIdx}`;
       const bucket = linesByInstanceKey.get(key);
       if (bucket) bucket.push(l);
@@ -111,7 +112,7 @@ function applyWordDeletion(lines: LyricLine[], selectedWords: ReadonlyArray<Dele
 
     if (keysToStrip.size > 0) {
       result = result.map((line) => {
-        if (line.groupId === undefined || line.instanceIdx === undefined) return line;
+        if (!isLinked(line)) return line;
         if (!keysToStrip.has(`${line.groupId}:${line.instanceIdx}`)) return line;
         return { ...line, groupId: undefined, instanceIdx: undefined, templateLineIdx: undefined, detached: undefined };
       });

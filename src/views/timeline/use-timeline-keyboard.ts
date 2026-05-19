@@ -1,28 +1,32 @@
 import { useAudioStore } from "@/stores/audio";
-import { useConfirmStore } from "@/stores/confirm-store";
 import { isAnyModalOpen } from "@/stores/modal-stack";
-import { type LyricLine, useProjectStore } from "@/stores/project";
+import { useProjectStore } from "@/stores/project";
+import type { LyricLine } from "@/domain/line/model";
 import { useSettingsStore } from "@/stores/settings";
 import { showGroupActionToast } from "@/utils/group-toast";
 import { handleWordChangeWithDivergenceCheck } from "@/utils/word-divergence-flow";
 import { MOD_KEY } from "@/utils/platform";
-import { convertLineToWord } from "@/utils/sync-helpers";
 import { findMatchingShortcut } from "@/utils/shortcut-matcher";
 import { copyInstanceToClipboardAndPreview } from "@/views/timeline/copy-instance-to-clipboard";
 import { decideAddInstancePlacement } from "@/views/timeline/decide-add-instance-placement";
+import { deleteGroupWithConfirm } from "@/views/timeline/delete-group-with-confirm";
 import { resolveExplicitSelectionToggle } from "@/views/timeline/explicit-selection-toggle";
 import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
 import { createGroupFromSelection, fillSelectionGaps, instanceToTemplate } from "@/views/timeline/group-ops";
 import { scrollToInstanceHeader } from "@/views/timeline/scroll-helpers";
-import { GUTTER_WIDTH, type WordSelection, useTimelineStore } from "@/views/timeline/timeline-store";
+import { splitLinesIntoWords } from "@/views/timeline/split-lines-into-words";
+import type { WordSelection } from "@/domain/selection/model";
+import { GUTTER_WIDTH, useTimelineStore } from "@/views/timeline/timeline-store";
 import { useTimelineClipboard } from "@/views/timeline/use-timeline-clipboard";
+import { instanceBounds } from "@/domain/instance/bounds";
+import { linesOfInstance } from "@/domain/instance/enumerate";
+import { isLinked } from "@/domain/instance/predicates";
+import { contiguousSelectionRun } from "@/domain/selection/contiguous";
+import { effectiveBounds } from "@/domain/line/bounds";
 import {
   computeRowLayout,
   findWordAtTime,
-  getLineTiming,
   getWordsInInstance,
-  instanceTimingBounds,
-  isLineSynced,
   partitionNudgeSelections,
   shiftSelectionsTogether,
 } from "@/views/timeline/utils";
@@ -42,7 +46,7 @@ function currentInstanceFromSelection(
   let instanceIdx: number | null = null;
   for (const sel of selectedWords) {
     const line = linesById.get(sel.lineId);
-    if (!line || line.groupId === undefined || line.instanceIdx === undefined) return null;
+    if (!line || !isLinked(line)) return null;
     if (groupId === null) {
       groupId = line.groupId;
       instanceIdx = line.instanceIdx;
@@ -274,7 +278,7 @@ function useTimelineKeyboard(
 
           let activeLineIndex = -1;
           for (let i = 0; i < lines.length; i++) {
-            const timing = getLineTiming(lines[i]);
+            const timing = effectiveBounds(lines[i]);
             if (timing && currentTime >= timing.begin && currentTime < timing.end) {
               activeLineIndex = i;
               break;
@@ -293,10 +297,7 @@ function useTimelineKeyboard(
               bgDropZoneHeight: BG_DROP_ZONE_HEIGHT,
               groupHeaderHeight: GROUP_HEADER_HEIGHT,
             });
-            const instanceKey =
-              line.groupId !== undefined && line.instanceIdx !== undefined
-                ? `${line.groupId}:${line.instanceIdx}`
-                : null;
+            const instanceKey = isLinked(line) ? `${line.groupId}:${line.instanceIdx}` : null;
             const pos =
               instanceKey && collapsedInstances[instanceKey]
                 ? layout.headerTops.get(instanceKey)
@@ -369,46 +370,30 @@ function useTimelineKeyboard(
         }
         case "timeline.mergeWords": {
           const { selectedWords: mSel } = useTimelineStore.getState();
-          if (mSel.length < 2) break;
-          const first = mSel[0];
-          if (!mSel.every((w) => w.lineId === first.lineId && w.type === first.type)) break;
-          const sorted = mSel.toSorted((a, b) => a.wordIndex - b.wordIndex);
-          let consecutive = true;
-          for (let i = 1; i < sorted.length; i++) {
-            if (sorted[i].wordIndex !== sorted[i - 1].wordIndex + 1) {
-              consecutive = false;
-              break;
-            }
-          }
-          if (!consecutive) break;
-          const mLine = lines.find((l) => l.id === first.lineId);
+          const run = contiguousSelectionRun(mSel);
+          if (!run) break;
+          const mLine = lines.find((l) => l.id === run.lineId);
           if (!mLine) break;
-          const mWords = first.type === "word" ? mLine.words : mLine.backgroundWords;
+          const mWords = run.type === "word" ? mLine.words : mLine.backgroundWords;
           if (!mWords) break;
           let spaceFree = true;
-          for (let i = 0; i < sorted.length - 1; i++) {
-            if (mWords[sorted[i].wordIndex].text.endsWith(" ")) {
+          for (let i = 0; i < run.indices.length - 1; i++) {
+            if (mWords[run.indices[i]].text.endsWith(" ")) {
               spaceFree = false;
               break;
             }
           }
           if (!spaceFree) break;
           e.preventDefault();
-          const firstIdx = sorted[0].wordIndex;
-          const lastIdx = sorted[sorted.length - 1].wordIndex;
-          const mergedText = sorted.map((s) => mWords[s.wordIndex].text).join("");
+          const firstIdx = run.indices[0];
+          const lastIdx = run.indices[run.indices.length - 1];
+          const mergedText = run.indices.map((idx) => mWords[idx].text).join("");
           const merged = { text: mergedText, begin: mWords[firstIdx].begin, end: mWords[lastIdx].end };
           const updatedWords = [...mWords.slice(0, firstIdx), merged, ...mWords.slice(lastIdx + 1)];
-          const newText = updatedWords
-            .map((w) => w.text)
-            .join("")
-            .trimEnd();
-          if (first.type === "word") {
-            void handleWordChangeWithDivergenceCheck(first.lineId, updatedWords, "words", { text: newText });
+          if (run.type === "word") {
+            void handleWordChangeWithDivergenceCheck(run.lineId, updatedWords, "words");
           } else {
-            void handleWordChangeWithDivergenceCheck(first.lineId, updatedWords, "backgroundWords", {
-              backgroundText: newText,
-            });
+            void handleWordChangeWithDivergenceCheck(run.lineId, updatedWords, "backgroundWords");
           }
           useTimelineStore.getState().clearSelection();
           break;
@@ -431,41 +416,8 @@ function useTimelineKeyboard(
           const { selectedWords: wSel } = useTimelineStore.getState();
           if (wSel.length === 0) break;
           e.preventDefault();
-
-          const realLines = useProjectStore.getState().lines;
-          const realLinesById = new Map<string, LyricLine>();
-          for (const l of realLines) realLinesById.set(l.id, l);
           const lineIds = new Set(wSel.map((w) => w.lineId));
-          const updates: Array<{ id: string; updates: Partial<LyricLine> }> = [];
-
-          for (const lineId of lineIds) {
-            const realLine = realLinesById.get(lineId);
-            if (!realLine || !isLineSynced(realLine)) continue;
-            const converted = convertLineToWord(realLine);
-            if (converted.words) {
-              updates.push({ id: lineId, updates: { words: converted.words, begin: undefined, end: undefined } });
-            }
-          }
-
-          if (updates.length === 1) {
-            useProjectStore.getState().updateLineWithHistory(updates[0].id, updates[0].updates);
-          } else if (updates.length > 1) {
-            useProjectStore.getState().updateLinesWithHistory(updates);
-          }
-
-          const lineIndexById = new Map<string, number>();
-          for (let i = 0; i < lines.length; i++) lineIndexById.set(lines[i].id, i);
-          const newSelections: WordSelection[] = [];
-          for (const u of updates) {
-            const lineIndex = lineIndexById.get(u.id);
-            if (lineIndex === undefined || !u.updates.words) continue;
-            for (let wi = 0; wi < u.updates.words.length; wi++) {
-              newSelections.push({ lineId: u.id, lineIndex, wordIndex: wi, type: "word" });
-            }
-          }
-          if (newSelections.length > 0) {
-            useTimelineStore.getState().setSelectedWords(newSelections);
-          }
+          splitLinesIntoWords(lineIds, lines);
           break;
         }
         case "timeline.expandAll": {
@@ -512,7 +464,7 @@ function useTimelineKeyboard(
           const groupKeys = new Set<string>();
           for (const w of selectedWords) {
             const line = linesById.get(w.lineId);
-            if (line?.groupId !== undefined && line.instanceIdx !== undefined) {
+            if (line && isLinked(line)) {
               groupKeys.add(`${line.groupId}:${line.instanceIdx}`);
             }
           }
@@ -568,7 +520,7 @@ function useTimelineKeyboard(
           const projectLines = useProjectStore.getState().lines;
           const keys = new Set<string>();
           for (const line of projectLines) {
-            if (line.groupId !== undefined && line.instanceIdx !== undefined) {
+            if (isLinked(line)) {
               keys.add(`${line.groupId}:${line.instanceIdx}`);
             }
           }
@@ -626,19 +578,7 @@ function useTimelineKeyboard(
           if (!group) break;
           e.preventDefault();
           const instanceCount = listInstancesOfGroup(projectLines, inst.groupId).length;
-          (async () => {
-            const ok = await useConfirmStore.getState().open({
-              title: `Delete the "${group.label}" group?`,
-              description: `All ${instanceCount} instance${instanceCount === 1 ? "" : "s"} will become standalone lines. They keep their text and timing, but stop updating together.`,
-              confirmLabel: "Delete group",
-              variant: "destructive",
-              settingsKey: "confirmGroupDissolution",
-              recoverable: true,
-            });
-            if (!ok) return;
-            useProjectStore.getState().removeGroup(inst.groupId);
-            showGroupActionToast("Group deleted");
-          })();
+          void deleteGroupWithConfirm({ groupId: inst.groupId, groupLabel: group.label, instanceCount });
           break;
         }
         case "timeline.pingSiblings": {
@@ -704,14 +644,12 @@ function useTimelineKeyboard(
             toast.error("Select words inside one instance first");
             break;
           }
-          const instanceLines = projectLines.filter(
-            (l) => l.groupId === inst.groupId && l.instanceIdx === inst.instanceIdx,
-          );
-          const { start: earliest } = instanceTimingBounds(instanceLines);
-          if (!Number.isFinite(earliest)) break;
+          const instanceLines = linesOfInstance(projectLines, inst.groupId, inst.instanceIdx);
+          const bounds = instanceBounds(instanceLines);
+          if (!bounds) break;
           const audioEl = useAudioStore.getState().audioElement;
           const playheadTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
-          const delta = playheadTime - earliest;
+          const delta = playheadTime - bounds.begin;
           if (Math.abs(delta) < 0.001) break;
           e.preventDefault();
           useProjectStore.getState().shiftInstance(inst.groupId, inst.instanceIdx, delta);

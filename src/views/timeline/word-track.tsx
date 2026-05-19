@@ -1,11 +1,12 @@
+import { isWordSelected } from "@/domain/selection/identity";
 import { useAudioStore } from "@/stores/audio";
-import type { WordTiming } from "@/stores/project";
+import type { WordTiming } from "@/domain/word/timing";
 import { useProjectStore } from "@/stores/project";
 import { useSettingsStore } from "@/stores/settings";
-import { computeSyllableGroups, getSyllablePositions } from "@/utils/syllable-groups";
+import { computeSyllableGroups, getSyllablePositions } from "@/domain/word/syllable-groups";
 import { addTrailingSpaceIfMissing, findInsertionSlot, trimTrailingSpaceFromLast } from "@/utils/word-spaces";
 import { selfKey } from "@/views/timeline/snap";
-import { isWordSelected, useTimelineStore } from "@/views/timeline/timeline-store";
+import { useTimelineStore } from "@/views/timeline/timeline-store";
 import { useSnapBypass } from "@/views/timeline/use-snap-bypass";
 import { useTimelineSnap } from "@/views/timeline/use-timeline-snap";
 import { WordBlock } from "@/views/timeline/word-block";
@@ -357,10 +358,7 @@ const WordTrack: React.FC<WordTrackProps> = ({
     if (trackType === "word") {
       updateLineWithHistory(lineId, { words: newWords });
     } else {
-      updateLineWithHistory(lineId, {
-        backgroundWords: newWords,
-        backgroundText: newWords.map((w) => w.text).join(""),
-      });
+      updateLineWithHistory(lineId, { backgroundWords: newWords });
     }
 
     useTimelineStore.getState().setEditingWord({ lineId, wordIndex: newIndex, type: trackType });

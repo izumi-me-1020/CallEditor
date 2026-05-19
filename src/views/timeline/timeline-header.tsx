@@ -1,6 +1,8 @@
+import { isLinked } from "@/domain/instance/predicates";
+import { isLineSynced } from "@/domain/line/predicates";
 import { useAudioStore } from "@/stores/audio";
 import { useProjectStore } from "@/stores/project";
-import type { WordTiming } from "@/stores/project";
+import type { WordTiming } from "@/domain/word/timing";
 import { getEffectiveKeysArray } from "@/stores/shortcut-bindings";
 import { useSettingsStore } from "@/stores/settings";
 import { Button } from "@/ui/button";
@@ -55,7 +57,7 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
   const instanceKeys = useMemo(() => {
     const keys = new Set<string>();
     for (const line of lines) {
-      if (line.groupId !== undefined && line.instanceIdx !== undefined) {
+      if (isLinked(line)) {
         keys.add(`${line.groupId}:${line.instanceIdx}`);
       }
     }
@@ -83,9 +85,7 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
       if (line.words?.length) continue;
       if (!line.text.trim()) continue;
 
-      const isLineSynced = line.begin !== undefined && line.end !== undefined;
-
-      if (isLineSynced) {
+      if (isLineSynced(line)) {
         const converted = convertLineToWord(line);
         if (converted.words) {
           updates.push({ id: line.id, updates: { words: converted.words, begin: undefined, end: undefined } });

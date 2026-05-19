@@ -1,4 +1,8 @@
-import type { LineTemplate, LinkGroup, LyricLine, WordTemplate } from "@/stores/project";
+import { instanceBounds } from "@/domain/instance/bounds";
+import { linesOfInstance } from "@/domain/instance/enumerate";
+import { mainBounds } from "@/domain/line/bounds";
+import type { LineTemplate, LinkGroup, WordTemplate } from "@/domain/group/template";
+import type { LyricLine } from "@/domain/line/model";
 import { GROUP_COLORS, pickNextGroupColor } from "@/utils/group-colors";
 
 // -- Types ---------------------------------------------------------------------
@@ -99,48 +103,13 @@ function createGroupFromSelection(
 
 // -- Duplicate as linked -------------------------------------------------------
 
-function instanceLineRange(
-  lines: LyricLine[],
-  groupId: string,
-  instanceIdx: number,
-): { startTime: number; endTime: number } {
-  let startTime = Number.POSITIVE_INFINITY;
-  let endTime = Number.NEGATIVE_INFINITY;
-  for (const line of lines) {
-    if (line.groupId !== groupId || line.instanceIdx !== instanceIdx) continue;
-    const hasWords = !!line.words?.length;
-    const hasBgWords = !!line.backgroundWords?.length;
-    if (hasWords) {
-      for (const w of line.words!) {
-        if (w.begin < startTime) startTime = w.begin;
-        if (w.end > endTime) endTime = w.end;
-      }
-    }
-    if (hasBgWords) {
-      for (const w of line.backgroundWords!) {
-        if (w.begin < startTime) startTime = w.begin;
-        if (w.end > endTime) endTime = w.end;
-      }
-    }
-    // Only fall back to line-level begin/end for truly line-synced rows.
-    // line.begin/end can lag behind word edits (TTML import populates both,
-    // word edits don't write back), so it's a stale cache when words exist.
-    if (!hasWords && !hasBgWords) {
-      if (line.begin !== undefined && line.begin < startTime) startTime = line.begin;
-      if (line.end !== undefined && line.end > endTime) endTime = line.end;
-    }
-  }
-  if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) return { startTime: 0, endTime: 0 };
-  return { startTime, endTime };
-}
-
 function instanceToTemplate(lines: LyricLine[], groupId: string, instanceIdx: number): LineTemplate[] {
-  const { startTime } = instanceLineRange(lines, groupId, instanceIdx);
+  const matched = linesOfInstance(lines, groupId, instanceIdx).toSorted(
+    (a, b) => (a.templateLineIdx ?? 0) - (b.templateLineIdx ?? 0),
+  );
+  const bounds = instanceBounds(matched);
+  const startTime = bounds?.begin ?? 0;
   const templates: LineTemplate[] = [];
-
-  const matched = lines
-    .filter((line) => line.groupId === groupId && line.instanceIdx === instanceIdx)
-    .sort((a, b) => (a.templateLineIdx ?? 0) - (b.templateLineIdx ?? 0));
 
   for (const line of matched) {
     const tplWords: WordTemplate[] | undefined = line.words?.map((w) => ({
@@ -154,11 +123,12 @@ function instanceToTemplate(lines: LyricLine[], groupId: string, instanceIdx: nu
       relativeEnd: w.end - startTime,
     }));
 
+    const lineBounds = mainBounds(line);
     templates.push({
       text: line.text,
       agentId: line.agentId,
-      relativeBegin: line.begin !== undefined ? line.begin - startTime : undefined,
-      relativeEnd: line.end !== undefined ? line.end - startTime : undefined,
+      relativeBegin: lineBounds ? lineBounds.begin - startTime : undefined,
+      relativeEnd: lineBounds ? lineBounds.end - startTime : undefined,
       words: tplWords,
       backgroundText: line.backgroundText,
       backgroundWords: tplBgWords,
@@ -175,5 +145,4 @@ export {
   fillSelectionGaps,
   selectionTouchesAnyGroup,
   instanceToTemplate,
-  instanceLineRange,
 };

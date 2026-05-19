@@ -1,8 +1,8 @@
 /**
  * @vitest-environment node
  */
-import type { LyricLine } from "@/stores/project";
-import type { WordSelection } from "@/views/timeline/timeline-store";
+import type { LyricLine } from "@/domain/line/model";
+import type { WordSelection } from "@/domain/selection/model";
 import { describe, expect, it } from "vitest";
 import { buildCandidateLines } from "./build-candidate-lines";
 

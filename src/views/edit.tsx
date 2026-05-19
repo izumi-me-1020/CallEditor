@@ -1,6 +1,9 @@
+import { isLinked } from "@/domain/instance/predicates";
+import { useAudioStore } from "@/stores/audio";
 import { useConfirm } from "@/stores/confirm-store";
-import { getAgentColor, useProjectStore } from "@/stores/project";
-import type { LyricLine } from "@/stores/project";
+import { useProjectStore } from "@/stores/project";
+import { getAgentColor } from "@/domain/agent/colors";
+import type { LyricLine } from "@/domain/line/model";
 import { Button } from "@/ui/button";
 import { Popover } from "@/ui/popover";
 import { Scroll } from "@/ui/scroll";
@@ -285,7 +288,7 @@ const EditPanel: React.FC = () => {
   const instanceCountByGroup = useMemo(() => {
     const indices = new Map<string, Set<number>>();
     for (const l of lines) {
-      if (l.groupId !== undefined && l.instanceIdx !== undefined) {
+      if (isLinked(l)) {
         let set = indices.get(l.groupId);
         if (!set) {
           set = new Set();
@@ -460,7 +463,8 @@ const EditPanel: React.FC = () => {
   const handleFileImport = useCallback(
     async (file: File) => {
       const content = await file.text();
-      const result = parseLyricsFile(file.name, content);
+      const audioDuration = useAudioStore.getState().duration;
+      const result = parseLyricsFile(file.name, content, audioDuration > 0 ? audioDuration : undefined);
 
       if (result.lines.length > 0) {
         const existingLineCount = useProjectStore.getState().lines.length;

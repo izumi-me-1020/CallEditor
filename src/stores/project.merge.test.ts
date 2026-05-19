@@ -1,7 +1,8 @@
 /**
  * @vitest-environment node
  */
-import { type LyricLine, useProjectStore } from "@/stores/project";
+import { useProjectStore } from "@/stores/project";
+import { reconcileLine, type LooseLine, type LyricLine } from "@/domain/line/model";
 import { beforeEach, describe, expect, it } from "vitest";
 
 beforeEach(() => {
@@ -9,8 +10,8 @@ beforeEach(() => {
   useProjectStore.getState().clearHistory();
 });
 
-function seedMainLine(overrides: Partial<LyricLine> = {}): LyricLine {
-  return {
+function seedMainLine(overrides: Partial<LooseLine> = {}): LyricLine {
+  return reconcileLine({
     id: "line-1",
     text: "ev er y world",
     agentId: "v1",
@@ -21,7 +22,7 @@ function seedMainLine(overrides: Partial<LyricLine> = {}): LyricLine {
       { text: "world", begin: 0.9, end: 1.5 },
     ],
     ...overrides,
-  };
+  });
 }
 
 // -- mergeSyllableGroupIntoWord ------------------------------------------------
@@ -250,7 +251,7 @@ describe("snapSyllablesFlush", () => {
     useProjectStore.getState().setLines([
       {
         id: "a0",
-        text: "beautiful",
+        text: "beau|ti|ful",
         agentId: "v1",
         groupId: "g1",
         instanceIdx: 0,
@@ -263,7 +264,7 @@ describe("snapSyllablesFlush", () => {
       },
       {
         id: "a1",
-        text: "beautiful",
+        text: "beau|ti|ful",
         agentId: "v1",
         groupId: "g1",
         instanceIdx: 1,
