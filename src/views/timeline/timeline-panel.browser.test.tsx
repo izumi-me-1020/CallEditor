@@ -59,11 +59,11 @@ function dispatchWheel(
 }
 
 describe("TimelinePanel", () => {
-  it("shows the audio drop zone when no source is loaded", async () => {
+  it("shows the YouTube import hint when no source is loaded", async () => {
     useAudioStore.setState({ source: null });
     useProjectStore.setState({ lines: [] });
     const screen = await render(<TimelinePanel />);
-    await expect.element(screen.getByText("Drop audio file here")).toBeInTheDocument();
+    await expect.element(screen.getByText("No audio loaded")).toBeInTheDocument();
   });
 
   it("renders the Timeline header once an audio source is set", async () => {

@@ -37,7 +37,7 @@ const BraccatoRenderer: React.FC<BraccatoRendererProps> = ({ ttmlString }) => {
   return (
     <braccato-lyrics
       ref={elementRef}
-      source="#composer-audio"
+      source="#calleditor-audio"
       src={blobUrl ?? undefined}
       className="flex-1 mx-auto w-full max-w-3xl px-6"
       style={

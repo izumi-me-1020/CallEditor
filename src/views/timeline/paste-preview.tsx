@@ -10,9 +10,19 @@ import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
 import { instanceToTemplate } from "@/views/timeline/group-ops";
 import type { ClipboardData } from "@/views/timeline/selection-types";
 import { findMatchingTemplate } from "@/views/timeline/structural-match";
-import { GUTTER_WIDTH, useTimelineStore, WAVEFORM_HEIGHT } from "@/views/timeline/timeline-store";
+import {
+  GUTTER_WIDTH,
+  useTimelineStore,
+  WAVEFORM_HEIGHT,
+} from "@/views/timeline/timeline-store";
 import { computeRowLayout, type RowLayout } from "@/views/timeline/utils";
-import { type RefObject, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 // -- Types ---------------------------------------------------------------------
@@ -42,8 +52,14 @@ const BG_BORDER = 1;
 
 // -- Component -----------------------------------------------------------------
 
-const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerRef }) => {
-  const [mousePos, setMousePos] = useState<{ clientX: number; clientY: number } | null>(null);
+const PastePreview: React.FC<PastePreviewProps> = ({
+  clipboard,
+  scrollContainerRef,
+}) => {
+  const [mousePos, setMousePos] = useState<{
+    clientX: number;
+    clientY: number;
+  } | null>(null);
   const confirm = useConfirm();
 
   useEffect(() => {
@@ -62,7 +78,8 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
       const container = scrollContainerRef.current;
       if (!container) return;
 
-      const { zoom, rowHeights, defaultRowHeight, collapsedInstances } = useTimelineStore.getState();
+      const { zoom, rowHeights, defaultRowHeight, collapsedInstances } =
+        useTimelineStore.getState();
       const lines = useProjectStore.getState().lines;
       const duration = useAudioStore.getState().duration;
       const layout = computeRowLayout({
@@ -76,7 +93,9 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
       });
 
       const containerRect = container.getBoundingClientRect();
-      const cursorTime = (e.clientX - containerRect.left - GUTTER_WIDTH + container.scrollLeft) / zoom;
+      const cursorTime =
+        (e.clientX - containerRect.left - GUTTER_WIDTH + container.scrollLeft) /
+        zoom;
 
       const cursorY = e.clientY - containerRect.top + container.scrollTop;
       const hoveredLineIndex = getLineIndexAtY(cursorY, lines, layout);
@@ -121,7 +140,14 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
           useTimelineStore.getState().setPasteMode({ status: "idle" });
           return true;
         }
-        useProjectStore.getState().addInstance(groupId, template, decision.instanceStart, decision.insertAt);
+        useProjectStore
+          .getState()
+          .addInstance(
+            groupId,
+            template,
+            decision.instanceStart,
+            decision.insertAt,
+          );
         useTimelineStore.getState().setPasteMode({ status: "idle" });
         useTimelineStore.getState().clearSelection();
         toast.success(successMessage);
@@ -138,7 +164,9 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
       if (clipboard.candidateLines && clipboard.candidateLines.length > 0) {
         const match = findMatchingTemplate(clipboard.candidateLines, lines);
         if (match) {
-          const group = useProjectStore.getState().groups.find((g) => g.id === match.groupId);
+          const group = useProjectStore
+            .getState()
+            .groups.find((g) => g.id === match.groupId);
           const groupLabel = group?.label ?? "group";
           const instanceCount = countInstances(lines, match.groupId);
           const ok = await confirm({
@@ -148,8 +176,16 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
             cancelLabel: "Paste as words",
           });
           if (ok) {
-            const template = instanceToTemplate(lines, match.groupId, match.instanceIdx);
-            await placeInstance(match.groupId, template, `Linked as another ${groupLabel}`);
+            const template = instanceToTemplate(
+              lines,
+              match.groupId,
+              match.instanceIdx,
+            );
+            await placeInstance(
+              match.groupId,
+              template,
+              `Linked as another ${groupLabel}`,
+            );
             return;
           }
         }
@@ -161,7 +197,13 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
       const firstEntry = clipboard.entries[0];
       const timeDelta = cursorTime - firstEntry.word.begin;
 
-      const hasOverlap = checkOverlaps(clipboard, targetLineIndex, timeDelta, lines, duration);
+      const hasOverlap = checkOverlaps(
+        clipboard,
+        targetLineIndex,
+        timeDelta,
+        lines,
+        duration,
+      );
       if (hasOverlap) return;
 
       const updates: Array<{ id: string; updates: Partial<LyricLine> }> = [];
@@ -177,8 +219,10 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
 
       for (const [lineIdx, entries] of grouped) {
         const line = lines[lineIdx];
-        const newWords: Array<{ text: string; begin: number; end: number }> = [];
-        const newBgWords: Array<{ text: string; begin: number; end: number }> = [];
+        const newWords: Array<{ text: string; begin: number; end: number }> =
+          [];
+        const newBgWords: Array<{ text: string; begin: number; end: number }> =
+          [];
 
         for (const entry of entries) {
           const newBegin = Math.max(0, entry.word.begin + timeDelta);
@@ -192,12 +236,15 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
         const lineUpdates: Partial<LyricLine> = {};
 
         if (newWords.length > 0) {
-          lineUpdates.words = [...(line.words ?? []), ...newWords].sort((a, b) => a.begin - b.begin);
-        }
-        if (newBgWords.length > 0) {
-          lineUpdates.backgroundWords = [...(line.backgroundWords ?? []), ...newBgWords].sort(
+          lineUpdates.words = [...(line.words ?? []), ...newWords].sort(
             (a, b) => a.begin - b.begin,
           );
+        }
+        if (newBgWords.length > 0) {
+          lineUpdates.backgroundWords = [
+            ...(line.backgroundWords ?? []),
+            ...newBgWords,
+          ].sort((a, b) => a.begin - b.begin);
         }
 
         updates.push({ id: line.id, updates: lineUpdates });
@@ -242,21 +289,41 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
   if (!container || !mousePos || modalCount > 0) return null;
 
   const containerRect = container.getBoundingClientRect();
-  const cursorTime = (mousePos.clientX - containerRect.left - GUTTER_WIDTH + container.scrollLeft) / zoom;
+  const cursorTime =
+    (mousePos.clientX -
+      containerRect.left -
+      GUTTER_WIDTH +
+      container.scrollLeft) /
+    zoom;
   const cursorY = mousePos.clientY - containerRect.top + container.scrollTop;
   const isInstancePaste = !!clipboard.sourceInstance;
   const hoveredLineIndex = getLineIndexAtY(cursorY, lines, layout);
   const targetLineIndex =
-    hoveredLineIndex >= 0 ? hoveredLineIndex : isInstancePaste ? Math.max(0, lines.length - 1) : -1;
+    hoveredLineIndex >= 0
+      ? hoveredLineIndex
+      : isInstancePaste
+        ? Math.max(0, lines.length - 1)
+        : -1;
 
   if (targetLineIndex < 0) return null;
 
   const firstEntry = clipboard.entries[0];
   const timeDelta = cursorTime - firstEntry.word.begin;
 
-  const hasOverlap = isInstancePaste ? false : checkOverlaps(clipboard, targetLineIndex, timeDelta, lines, duration);
+  const hasOverlap = isInstancePaste
+    ? false
+    : checkOverlaps(clipboard, targetLineIndex, timeDelta, lines, duration);
 
-  const ghosts = computeGhosts(clipboard, targetLineIndex, timeDelta, lines, zoom, duration, layout, defaultRowHeight);
+  const ghosts = computeGhosts(
+    clipboard,
+    targetLineIndex,
+    timeDelta,
+    lines,
+    zoom,
+    duration,
+    layout,
+    defaultRowHeight,
+  );
 
   const scrollLeft = container.scrollLeft;
   const scrollTop = container.scrollTop;
@@ -266,7 +333,10 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
       role="button"
       tabIndex={-1}
       aria-label="Place pasted content here"
-      className={cn("absolute inset-0 z-55", hasOverlap ? "cursor-not-allowed" : "cursor-copy")}
+      className={cn(
+        "absolute inset-0 z-55",
+        hasOverlap ? "cursor-not-allowed" : "cursor-copy",
+      )}
       onClick={commitPaste}
       onKeyDown={() => {}}
     >
@@ -277,7 +347,7 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
             "absolute flex items-center justify-center text-xs text-white truncate rounded-xl border pointer-events-none",
             ghost.overlaps || ghost.outOfBounds
               ? "bg-red-500/30 border-red-500/60"
-              : "bg-composer-accent/30 border-composer-accent/60",
+              : "bg-calleditor-accent/30 border-calleditor-accent/60",
             ghost.isBg && "opacity-70",
           )}
           style={{
@@ -299,12 +369,17 @@ const PastePreview: React.FC<PastePreviewProps> = ({ clipboard, scrollContainerR
 function countInstances(lines: LyricLine[], groupId: string): number {
   const seen = new Set<number>();
   for (const line of lines) {
-    if (line.groupId === groupId && line.instanceIdx !== undefined) seen.add(line.instanceIdx);
+    if (line.groupId === groupId && line.instanceIdx !== undefined)
+      seen.add(line.instanceIdx);
   }
   return seen.size;
 }
 
-function getLineIndexAtY(y: number, lines: LyricLine[], layout: RowLayout): number {
+function getLineIndexAtY(
+  y: number,
+  lines: LyricLine[],
+  layout: RowLayout,
+): number {
   for (let i = 0; i < lines.length; i++) {
     const pos = layout.lineTops.get(lines[i].id);
     if (!pos) continue;
@@ -329,7 +404,8 @@ function checkOverlaps(
     if (newEnd <= newBegin) return true;
 
     const line = lines[lineIdx];
-    const wordsArray = entry.trackType === "word" ? line.words : line.backgroundWords;
+    const wordsArray =
+      entry.trackType === "word" ? line.words : line.backgroundWords;
     if (!wordsArray) continue;
 
     for (const existing of wordsArray) {
@@ -352,8 +428,10 @@ function computeGhosts(
   const ghosts: GhostWord[] = [];
 
   let layoutEnd = 0;
-  for (const pos of layout.lineTops.values()) layoutEnd = Math.max(layoutEnd, pos.top + pos.height);
-  for (const pos of layout.headerTops.values()) layoutEnd = Math.max(layoutEnd, pos.top + pos.height);
+  for (const pos of layout.lineTops.values())
+    layoutEnd = Math.max(layoutEnd, pos.top + pos.height);
+  for (const pos of layout.headerTops.values())
+    layoutEnd = Math.max(layoutEnd, pos.top + pos.height);
 
   for (const entry of clipboard.entries) {
     const lineIdx = targetLineIndex + entry.lineOffset;
@@ -389,7 +467,9 @@ function computeGhosts(
       trackTop = layoutEnd;
       trackHeight = defaultRowHeight;
     } else {
-      const hasBg = !!(targetLine.backgroundWords && targetLine.backgroundWords.length > 0);
+      const hasBg = !!(
+        targetLine.backgroundWords && targetLine.backgroundWords.length > 0
+      );
       const bgHeight = hasBg ? (targetPos.height - 1) / 2 : BG_DROP_ZONE_HEIGHT;
       const mainHeight = targetPos.height - 1 - bgHeight;
       if (isBg) {

@@ -1,14 +1,18 @@
-import { ShortcutSection, SHORTCUT_SECTIONS } from "@/ui/shortcut-reference";
+import { ShortcutSection, useShortcutSections } from "@/ui/shortcut-reference";
 
 // -- Keyboard Shortcuts -------------------------------------------------------
 
-const KeyboardShortcutsSection: React.FC = () => (
-  <div className="grid grid-cols-2 gap-x-12 gap-y-6">
-    {SHORTCUT_SECTIONS.map((section) => (
-      <ShortcutSection key={section.title} {...section} />
-    ))}
-  </div>
-);
+const KeyboardShortcutsSection: React.FC = () => {
+  const sections = useShortcutSections();
+
+  return (
+    <div className="grid grid-cols-2 gap-x-12 gap-y-6">
+      {sections.map((section) => (
+        <ShortcutSection key={section.title} {...section} />
+      ))}
+    </div>
+  );
+};
 
 // -- Exports ------------------------------------------------------------------
 

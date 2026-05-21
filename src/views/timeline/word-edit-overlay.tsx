@@ -2,7 +2,14 @@ import { useProjectStore } from "@/stores/project";
 import { useTimelineStore } from "@/views/timeline/timeline-store";
 import { getEffectiveLines } from "@/domain/line/effective-words";
 import { FloatingPortal } from "@floating-ui/react";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 // -- Types --------------------------------------------------------------------
 
@@ -15,7 +22,12 @@ interface WordEditOverlayProps {
 
 // -- Component ----------------------------------------------------------------
 
-const WordEditOverlay: React.FC<WordEditOverlayProps> = ({ lineId, wordIndex, type, scrollContainerRef }) => {
+const WordEditOverlay: React.FC<WordEditOverlayProps> = ({
+  lineId,
+  wordIndex,
+  type,
+  scrollContainerRef,
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const rawLines = useProjectStore((s) => s.lines);
   const updateLineWithHistory = useProjectStore((s) => s.updateLineWithHistory);
@@ -26,7 +38,11 @@ const WordEditOverlay: React.FC<WordEditOverlayProps> = ({ lineId, wordIndex, ty
   const wordsArray = type === "word" ? line?.words : line?.backgroundWords;
   const word = wordsArray?.[wordIndex];
 
-  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [pos, setPos] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
 
   useLayoutEffect(() => {
     const container = scrollContainerRef.current;
@@ -38,12 +54,18 @@ const WordEditOverlay: React.FC<WordEditOverlayProps> = ({ lineId, wordIndex, ty
     const expectedLeft = word.begin * zoom;
 
     const findAndPosition = () => {
-      const wordEl = container.querySelector(`[data-word-block][id="${CSS.escape(key)}"]`) as HTMLElement | null;
+      const wordEl = container.querySelector(
+        `[data-word-block][id="${CSS.escape(key)}"]`,
+      ) as HTMLElement | null;
       if (!wordEl) return false;
       const elLeft = Number.parseFloat(wordEl.style.left || "0");
       if (Math.abs(elLeft - expectedLeft) > 1) return false;
       const rect = wordEl.getBoundingClientRect();
-      setPos({ top: rect.top - 32, left: rect.left, width: Math.max(rect.width, 80) });
+      setPos({
+        top: rect.top - 32,
+        left: rect.left,
+        width: Math.max(rect.width, 80),
+      });
       return true;
     };
 
@@ -71,12 +93,29 @@ const WordEditOverlay: React.FC<WordEditOverlayProps> = ({ lineId, wordIndex, ty
       if (trimmed && trimmed !== word.text.trimEnd()) {
         const updatedWords = [...wordsArray];
         const hadTrailingSpace = word.text.endsWith(" ");
-        updatedWords[wordIndex] = { ...word, text: hadTrailingSpace ? `${trimmed} ` : trimmed };
-        updateLineWithHistory(lineId, type === "word" ? { words: updatedWords } : { backgroundWords: updatedWords });
+        updatedWords[wordIndex] = {
+          ...word,
+          text: hadTrailingSpace ? `${trimmed} ` : trimmed,
+        };
+        updateLineWithHistory(
+          lineId,
+          type === "word"
+            ? { words: updatedWords }
+            : { backgroundWords: updatedWords },
+        );
       }
       clearEditingWord();
     },
-    [line, wordsArray, word, wordIndex, type, lineId, updateLineWithHistory, clearEditingWord],
+    [
+      line,
+      wordsArray,
+      word,
+      wordIndex,
+      type,
+      lineId,
+      updateLineWithHistory,
+      clearEditingWord,
+    ],
   );
 
   const handleKeyDown = useCallback(
@@ -108,7 +147,7 @@ const WordEditOverlay: React.FC<WordEditOverlayProps> = ({ lineId, wordIndex, ty
         defaultValue={word.text.trimEnd()}
         onKeyDown={handleKeyDown}
         onBlur={commitWordEdit}
-        className="fixed z-100 px-2 py-1.5 text-sm text-composer-text bg-composer-bg border border-composer-border rounded-lg cursor-text focus:outline-none focus:border-composer-accent"
+        className="fixed z-100 px-2 py-1.5 text-sm text-calleditor-text bg-calleditor-bg border border-calleditor-border rounded-lg cursor-text focus:outline-none focus:border-calleditor-accent"
         style={{ top: pos.top, left: pos.left, width: pos.width }}
       />
     </FloatingPortal>

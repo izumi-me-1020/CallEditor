@@ -1,46 +1,50 @@
+import { useAppLanguage } from "@/lib/i18n";
 import { ToggleSetting } from "@/ui/settings/setting-controls";
 
 // -- Confirmations Section ----------------------------------------------------
 
 const ConfirmationsSection: React.FC = () => {
+  const { t } = useAppLanguage();
+
   return (
     <div className="py-3">
       <div className="flex flex-col gap-0.5 mb-3">
-        <span className="text-sm font-medium text-composer-text">Confirmation prompts</span>
-        <span className="text-xs text-composer-text-muted">
-          Toggle confirmation prompts for actions that can lose work. Turn one off to skip its warning until you
-          re-enable it here.
+        <span className="text-sm font-medium text-calleditor-text">
+          {t("settings.confirmations.title")}
+        </span>
+        <span className="text-xs text-calleditor-text-muted">
+          {t("settings.confirmations.description")}
         </span>
       </div>
-      <div className="divide-y divide-composer-border">
+      <div className="divide-y divide-calleditor-border">
         <ToggleSetting
-          label="Confirm replacing project from URL"
-          description="Show a warning when an import URL would replace your current project."
+          label={t("settings.confirmations.replaceProject.label")}
+          description={t("settings.confirmations.replaceProject.description")}
           settingKey="confirmReplaceProjectFromHash"
         />
         <ToggleSetting
-          label="Confirm replacing lyrics on import"
-          description="Show a warning when importing lyrics into a project that already has lines."
+          label={t("settings.confirmations.replaceLyrics.label")}
+          description={t("settings.confirmations.replaceLyrics.description")}
           settingKey="confirmReplaceLyrics"
         />
         <ToggleSetting
-          label="Confirm resetting sync timing"
-          description="Show a warning before clearing every word and line timing in the sync view."
+          label={t("settings.confirmations.resetSync.label")}
+          description={t("settings.confirmations.resetSync.description")}
           settingKey="confirmSyncReset"
         />
         <ToggleSetting
-          label="Confirm clearing project"
-          description="Show a warning before discarding the current project, metadata, and audio file."
+          label={t("settings.confirmations.clearProject.label")}
+          description={t("settings.confirmations.clearProject.description")}
           settingKey="confirmClearProject"
         />
         <ToggleSetting
-          label="Confirm resetting all settings"
-          description="Show a warning before restoring all settings to their defaults."
+          label={t("settings.confirmations.resetSettings.label")}
+          description={t("settings.confirmations.resetSettings.description")}
           settingKey="confirmResetSettings"
         />
         <ToggleSetting
-          label="Confirm resetting all shortcuts"
-          description="Show a warning before clearing all custom keyboard bindings."
+          label={t("settings.confirmations.resetShortcuts.label")}
+          description={t("settings.confirmations.resetShortcuts.description")}
           settingKey="confirmResetShortcuts"
         />
       </div>

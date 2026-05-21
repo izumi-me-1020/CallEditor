@@ -41,18 +41,29 @@ const ConfirmModalHost: React.FC = () => {
     <Modal isOpen onClose={handleClose} title={title} className="max-w-md">
       <div className="flex flex-col gap-4">
         {description && (
-          <div className="text-sm text-composer-text-secondary leading-relaxed select-text">{description}</div>
+          <div className="text-sm text-calleditor-text-secondary leading-relaxed select-text">
+            {description}
+          </div>
         )}
-        {recoverable && <div className="text-xs text-composer-text-muted">This can be undone with {MOD_KEY}+Z.</div>}
+        {recoverable && (
+          <div className="text-xs text-calleditor-text-muted">
+            This can be undone with {MOD_KEY}+Z.
+          </div>
+        )}
 
-        <div className={cn("flex items-center pt-2", showDontAskAgain ? "justify-between" : "justify-end")}>
+        <div
+          className={cn(
+            "flex items-center pt-2",
+            showDontAskAgain ? "justify-between" : "justify-end",
+          )}
+        >
           {showDontAskAgain && (
-            <label className="flex items-center gap-2 text-xs text-composer-text-muted cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-xs text-calleditor-text-muted cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={dontAskAgain}
                 onChange={(e) => setDontAskAgain(e.target.checked)}
-                className="size-3.5 rounded accent-composer-accent cursor-pointer"
+                className="size-3.5 rounded accent-calleditor-accent cursor-pointer"
               />
               Don't ask again
             </label>
@@ -67,7 +78,7 @@ const ConfirmModalHost: React.FC = () => {
               className={cn(
                 variant === "destructive"
                   ? "bg-red-600 hover:bg-red-500 text-white"
-                  : "bg-composer-accent-dark hover:bg-composer-accent text-white",
+                  : "bg-calleditor-accent-dark hover:bg-calleditor-accent text-white",
               )}
             >
               {confirmLabel}

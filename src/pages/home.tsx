@@ -3,13 +3,13 @@ import { PageHead } from "@/seo/page-head";
 import { organizationSchema, softwareApplicationSchema } from "@/seo/schemas";
 import { ClientOnly } from "@/ui/client-only";
 
-const TITLE = "Composer ・ Free TTML Lyrics Editor";
-const DESCRIPTION =
-  "Composer by Better Lyrics is a free browser-based TTML creator for Apple Music and Spotify synced lyrics. Tap to sync words, edit timing in a visual timeline, and export standard TTML files with word-level precision.";
+const TITLE = "CallEditor";
 
+const DESCRIPTION =
+  "CallEditor is a browser-based editor for creating and sharing idol calls with precise timing. Sync chants and responses to music playback, organize sections visually, and build structured call scripts collaboratively.";
 const AppFallback: React.FC = () => (
-  <div className="flex items-center justify-center h-screen bg-composer-bg text-composer-text-muted text-sm">
-    Loading Composer
+  <div className="flex items-center justify-center h-screen bg-calleditor-bg text-calleditor-text-muted text-sm">
+    Loading CallEditor
   </div>
 );
 
@@ -20,7 +20,10 @@ const HomePage: React.FC = () => {
         title={TITLE}
         description={DESCRIPTION}
         path="/"
-        jsonLd={[softwareApplicationSchema("Composer", DESCRIPTION, "/"), organizationSchema()]}
+        jsonLd={[
+          softwareApplicationSchema("CallEditor", DESCRIPTION, "/"),
+          organizationSchema(),
+        ]}
       />
       <ClientOnly fallback={<AppFallback />}>
         <App />

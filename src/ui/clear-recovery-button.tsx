@@ -20,7 +20,7 @@ interface ClearRecoveryButtonProps {
 
 const ClearRecoveryButton: React.FC<ClearRecoveryButtonProps> = ({
   hint,
-  clearedMessage = "Cleared. Reload Composer to start fresh.",
+  clearedMessage = "Cleared. Reload CallEditor to start fresh.",
 }) => {
   const [status, setStatus] = useState<ClearStatus>("idle");
 
@@ -54,7 +54,7 @@ const ClearRecoveryButton: React.FC<ClearRecoveryButtonProps> = ({
       : status === "cleared"
         ? clearedMessage
         : status === "failed"
-          ? "Couldn't clear the save. Try again or open Composer's Export tab and use Clear."
+          ? "Couldn't clear the save. Try again or open CallEditor's Export tab and use Clear."
           : null;
 
   return (
@@ -69,8 +69,16 @@ const ClearRecoveryButton: React.FC<ClearRecoveryButtonProps> = ({
         <IconTrash size={14} />
         {label}
       </Button>
-      {hint && status === "idle" && <p className="text-xs text-composer-text-muted text-center max-w-sm">{hint}</p>}
-      {message && <p className="text-xs text-composer-text-muted select-text text-center max-w-sm">{message}</p>}
+      {hint && status === "idle" && (
+        <p className="text-xs text-calleditor-text-muted text-center max-w-sm">
+          {hint}
+        </p>
+      )}
+      {message && (
+        <p className="text-xs text-calleditor-text-muted select-text text-center max-w-sm">
+          {message}
+        </p>
+      )}
     </div>
   );
 };

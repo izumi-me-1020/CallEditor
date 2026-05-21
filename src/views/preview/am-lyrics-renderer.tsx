@@ -14,14 +14,19 @@ interface AmLyricsRendererProps {
 let registerPromise: Promise<void> | null = null;
 function ensureRegistered(): Promise<void> {
   if (!registerPromise) {
-    registerPromise = import("@uimaxbai/am-lyrics/am-lyrics.js").then(() => undefined);
+    registerPromise = import("@uimaxbai/am-lyrics/am-lyrics.js").then(
+      () => undefined,
+    );
   }
   return registerPromise;
 }
 
 // -- Component ----------------------------------------------------------------
 
-const AmLyricsRenderer: React.FC<AmLyricsRendererProps> = ({ ttmlString, durationSeconds }) => {
+const AmLyricsRenderer: React.FC<AmLyricsRendererProps> = ({
+  ttmlString,
+  durationSeconds,
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const elementRef = useRef<AmLyricsElement | null>(null);
   const latestTtmlRef = useRef(ttmlString);
@@ -64,9 +69,9 @@ const AmLyricsRenderer: React.FC<AmLyricsRendererProps> = ({ ttmlString, duratio
 
     const injectHideStyle = () => {
       if (!el.shadowRoot) return;
-      if (el.shadowRoot.querySelector("style[data-composer-hide]")) return;
+      if (el.shadowRoot.querySelector("style[data-calleditor-hide]")) return;
       const style = document.createElement("style");
-      style.dataset.composerHide = "";
+      style.dataset.calleditorHide = "";
       style.textContent = ".lyrics-header { display: none !important; }";
       el.shadowRoot.appendChild(style);
     };
@@ -96,9 +101,8 @@ const AmLyricsRenderer: React.FC<AmLyricsRendererProps> = ({ ttmlString, duratio
     let frameId: number;
     const tick = () => {
       const el = elementRef.current;
-      const audio = useAudioStore.getState().audioElement;
-      if (el && audio) {
-        el.currentTime = audio.currentTime * 1000;
+      if (el) {
+        el.currentTime = useAudioStore.getState().currentTime * 1000;
       }
       frameId = requestAnimationFrame(tick);
     };

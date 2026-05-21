@@ -1,43 +1,66 @@
+import { useAppLanguage } from "@/lib/i18n";
 import { useProjectStore } from "@/stores/project";
 import type { SimpleTab } from "@/stores/project";
 import { useSettingsStore } from "@/stores/settings";
 import { InlineKeyBadge } from "@/ui/inline-key-badge";
 
-const TABS: { id: SimpleTab; label: string }[] = [
-  { id: "import", label: "Import" },
-  { id: "edit", label: "Edit" },
-  { id: "sync", label: "Sync" },
-  { id: "timeline", label: "Timeline" },
-  { id: "preview", label: "Preview" },
-  { id: "export", label: "Export" },
-];
-
 const TabBar: React.FC = () => {
   const activeTab = useProjectStore((s) => s.activeTab);
   const setActiveTab = useProjectStore((s) => s.setActiveTab);
   const showHints = useSettingsStore((s) => s.showShortcutHints);
+  const { t } = useAppLanguage();
+
+  const tabs: { id: SimpleTab; label: string }[] = [
+    { id: "import", label: t("tab.import") },
+    { id: "edit", label: t("tab.edit") },
+    { id: "sync", label: t("tab.sync") },
+    { id: "timeline", label: t("tab.timeline") },
+    { id: "preview", label: t("tab.preview") },
+    { id: "export", label: t("tab.export") },
+  ];
 
   return (
-    <nav data-tour="tab-bar" className="flex border-b border-composer-border select-none">
-      {TABS.map((tab, index) => {
-        const isActive = activeTab === tab.id;
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            data-tour={`tab-${tab.id}`}
-            onClick={() => setActiveTab(tab.id)}
-            className={`cursor-pointer px-4 py-3 text-sm font-medium transition-colors ${
-              isActive
-                ? "border-b-2 border-composer-accent text-composer-text"
-                : "text-composer-text-muted hover:text-composer-text-secondary"
-            }`}
+    <nav data-tour="tab-bar" className="border-b border-calleditor-border select-none">
+      <div className="p-3 md:hidden">
+        <label className="flex flex-col gap-1">
+          <span className="text-xs font-medium uppercase tracking-[0.16em] text-calleditor-text-muted">
+            {t("tab.mobileLabel")}
+          </span>
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value as SimpleTab)}
+            className="h-10 rounded-lg border border-calleditor-border bg-calleditor-input px-3 text-sm text-calleditor-text focus:outline-none focus:border-calleditor-accent"
           >
-            {tab.label}
-            {showHints && <InlineKeyBadge keys={["Mod", String(index + 1)]} />}
-          </button>
-        );
-      })}
+            {tabs.map((tab) => (
+              <option key={tab.id} value={tab.id}>
+                {tab.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="hidden md:flex">
+        {tabs.map((tab, index) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              data-tour={`tab-${tab.id}`}
+              onClick={() => setActiveTab(tab.id)}
+              className={`cursor-pointer px-4 py-3 text-sm font-medium transition-colors ${
+                isActive
+                  ? "border-b-2 border-calleditor-accent text-calleditor-text"
+                  : "text-calleditor-text-muted hover:text-calleditor-text-secondary"
+              }`}
+            >
+              {tab.label}
+              {showHints && <InlineKeyBadge keys={["Mod", String(index + 1)]} />}
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 };

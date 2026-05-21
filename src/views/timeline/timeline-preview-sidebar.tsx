@@ -28,9 +28,9 @@ const WordWithProgress: React.FC<{
   lineIndex: number;
 }> = ({ text, begin, end, lineIndex }) => (
   <span className="relative inline-block whitespace-pre">
-    <span className="text-composer-text-muted">{text}</span>
+    <span className="text-calleditor-text-muted">{text}</span>
     <span
-      className="absolute inset-0 text-composer-accent-text"
+      className="absolute inset-0 text-calleditor-accent-text"
       data-word-begin={begin}
       data-word-end={end}
       data-line-idx={lineIndex}
@@ -46,7 +46,9 @@ const BgWordsRow: React.FC<{
   lineIndex: number;
   alignmentClass: string;
 }> = ({ backgroundWords, lineIndex, alignmentClass }) => (
-  <div className={`flex flex-wrap items-center gap-y-0.5 text-xs font-medium mt-0.5 ${alignmentClass}`}>
+  <div
+    className={`flex flex-wrap items-center gap-y-0.5 text-xs font-medium mt-0.5 ${alignmentClass}`}
+  >
     {backgroundWords.map((bgWord) => (
       <WordWithProgress
         key={`bg-${bgWord.begin}-${bgWord.text}`}
@@ -67,9 +69,18 @@ const MiniPreviewLine: React.FC<{
   const timing = effectiveBounds(line);
   const alignment = getAgentAlignment(line.agentId);
   const alignmentClass =
-    alignment === "left" ? "justify-start" : alignment === "right" ? "justify-end" : "justify-center";
+    alignment === "left"
+      ? "justify-start"
+      : alignment === "right"
+        ? "justify-end"
+        : "justify-center";
   const agentColor = getAgentColor(line.agentId);
-  const textAlignClass = alignment === "left" ? "text-left" : alignment === "right" ? "text-right" : "text-center";
+  const textAlignClass =
+    alignment === "left"
+      ? "text-left"
+      : alignment === "right"
+        ? "text-right"
+        : "text-center";
 
   const AgentDotLeft = (
     <span
@@ -86,7 +97,11 @@ const MiniPreviewLine: React.FC<{
 
   const words = line.words ?? [];
   const bgWords = line.backgroundWords?.length ? (
-    <BgWordsRow backgroundWords={line.backgroundWords} lineIndex={lineIndex} alignmentClass={alignmentClass} />
+    <BgWordsRow
+      backgroundWords={line.backgroundWords}
+      lineIndex={lineIndex}
+      alignmentClass={alignmentClass}
+    />
   ) : null;
 
   if (granularity === "line") {
@@ -101,9 +116,11 @@ const MiniPreviewLine: React.FC<{
         <div className="flex items-center gap-2 text-sm font-medium">
           {alignment === "left" && AgentDotLeft}
           <span className="relative block truncate">
-            <span className="text-composer-text-muted">{stripSplitCharacter(line.text)}</span>
+            <span className="text-calleditor-text-muted">
+              {stripSplitCharacter(line.text)}
+            </span>
             <span
-              className="absolute inset-0 text-composer-accent-text truncate"
+              className="absolute inset-0 text-calleditor-accent-text truncate"
               data-word-begin={timing?.begin ?? 0}
               data-word-end={timing?.end ?? 0}
               data-line-idx={lineIndex}
@@ -127,7 +144,9 @@ const MiniPreviewLine: React.FC<{
       data-line-end={timing?.end ?? 0}
       data-line-idx={lineIndex}
     >
-      <div className={`flex flex-wrap items-center text-sm font-medium ${alignmentClass}`}>
+      <div
+        className={`flex flex-wrap items-center text-sm font-medium ${alignmentClass}`}
+      >
         {alignment === "left" && AgentDotLeft}
         {words.length > 0
           ? words.map((word) => (
@@ -140,7 +159,10 @@ const MiniPreviewLine: React.FC<{
               />
             ))
           : splitIntoWords(line.text).map((word, idx) => (
-              <span key={`${idx}-${word}`} className="text-composer-text-muted">
+              <span
+                key={`${idx}-${word}`}
+                className="text-calleditor-text-muted"
+              >
                 {word}{" "}
               </span>
             ))}
@@ -167,11 +189,11 @@ const TimelinePreviewSidebar: React.FC = () => {
         return;
       }
 
-      const audioEl = useAudioStore.getState().audioElement;
-      const currentTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+      const currentTime = useAudioStore.getState().currentTime;
       let currentLineIdx = -1;
 
-      const wordEls = container.querySelectorAll<HTMLElement>("[data-word-begin]");
+      const wordEls =
+        container.querySelectorAll<HTMLElement>("[data-word-begin]");
       for (const el of wordEls) {
         const begin = Number.parseFloat(el.dataset.wordBegin ?? "0");
         const end = Number.parseFloat(el.dataset.wordEnd ?? "0");
@@ -185,11 +207,16 @@ const TimelinePreviewSidebar: React.FC = () => {
         }
       }
 
-      const lineEls = container.querySelectorAll<HTMLElement>("[data-line-begin]");
+      const lineEls =
+        container.querySelectorAll<HTMLElement>("[data-line-begin]");
       for (const el of lineEls) {
         const begin = Number.parseFloat(el.dataset.lineBegin ?? "0");
         const end = Number.parseFloat(el.dataset.lineEnd ?? "0");
-        const { isActive, isComplete } = getTimingState(begin, end, currentTime);
+        const { isActive, isComplete } = getTimingState(
+          begin,
+          end,
+          currentTime,
+        );
         const style = el.style;
 
         if (isActive) {
@@ -202,7 +229,10 @@ const TimelinePreviewSidebar: React.FC = () => {
       }
 
       // Auto-scroll to current line
-      if (currentLineIdx !== -1 && currentLineIdx !== lastScrolledLineRef.current) {
+      if (
+        currentLineIdx !== -1 &&
+        currentLineIdx !== lastScrolledLineRef.current
+      ) {
         for (const el of lineEls) {
           const idx = Number.parseInt(el.dataset.lineIdx ?? "-1", 10);
           if (idx === currentLineIdx) {
@@ -226,20 +256,27 @@ const TimelinePreviewSidebar: React.FC = () => {
 
   if (lines.length === 0 || !hasSyncedContent) {
     return (
-      <div className="w-64 border-l border-composer-border bg-composer-bg-dark flex items-center justify-center">
-        <span className="text-sm text-composer-text-muted">No synced content</span>
+      <div className="w-64 border-l border-calleditor-border bg-calleditor-bg-dark flex items-center justify-center">
+        <span className="text-sm text-calleditor-text-muted">
+          No synced content
+        </span>
       </div>
     );
   }
 
   return (
-    <div className="w-64 border-l border-composer-border bg-composer-bg-dark flex flex-col overflow-hidden">
-      <div className="px-3 py-2 border-b border-composer-border text-xs font-medium text-composer-text-muted">
+    <div className="w-64 border-l border-calleditor-border bg-calleditor-bg-dark flex flex-col overflow-hidden">
+      <div className="px-3 py-2 border-b border-calleditor-border text-xs font-medium text-calleditor-text-muted">
         Preview
       </div>
       <Scroll viewportRef={containerRef} className="flex-1 py-2">
         {lines.map((line, index) => (
-          <MiniPreviewLine key={line.id} line={line} lineIndex={index} granularity={granularity} />
+          <MiniPreviewLine
+            key={line.id}
+            line={line}
+            lineIndex={index}
+            granularity={granularity}
+          />
         ))}
       </Scroll>
     </div>

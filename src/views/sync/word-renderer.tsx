@@ -27,12 +27,23 @@ interface WordRendererProps {
 
 // -- Helper -------------------------------------------------------------------
 
-function renderWordContent(word: string, timing: WordTiming | undefined, isBackground: boolean, editMode: boolean) {
+function renderWordContent(
+  word: string,
+  timing: WordTiming | undefined,
+  isBackground: boolean,
+  editMode: boolean,
+) {
   const isSynced = !!timing;
   const baseClass = isBackground ? "italic" : "";
-  const syncedClass = isBackground ? "text-composer-text-muted/70" : "text-composer-text-muted";
-  const unsyncedClass = isBackground ? "text-composer-text-muted/50" : "text-composer-text";
-  const activeClass = isBackground ? "text-composer-accent-text/80" : "text-composer-accent-text";
+  const syncedClass = isBackground
+    ? "text-calleditor-text-muted/70"
+    : "text-calleditor-text-muted";
+  const unsyncedClass = isBackground
+    ? "text-calleditor-text-muted/50"
+    : "text-calleditor-text";
+  const activeClass = isBackground
+    ? "text-calleditor-accent-text/80"
+    : "text-calleditor-accent-text";
 
   if (editMode && isSynced) {
     return (
@@ -49,7 +60,13 @@ function renderWordContent(word: string, timing: WordTiming | undefined, isBackg
       </span>
     );
   }
-  return <span className={`whitespace-pre ${baseClass} ${isSynced ? syncedClass : unsyncedClass}`}>{word}</span>;
+  return (
+    <span
+      className={`whitespace-pre ${baseClass} ${isSynced ? syncedClass : unsyncedClass}`}
+    >
+      {word}
+    </span>
+  );
 }
 
 // -- Component ----------------------------------------------------------------
@@ -74,24 +91,30 @@ const WordRenderer: React.FC<WordRendererProps> = ({
   const maxEnd = nextWord?.begin ?? Number.POSITIVE_INFINITY;
 
   return (
-    <span className={`inline-flex flex-col items-start ${isBackground ? "italic" : ""}`}>
+    <span
+      className={`inline-flex flex-col items-start gap-0.5 sm:gap-0 ${isBackground ? "italic" : ""}`}
+    >
       <span className="flex items-center gap-1 group/word">
         {renderWordContent(word, timing, isBackground, editMode)}
         {isSynced && timing && timing.end === timing.begin && (
           <Tooltip content="No duration - sync the next word to close this one or increase the end time">
-            <span className="text-composer-warning">
+            <span className="text-calleditor-warning">
               <IconAlertTriangle className="size-3.5" />
             </span>
           </Tooltip>
         )}
         {isSynced && timing && !isBackground && (
           <span className="transition-opacity opacity-0 group-hover/word:opacity-100">
-            <SyllableSplitter word={timing} wordIndex={idx} onSplit={handlers.onSplit ?? (() => {})} />
+            <SyllableSplitter
+              word={timing}
+              wordIndex={idx}
+              onSplit={handlers.onSplit ?? (() => {})}
+            />
           </span>
         )}
       </span>
       {isSynced && timing && (
-        <span className="flex items-center gap-1">
+        <span className="flex flex-wrap items-center gap-1 sm:flex-nowrap">
           <TimeNudgeInput
             value={timing.begin}
             currentTime={currentTime}
@@ -100,7 +123,7 @@ const WordRenderer: React.FC<WordRendererProps> = ({
             onNudge={(delta) => handlers.onNudge?.(idx, delta)}
             onSetTime={(newBegin) => handlers.onSetTime?.(idx, newBegin)}
           />
-          <IconArrowRight className="size-2.5 text-composer-text opacity-25 mx-0.5" />
+          <IconArrowRight className="size-2.5 text-calleditor-text opacity-25 mx-0.5" />
           <TimeNudgeInput
             value={timing.end}
             currentTime={currentTime}

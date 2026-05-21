@@ -74,8 +74,7 @@ const TimelineSyllableSplitter: React.FC = () => {
       newWords = splitWordIntoWords(word, splitPoints);
     } else {
       // Check if playhead is over this word right now
-      const audioEl = useAudioStore.getState().audioElement;
-      const currentTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+      const currentTime = useAudioStore.getState().currentTime;
       const playheadOnWord = currentTime > word.begin && currentTime < word.end;
 
       const groupId = word.syllableGroupId ?? nanoid(8);

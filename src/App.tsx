@@ -6,6 +6,7 @@ import { useImportFromYouTube } from "@/hooks/useImportFromYouTube";
 import { usePanicRecovery } from "@/hooks/usePanicRecovery";
 import { usePersistence } from "@/hooks/usePersistence";
 import { useResolveYouTubeTunnel } from "@/hooks/useResolveYouTubeTunnel";
+import { useAppLanguage } from "@/lib/i18n";
 import { useAudioStore } from "@/stores/audio";
 import { useProjectStore } from "@/stores/project";
 import { GuideCard } from "@/tour/guide-card";
@@ -42,7 +43,14 @@ const AppContent: React.FC = () => {
   const source = useAudioStore((s) => s.source);
   const [helpOpen, setHelpOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { startTour, resumeOrStartTour, shouldShowTour, guideCard, skipGuideCard } = useTour();
+  const {
+    startTour,
+    resumeOrStartTour,
+    shouldShowTour,
+    guideCard,
+    skipGuideCard,
+  } = useTour();
+  const { language } = useAppLanguage();
   const startTourRef = useRef(startTour);
   startTourRef.current = startTour;
 
@@ -55,6 +63,10 @@ const AppContent: React.FC = () => {
     return () => clearTimeout(timer);
   }, [shouldShowTour]);
 
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
   usePersistence();
   useImportFromHash();
   useResolveYouTubeTunnel();
@@ -62,7 +74,10 @@ const AppContent: React.FC = () => {
   usePanicRecovery();
 
   const setHelpOpenCb = useCallback((open: boolean) => setHelpOpen(open), []);
-  const setSettingsOpenCb = useCallback((open: boolean) => setSettingsOpen(open), []);
+  const setSettingsOpenCb = useCallback(
+    (open: boolean) => setSettingsOpen(open),
+    [],
+  );
 
   useGlobalShortcuts({
     setActiveTab,
@@ -71,7 +86,7 @@ const AppContent: React.FC = () => {
   });
 
   return (
-    <div className="flex flex-col h-screen bg-composer-bg text-composer-text">
+    <div className="flex flex-col h-screen bg-calleditor-bg text-calleditor-text">
       <AppHeader
         onSettingsOpen={() => setSettingsOpen(true)}
         onHelpOpen={() => setHelpOpen(true)}
@@ -82,8 +97,8 @@ const AppContent: React.FC = () => {
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         onResetTour={() => {
-          localStorage.removeItem("composer-tour-seen");
-          localStorage.removeItem("composer-tour-resume");
+          localStorage.removeItem("calleditor-tour-seen");
+          localStorage.removeItem("calleditor-tour-resume");
         }}
       />
       <TabBar />
@@ -138,9 +153,9 @@ const App: React.FC = () => {
           position="bottom-center"
           toastOptions={{
             style: {
-              background: "var(--color-composer-bg-elevated)",
-              border: "1px solid var(--color-composer-border)",
-              color: "var(--color-composer-text)",
+              background: "var(--color-calleditor-bg-elevated)",
+              border: "1px solid var(--color-calleditor-border)",
+              color: "var(--color-calleditor-text)",
             },
           }}
         />

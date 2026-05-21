@@ -18,7 +18,9 @@ describe("TabBar", () => {
     const screen = await render(<TabBar />);
     await Promise.all(
       Object.values(TAB_NAME_REGEX).map((nameRegex) =>
-        expect.element(screen.getByRole("button", { name: nameRegex })).toBeInTheDocument(),
+        expect
+          .element(screen.getByRole("button", { name: nameRegex }))
+          .toBeInTheDocument(),
       ),
     );
   });
@@ -27,7 +29,7 @@ describe("TabBar", () => {
     useProjectStore.setState({ activeTab: "sync" });
     const screen = await render(<TabBar />);
     const syncButton = screen.getByRole("button", { name: /^Sync/ }).element();
-    expect(syncButton.className).toContain("border-composer-accent");
+    expect(syncButton.className).toContain("border-calleditor-accent");
   });
 
   it("dispatches setActiveTab on the project store when a tab is clicked", async () => {
@@ -46,6 +48,8 @@ describe("TabBar", () => {
   it("shows shortcut hints when settings.showShortcutHints is true", async () => {
     useSettingsStore.setState({ showShortcutHints: true });
     const screen = await render(<TabBar />);
-    expect(screen.container.querySelectorAll("button > span > span").length).toBeGreaterThan(0);
+    expect(
+      screen.container.querySelectorAll("button > span > span").length,
+    ).toBeGreaterThan(0);
   });
 });

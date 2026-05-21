@@ -1,6 +1,6 @@
 // -- Constants -----------------------------------------------------------------
 
-const DB_NAME = "ttml-composer";
+const DB_NAME = "ttml-calleditor";
 const STORE_NAME = "projects";
 const CURRENT_KEY = "current";
 

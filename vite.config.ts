@@ -6,12 +6,30 @@ import "vite-react-ssg";
 import { writeSeoAssets } from "./scripts/build-seo-assets";
 import pkg from "./package.json";
 
-const SITE_ORIGIN = "https://composer.boidu.dev";
+const SITE_ORIGIN = "https://calleditor.izumy.me";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+  },
+  preview: {
+    proxy: {
+      "/__local_ytdlp": {
+        target: "http://127.0.0.1:43125",
+        changeOrigin: false,
+        rewrite: (url) => url.replace(/^\/__local_ytdlp/, ""),
+      },
+    },
+  },
+  server: {
+    proxy: {
+      "/__local_ytdlp": {
+        target: "http://127.0.0.1:43125",
+        changeOrigin: false,
+        rewrite: (url) => url.replace(/^\/__local_ytdlp/, ""),
+      },
+    },
   },
   resolve: {
     alias: {

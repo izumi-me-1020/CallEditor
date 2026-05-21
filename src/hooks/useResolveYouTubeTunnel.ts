@@ -11,6 +11,7 @@ import {
   useSettingsStore,
 } from "@/stores/settings";
 import { CobaltApiError, formatCobaltErrorForToast, getAudio, getAudioFromStandardCobalt } from "@/utils/cobalt-api";
+import { getAudioFromLocalYtDlp } from "@/utils/local-ytdlp-api";
 
 // -- Constants ----------------------------------------------------------------
 
@@ -23,6 +24,7 @@ interface TunnelResult {
   instanceLabel: string;
   instanceId: string;
   wasDefault: boolean;
+  usedLocalHelper: boolean;
 }
 
 class TunnelError extends Error {
@@ -30,14 +32,16 @@ class TunnelError extends Error {
   readonly instanceId: string;
   readonly instanceLabel: string;
   readonly wasDefault: boolean;
+  readonly usedLocalHelper: boolean;
 
-  constructor(cause: unknown, instanceId: string, instanceLabel: string, wasDefault: boolean) {
+  constructor(cause: unknown, instanceId: string, instanceLabel: string, wasDefault: boolean, usedLocalHelper: boolean) {
     super("tunnel_failed");
     this.name = "TunnelError";
     this.cause = cause;
     this.instanceId = instanceId;
     this.instanceLabel = instanceLabel;
     this.wasDefault = wasDefault;
+    this.usedLocalHelper = usedLocalHelper;
   }
 }
 
@@ -53,6 +57,23 @@ async function fetchTunnel(
   signal: AbortSignal,
   ensureAuth: () => Promise<string>,
 ): Promise<TunnelResult> {
+  if (import.meta.env.DEV) {
+    try {
+      const { file, filename } = await getAudioFromLocalYtDlp(videoId, signal);
+      return {
+        file,
+        filename,
+        instanceLabel: "Local yt-dlp",
+        instanceId: "local-ytdlp",
+        wasDefault: true,
+        usedLocalHelper: true,
+      };
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      throw new TunnelError(err, "local-ytdlp", "Local yt-dlp", true, true);
+    }
+  }
+
   const instanceAtStart = getActiveCobaltInstance();
   const wasDefault = isUsingDefaultCobaltInstance();
 
@@ -80,10 +101,11 @@ async function fetchTunnel(
       instanceLabel: instanceAtStart.label,
       instanceId: instanceAtStart.id,
       wasDefault,
+      usedLocalHelper: false,
     };
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new TunnelError(err, instanceAtStart.id, instanceAtStart.label, wasDefault);
+    throw new TunnelError(err, instanceAtStart.id, instanceAtStart.label, wasDefault, false);
   }
 }
 
@@ -134,7 +156,7 @@ function useResolveYouTubeTunnel(): void {
         project.setMetadata({ title: data.filename });
       }
     }
-    if (!data.wasDefault && data.instanceId !== DEFAULT_COBALT_INSTANCE_ID) {
+    if (!data.usedLocalHelper && !data.wasDefault && data.instanceId !== DEFAULT_COBALT_INSTANCE_ID) {
       useSettingsStore.getState().recordCobaltInstanceResult(data.instanceId, "success");
     }
   }, [query.data, videoId]);
@@ -149,9 +171,10 @@ function useResolveYouTubeTunnel(): void {
     const instanceId = tunnelErr?.instanceId ?? getActiveCobaltInstance().id;
     const instanceLabel = tunnelErr?.instanceLabel ?? getActiveCobaltInstance().label;
     const wasDefault = tunnelErr?.wasDefault ?? isUsingDefaultCobaltInstance();
+    const usedLocalHelper = tunnelErr?.usedLocalHelper ?? false;
     const message = formatCobaltErrorForToast(cause, { isDefault: wasDefault, instanceLabel });
     toast.error(message);
-    if (!wasDefault && instanceId !== DEFAULT_COBALT_INSTANCE_ID) {
+    if (!usedLocalHelper && !wasDefault && instanceId !== DEFAULT_COBALT_INSTANCE_ID) {
       useSettingsStore.getState().recordCobaltInstanceResult(instanceId, "error", message);
     }
     const current = useAudioStore.getState().source;

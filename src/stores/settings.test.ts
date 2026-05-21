@@ -12,6 +12,10 @@ describe("preview renderer settings", () => {
     useSettingsStore.setState({ ...DEFAULTS });
   });
 
+  it("defaults to auto as the app language", () => {
+    expect(useSettingsStore.getState().appLanguage).toBe("auto");
+  });
+
   it("defaults to braccato as the preview renderer", () => {
     expect(useSettingsStore.getState().previewRenderer).toBe("braccato");
   });

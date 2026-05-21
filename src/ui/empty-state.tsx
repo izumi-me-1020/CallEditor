@@ -10,8 +10,8 @@ interface EmptyStateProps {
 
 const EmptyState: React.FC<EmptyStateProps> = ({ message, hint, action }) => (
   <div className="flex flex-col items-center justify-center flex-1 gap-2 text-center">
-    <p className="text-lg text-composer-text-secondary">{message}</p>
-    <p className="text-sm text-composer-text-muted">{hint}</p>
+    <p className="text-lg text-calleditor-text-secondary">{message}</p>
+    <p className="text-sm text-calleditor-text-muted">{hint}</p>
     {action}
   </div>
 );

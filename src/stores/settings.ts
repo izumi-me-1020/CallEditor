@@ -6,6 +6,7 @@ import { persist } from "zustand/middleware";
 type GranularityDefault = "word" | "line";
 type LinkedDivergenceAction = "ask" | "apply" | "detach";
 type PreviewRenderer = "braccato" | "am-lyrics";
+type AppLanguage = "auto" | "en" | "ja" | "ko";
 
 interface CobaltInstance {
   id: string;
@@ -54,6 +55,7 @@ interface SettingsState {
   linkedDivergenceAction: LinkedDivergenceAction;
 
   previewRenderer: PreviewRenderer;
+  appLanguage: AppLanguage;
 
   cobaltInstances: CobaltInstance[];
   selectedCobaltInstanceId: string;
@@ -64,10 +66,17 @@ interface SettingsActions {
   set: <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => void;
   resetToDefaults: () => void;
   addCobaltInstance: (instance: Omit<CobaltInstance, "id">) => void;
-  updateCobaltInstance: (id: string, updates: Partial<Omit<CobaltInstance, "id">>) => void;
+  updateCobaltInstance: (
+    id: string,
+    updates: Partial<Omit<CobaltInstance, "id">>,
+  ) => void;
   removeCobaltInstance: (id: string) => void;
   selectCobaltInstance: (id: string) => void;
-  recordCobaltInstanceResult: (id: string, status: "success" | "error", errorMessage?: string) => void;
+  recordCobaltInstanceResult: (
+    id: string,
+    status: "success" | "error",
+    errorMessage?: string,
+  ) => void;
 }
 
 // -- Defaults -----------------------------------------------------------------
@@ -105,6 +114,7 @@ const DEFAULTS: SettingsState = {
   linkedDivergenceAction: "ask",
 
   previewRenderer: "braccato",
+  appLanguage: "auto",
 
   cobaltInstances: [],
   selectedCobaltInstanceId: DEFAULT_COBALT_INSTANCE_ID,
@@ -113,7 +123,7 @@ const DEFAULTS: SettingsState = {
 
 const BUILTIN_COBALT_INSTANCE: CobaltInstance = {
   id: DEFAULT_COBALT_INSTANCE_ID,
-  label: "Composer",
+  label: "CallEditor",
   url: "https://cobalt.boidu.dev",
 };
 
@@ -143,11 +153,15 @@ const useSettingsStore = create<SettingsState & SettingsActions>()(
       addCobaltInstance: (instance) =>
         set((state) => {
           const id = crypto.randomUUID();
-          return { cobaltInstances: [...state.cobaltInstances, { ...instance, id }] };
+          return {
+            cobaltInstances: [...state.cobaltInstances, { ...instance, id }],
+          };
         }),
       updateCobaltInstance: (id, updates) =>
         set((state) => ({
-          cobaltInstances: state.cobaltInstances.map((i) => (i.id === id ? { ...i, ...updates } : i)),
+          cobaltInstances: state.cobaltInstances.map((i) =>
+            i.id === id ? { ...i, ...updates } : i,
+          ),
         })),
       removeCobaltInstance: (id) =>
         set((state) => {
@@ -156,7 +170,9 @@ const useSettingsStore = create<SettingsState & SettingsActions>()(
           return {
             cobaltInstances: state.cobaltInstances.filter((i) => i.id !== id),
             selectedCobaltInstanceId:
-              state.selectedCobaltInstanceId === id ? DEFAULT_COBALT_INSTANCE_ID : state.selectedCobaltInstanceId,
+              state.selectedCobaltInstanceId === id
+                ? DEFAULT_COBALT_INSTANCE_ID
+                : state.selectedCobaltInstanceId,
             cobaltInstanceStatus: nextStatus,
           };
         }),
@@ -169,21 +185,27 @@ const useSettingsStore = create<SettingsState & SettingsActions>()(
           },
         })),
     }),
-    { name: "composer-settings" },
+    { name: "calleditor-settings" },
   ),
 );
 
 function getActiveCobaltInstance(): CobaltInstance {
   const state = useSettingsStore.getState();
-  if (state.selectedCobaltInstanceId === DEFAULT_COBALT_INSTANCE_ID) return BUILTIN_COBALT_INSTANCE;
-  const found = state.cobaltInstances.find((i) => i.id === state.selectedCobaltInstanceId);
+  if (state.selectedCobaltInstanceId === DEFAULT_COBALT_INSTANCE_ID)
+    return BUILTIN_COBALT_INSTANCE;
+  const found = state.cobaltInstances.find(
+    (i) => i.id === state.selectedCobaltInstanceId,
+  );
   return found ?? BUILTIN_COBALT_INSTANCE;
 }
 
 function isUsingDefaultCobaltInstance(): boolean {
   const state = useSettingsStore.getState();
-  if (state.selectedCobaltInstanceId === DEFAULT_COBALT_INSTANCE_ID) return true;
-  return !state.cobaltInstances.some((i) => i.id === state.selectedCobaltInstanceId);
+  if (state.selectedCobaltInstanceId === DEFAULT_COBALT_INSTANCE_ID)
+    return true;
+  return !state.cobaltInstances.some(
+    (i) => i.id === state.selectedCobaltInstanceId,
+  );
 }
 
 // -- Exports ------------------------------------------------------------------
@@ -196,4 +218,9 @@ export {
   getActiveCobaltInstance,
   isUsingDefaultCobaltInstance,
 };
-export type { SettingsState, CobaltInstanceStatus, LinkedDivergenceAction };
+export type {
+  SettingsState,
+  CobaltInstanceStatus,
+  LinkedDivergenceAction,
+  AppLanguage,
+};

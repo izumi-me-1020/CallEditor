@@ -10,7 +10,8 @@ function waitFor(predicate: () => boolean, timeout = 1000): Promise<void> {
   return new Promise((resolve, reject) => {
     const tick = () => {
       if (predicate()) return resolve();
-      if (Date.now() - start > timeout) return reject(new Error("waitFor timeout"));
+      if (Date.now() - start > timeout)
+        return reject(new Error("waitFor timeout"));
       requestAnimationFrame(tick);
     };
     tick();
@@ -21,14 +22,20 @@ describe("AudioEngine", () => {
   it("registers an <audio> element on the store when a file source is set", async () => {
     await render(<AudioEngine />);
     expect(useAudioStore.getState().audioElement).toBeNull();
-    useAudioStore.setState({ source: { type: "file", file: createAudioFile() } });
+    useAudioStore.setState({
+      source: { type: "file", file: createAudioFile() },
+    });
     await waitFor(() => useAudioStore.getState().audioElement !== null);
-    expect(useAudioStore.getState().audioElement).toBeInstanceOf(HTMLAudioElement);
+    expect(useAudioStore.getState().audioElement).toBeInstanceOf(
+      HTMLAudioElement,
+    );
   });
 
   it("clears audioElement when the source becomes null", async () => {
     await render(<AudioEngine />);
-    useAudioStore.setState({ source: { type: "file", file: createAudioFile() } });
+    useAudioStore.setState({
+      source: { type: "file", file: createAudioFile() },
+    });
     await waitFor(() => useAudioStore.getState().audioElement !== null);
     useAudioStore.setState({ source: null });
     await waitFor(() => useAudioStore.getState().audioElement === null);
@@ -37,7 +44,9 @@ describe("AudioEngine", () => {
 
   it("propagates playbackRate, volume, and mute changes to the audio element", async () => {
     await render(<AudioEngine />);
-    useAudioStore.setState({ source: { type: "file", file: createAudioFile() } });
+    useAudioStore.setState({
+      source: { type: "file", file: createAudioFile() },
+    });
     await waitFor(() => useAudioStore.getState().audioElement !== null);
     const audio = useAudioStore.getState().audioElement as HTMLAudioElement;
 
@@ -68,10 +77,14 @@ describe("AudioEngine", () => {
     allowConsole(/mp3 decode failed/);
     allowConsole(/Audio error/);
     await render(<AudioEngine />);
-    const garbage = new File([new Uint8Array([1, 2, 3, 4, 5])], "broken.mp3", { type: "audio/mpeg" });
+    const garbage = new File([new Uint8Array([1, 2, 3, 4, 5])], "broken.mp3", {
+      type: "audio/mpeg",
+    });
     useAudioStore.setState({ source: { type: "file", file: garbage } });
     await waitFor(() => useAudioStore.getState().audioElement !== null, 5000);
-    expect(useAudioStore.getState().audioElement).toBeInstanceOf(HTMLAudioElement);
+    expect(useAudioStore.getState().audioElement).toBeInstanceOf(
+      HTMLAudioElement,
+    );
   });
 
   it("serves a non-mp3 source as-is without re-encoding", async () => {
@@ -102,7 +115,7 @@ describe("AudioEngine", () => {
     await waitFor(() => useAudioStore.getState().audioElement !== null, 5000);
     useAudioStore.setState({ source: null });
     await waitFor(() => useAudioStore.getState().audioElement === null);
-    expect(document.querySelectorAll("#composer-audio").length).toBe(0);
+    expect(document.querySelectorAll("#calleditor-audio").length).toBe(0);
   });
 
   it("ends with a single element matching the final source after rapid source changes", async () => {
@@ -113,7 +126,7 @@ describe("AudioEngine", () => {
     useAudioStore.setState({ source: { type: "file", file: wav } });
     await waitFor(() => useAudioStore.getState().audioElement !== null, 5000);
     await new Promise((resolve) => setTimeout(resolve, 300));
-    const elements = document.querySelectorAll("#composer-audio");
+    const elements = document.querySelectorAll("#calleditor-audio");
     expect(elements.length).toBe(1);
     const audio = useAudioStore.getState().audioElement as HTMLAudioElement;
     expect(elements[0]).toBe(audio);

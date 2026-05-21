@@ -8,7 +8,7 @@ interface LandingLayoutProps {
 
 const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-composer-bg text-composer-text flex flex-col">
+    <div className="min-h-screen bg-calleditor-bg text-calleditor-text flex flex-col">
       <LandingNav />
       <main className="flex-1">{children}</main>
       <LandingFooter />

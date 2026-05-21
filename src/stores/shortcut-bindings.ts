@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { type ShortcutBinding, getShortcutById } from "@/stores/shortcut-registry";
+import {
+  type ShortcutBinding,
+  getShortcutById,
+} from "@/stores/shortcut-registry";
 
 // -- Types --------------------------------------------------------------------
 
@@ -28,7 +31,7 @@ const useShortcutBindingsStore = create<ShortcutBindingsState>()(
         }),
       resetAllBindings: () => set({ overrides: {} }),
     }),
-    { name: "composer-shortcut-bindings" },
+    { name: "calleditor-shortcut-bindings" },
   ),
 );
 

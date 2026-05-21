@@ -1,18 +1,19 @@
 import { useConfirm } from "@/stores/confirm-store";
-import { getEffectiveKeysArray, useShortcutBindingsStore } from "@/stores/shortcut-bindings";
-import { type ShortcutScope, getShortcutsByScope } from "@/stores/shortcut-registry";
+import {
+  getEffectiveKeysArray,
+  useShortcutBindingsStore,
+} from "@/stores/shortcut-bindings";
+import {
+  type ShortcutScope,
+  getShortcutsByScope,
+} from "@/stores/shortcut-registry";
+import { useAppLanguage } from "@/lib/i18n";
 import { Button } from "@/ui/button";
 import { ShortcutRebindRow } from "@/ui/shortcut-rebind-row";
 import { IconRefresh, IconSearch, IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // -- Constants ----------------------------------------------------------------
-
-const SCOPE_GROUPS: { scope: ShortcutScope; title: string }[] = [
-  { scope: "global", title: "General" },
-  { scope: "sync", title: "Sync Mode" },
-  { scope: "timeline", title: "Timeline Mode" },
-];
 
 // -- Component ----------------------------------------------------------------
 
@@ -24,6 +25,13 @@ const ShortcutsSettingsSection: React.FC = () => {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const { t } = useAppLanguage();
+
+  const scopeGroups: { scope: ShortcutScope; title: string }[] = [
+    { scope: "global", title: t("shortcutsSettings.general") },
+    { scope: "sync", title: t("shortcutsSettings.sync") },
+    { scope: "timeline", title: t("shortcutsSettings.timeline") },
+  ];
 
   const scrollPanelToTop = useCallback(() => {
     let parent: HTMLElement | null = searchRef.current?.parentElement ?? null;
@@ -59,9 +67,9 @@ const ShortcutsSettingsSection: React.FC = () => {
 
   const handleResetShortcuts = async () => {
     const ok = await confirm({
-      title: "Reset all shortcuts?",
-      description: "Clear every custom keyboard binding and restore the defaults.",
-      confirmLabel: "Reset",
+      title: t("shortcutsSettings.resetTitle"),
+      description: t("shortcutsSettings.resetDescription"),
+      confirmLabel: t("shortcutsSettings.resetConfirm"),
       variant: "destructive",
       settingsKey: "confirmResetShortcuts",
     });
@@ -70,7 +78,7 @@ const ShortcutsSettingsSection: React.FC = () => {
 
   const filteredScopes = useMemo(() => {
     const trimmed = query.trim().toLowerCase();
-    return SCOPE_GROUPS.flatMap(({ scope, title }) => {
+    return scopeGroups.flatMap(({ scope, title }) => {
       const shortcuts = getShortcutsByScope(scope).filter((def) => {
         if (trimmed.length === 0) return true;
         if (def.description.toLowerCase().includes(trimmed)) return true;
@@ -81,14 +89,14 @@ const ShortcutsSettingsSection: React.FC = () => {
       });
       return shortcuts.length > 0 ? [{ scope, title, shortcuts }] : [];
     });
-  }, [query]);
+  }, [query, scopeGroups]);
 
   return (
     <div className="space-y-6 py-4">
       <div ref={searchRef} className="relative">
         <IconSearch
           size={12}
-          className="absolute left-2.5 top-1/2 -translate-y-1/2 text-composer-text opacity-50 pointer-events-none"
+          className="absolute left-2.5 top-1/2 -translate-y-1/2 text-calleditor-text opacity-50 pointer-events-none"
         />
         <input
           ref={inputRef}
@@ -98,15 +106,15 @@ const ShortcutsSettingsSection: React.FC = () => {
             setQuery(e.target.value);
             scrollPanelToTop();
           }}
-          placeholder="Search shortcuts"
-          className="w-full h-7 pl-7 pr-7 text-xs rounded-md bg-composer-input border border-composer-border focus:outline-none focus:border-composer-accent text-composer-text placeholder:text-composer-text-muted"
+          placeholder={t("shortcutsSettings.searchPlaceholder")}
+          className="w-full h-7 pl-7 pr-7 text-xs rounded-md bg-calleditor-input border border-calleditor-border focus:outline-none focus:border-calleditor-accent text-calleditor-text placeholder:text-calleditor-text-muted"
         />
         {query.length > 0 && (
           <button
             type="button"
             onClick={() => setQuery("")}
-            aria-label="Clear search"
-            className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 rounded text-composer-text opacity-50 hover:opacity-100 hover:bg-composer-button cursor-pointer transition-opacity"
+            aria-label={t("shortcutsSettings.clearSearch")}
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 rounded text-calleditor-text opacity-50 hover:opacity-100 hover:bg-calleditor-button cursor-pointer transition-opacity"
           >
             <IconX size={11} />
           </button>
@@ -114,12 +122,16 @@ const ShortcutsSettingsSection: React.FC = () => {
       </div>
 
       {filteredScopes.length === 0 ? (
-        <p className="text-sm text-composer-text-muted text-center py-6">No shortcuts match "{query}".</p>
+        <p className="text-sm text-calleditor-text-muted text-center py-6">
+          {t("shortcutsSettings.noMatch", { query })}
+        </p>
       ) : (
         filteredScopes.map(({ scope, title, shortcuts }) => (
           <div key={scope}>
-            <h3 className="mb-1 text-xs font-medium tracking-wide text-composer-text-muted">{title}</h3>
-            <div className="divide-y divide-composer-border">
+            <h3 className="mb-1 text-xs font-medium tracking-wide text-calleditor-text-muted">
+              {title}
+            </h3>
+            <div className="divide-y divide-calleditor-border">
               {shortcuts.map((def) => (
                 <ShortcutRebindRow key={def.id} definition={def} />
               ))}
@@ -128,14 +140,24 @@ const ShortcutsSettingsSection: React.FC = () => {
         ))
       )}
 
-      <div className="flex items-center justify-between pt-2 border-t border-composer-border">
+      <div className="flex items-center justify-between pt-2 border-t border-calleditor-border">
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium text-composer-text">Reset all shortcuts</span>
-          <span className="text-xs text-composer-text-muted">Restore all keyboard shortcuts to their defaults.</span>
+          <span className="text-sm font-medium text-calleditor-text">
+            {t("shortcutsSettings.resetAllLabel")}
+          </span>
+          <span className="text-xs text-calleditor-text-muted">
+            {t("shortcutsSettings.resetAllDescription")}
+          </span>
         </div>
-        <Button size="sm" variant="secondary" hasIcon onClick={handleResetShortcuts} disabled={!hasOverrides}>
+        <Button
+          size="sm"
+          variant="secondary"
+          hasIcon
+          onClick={handleResetShortcuts}
+          disabled={!hasOverrides}
+        >
           <IconRefresh size={14} />
-          Reset all
+          {t("shortcutsSettings.resetAllAction")}
         </Button>
       </div>
     </div>

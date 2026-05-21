@@ -116,13 +116,19 @@ const Slider: React.FC<SliderProps> = ({
       aria-valuemax={max}
       aria-valuenow={value}
       aria-label={ariaLabel}
-      className={cn("group relative h-1 cursor-pointer rounded-full bg-composer-button", className)}
+      className={cn(
+        "group relative h-1 cursor-pointer rounded-full bg-calleditor-button",
+        className,
+      )}
       onMouseDown={handleMouseDown}
       onKeyDown={handleKeyDown}
     >
-      <div className="absolute inset-y-0 left-0 rounded-full bg-composer-accent" style={{ width: `${percent}%` }} />
       <div
-        className="absolute top-1/2 size-3 -translate-y-1/2 rounded-full bg-composer-text opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute inset-y-0 left-0 rounded-full bg-calleditor-accent"
+        style={{ width: `${percent}%` }}
+      />
+      <div
+        className="absolute top-1/2 size-3 -translate-y-1/2 rounded-full bg-calleditor-text opacity-0 group-hover:opacity-100 transition-opacity"
         style={{ left: `calc(${percent}% - 6px)` }}
       />
     </div>

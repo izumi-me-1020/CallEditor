@@ -22,7 +22,7 @@ interface RecoveryResult {
 
 // -- Constants ----------------------------------------------------------------
 
-const DB_NAME = "ttml-composer";
+const DB_NAME = "ttml-calleditor";
 const DB_VERSION = 1;
 const STORE_NAME = "projects";
 const CURRENT_PROJECT_KEY = "current";
@@ -39,7 +39,8 @@ const CURRENT_PROJECT_KEY = "current";
 function openRecoveryDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onerror = () => reject(request.error ?? new Error("IndexedDB open failed"));
+    request.onerror = () =>
+      reject(request.error ?? new Error("IndexedDB open failed"));
     request.onsuccess = () => resolve(request.result);
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
@@ -87,7 +88,13 @@ function triggerDownload(blob: Blob, filename: string): void {
 async function readRecoveryMetadata(): Promise<RecoveryResult> {
   const project = await readProjectFromIDB();
   if (!project) {
-    return { found: false, filename: "", lineCount: 0, savedAt: undefined, title: "" };
+    return {
+      found: false,
+      filename: "",
+      lineCount: 0,
+      savedAt: undefined,
+      title: "",
+    };
   }
   const title = project.metadata?.title?.trim() || "recovered";
   const date = new Date().toISOString().slice(0, 10);
@@ -103,12 +110,20 @@ async function readRecoveryMetadata(): Promise<RecoveryResult> {
 async function downloadRecoveryFile(): Promise<RecoveryResult> {
   const project = await readProjectFromIDB();
   if (!project) {
-    return { found: false, filename: "", lineCount: 0, savedAt: undefined, title: "" };
+    return {
+      found: false,
+      filename: "",
+      lineCount: 0,
+      savedAt: undefined,
+      title: "",
+    };
   }
   const title = project.metadata?.title?.trim() || "recovered";
   const date = new Date().toISOString().slice(0, 10);
   const filename = `${title}-${date}.ttml-project.json`;
-  const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(project, null, 2)], {
+    type: "application/json",
+  });
   triggerDownload(blob, filename);
   return {
     found: true,

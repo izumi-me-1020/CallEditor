@@ -30,7 +30,12 @@ const AudioEngine: React.FC = () => {
       return;
     }
 
-    const playableFile = source.type === "file" ? source.file : source.type === "youtube" ? source.file : null;
+    const playableFile =
+      source.type === "file"
+        ? source.file
+        : source.type === "youtube"
+          ? source.file
+          : null;
     if (!playableFile) {
       registerAudioElement(null);
       return;
@@ -86,7 +91,7 @@ const AudioEngine: React.FC = () => {
       }
 
       const audio = new Audio();
-      audio.id = "composer-audio";
+      audio.id = "calleditor-audio";
       audio.src = objectUrl;
       const {
         playbackRate: initialPlaybackRate,
@@ -114,7 +119,11 @@ const AudioEngine: React.FC = () => {
       audio.addEventListener("timeupdate", handleTimeUpdate);
       audio.addEventListener("ended", handleEnded);
       audio.addEventListener("error", handleError);
-      const unbindStateEvents = bindAudioStateEvents(audio, () => useAudioStore.getState().isPlaying, setIsPlaying);
+      const unbindStateEvents = bindAudioStateEvents(
+        audio,
+        () => useAudioStore.getState().isPlaying,
+        setIsPlaying,
+      );
 
       teardown = () => {
         audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
@@ -138,7 +147,14 @@ const AudioEngine: React.FC = () => {
       if (teardown) teardown();
       registerAudioElement(null);
     };
-  }, [source, setDuration, setCurrentTime, setIsPlaying, setIsLoading, registerAudioElement]);
+  }, [
+    source,
+    setDuration,
+    setCurrentTime,
+    setIsPlaying,
+    setIsLoading,
+    registerAudioElement,
+  ]);
 
   useEffect(() => {
     const audio = audioRef.current;

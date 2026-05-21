@@ -43,28 +43,30 @@ const SplitModeContent: React.FC<{
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-sm text-composer-text-secondary">Click between letters to mark split points</p>
+      <p className="text-sm text-calleditor-text-secondary">
+        Click between letters to mark split points
+      </p>
 
       <div className="flex flex-wrap items-center justify-center gap-0.5 py-4 text-2xl tracking-wide">
         {chars.map((char, idx) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: character order is fixed in word
           <span key={idx} className="flex items-center">
-            <span className="text-composer-text">{char}</span>
+            <span className="text-calleditor-text">{char}</span>
             {idx < chars.length - 1 && (
               <button
                 type="button"
                 onClick={() => onToggleSplit(idx + 1)}
                 className={`w-4 h-8 flex items-center group justify-center mx-0.5 rounded transition-colors cursor-pointer ${
                   splitPoints.includes(idx + 1)
-                    ? "bg-composer-accent"
-                    : "bg-composer-button hover:bg-composer-button-hover"
+                    ? "bg-calleditor-accent"
+                    : "bg-calleditor-button hover:bg-calleditor-button-hover"
                 }`}
               >
                 <span
                   className={`text-sm font-bold ${
                     splitPoints.includes(idx + 1)
                       ? "text-white"
-                      : "text-composer-text-tertiary group-hover:text-composer-text"
+                      : "text-calleditor-text-tertiary group-hover:text-calleditor-text"
                   }`}
                 >
                   ⋮
@@ -76,15 +78,21 @@ const SplitModeContent: React.FC<{
       </div>
 
       {splitPoints.length > 0 && (
-        <div className="flex items-center justify-center gap-2 text-sm text-composer-text-muted">
+        <div className="flex items-center justify-center gap-2 text-sm text-calleditor-text-muted">
           <span>Preview:</span>
-          <span className="font-medium text-composer-text">{previewParts.join(" · ")}</span>
+          <span className="font-medium text-calleditor-text">
+            {previewParts.join(" · ")}
+          </span>
         </div>
       )}
 
       <div className="flex items-center justify-end gap-2 pt-2">
         <Button onClick={onCancel}>Cancel</Button>
-        <Button variant="primary" onClick={onConfirm} disabled={splitPoints.length === 0}>
+        <Button
+          variant="primary"
+          onClick={onConfirm}
+          disabled={splitPoints.length === 0}
+        >
           Split Word
         </Button>
       </div>
@@ -92,18 +100,29 @@ const SplitModeContent: React.FC<{
   );
 };
 
-const SyllableSplitter: React.FC<SyllableSplitterProps> = ({ word, wordIndex, onSplit }) => {
+const SyllableSplitter: React.FC<SyllableSplitterProps> = ({
+  word,
+  wordIndex,
+  onSplit,
+}) => {
   const [splitPoints, setSplitPoints] = useState<number[]>([]);
 
   const handleToggleSplit = useCallback((index: number) => {
-    setSplitPoints((prev) => (prev.includes(index) ? prev.filter((p) => p !== index) : [...prev, index]));
+    setSplitPoints((prev) =>
+      prev.includes(index) ? prev.filter((p) => p !== index) : [...prev, index],
+    );
   }, []);
 
   const handleConfirmSplit = useCallback(
     (close: () => void) => {
       const groupId = word.syllableGroupId ?? nanoid(8);
       const sourceForSplit: WordTiming = { ...word, syllableGroupId: groupId };
-      const partitions = distributeTiming(word.text, splitPoints, word.begin, word.end);
+      const partitions = distributeTiming(
+        word.text,
+        splitPoints,
+        word.begin,
+        word.end,
+      );
       const newWords = splitSourceWord(sourceForSplit, partitions);
       onSplit(wordIndex, newWords);
       setSplitPoints([]);
@@ -138,7 +157,9 @@ const SyllableSplitter: React.FC<SyllableSplitterProps> = ({ word, wordIndex, on
     >
       {(close) => (
         <div className="p-5">
-          <h3 className="mb-4 text-lg font-medium">Split "{word.text.trimEnd()}"</h3>
+          <h3 className="mb-4 text-lg font-medium">
+            Split "{word.text.trimEnd()}"
+          </h3>
           <SplitModeContent
             text={word.text.trimEnd()}
             splitPoints={splitPoints}

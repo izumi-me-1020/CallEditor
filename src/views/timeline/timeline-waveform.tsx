@@ -1,5 +1,9 @@
 import { useAudioStore } from "@/stores/audio";
-import { useTimelineStore, WAVEFORM_HEIGHT } from "@/views/timeline/timeline-store";
+import { useAppLanguage } from "@/lib/i18n";
+import {
+  useTimelineStore,
+  WAVEFORM_HEIGHT,
+} from "@/views/timeline/timeline-store";
 import WavesurferPlayer from "@wavesurfer/react";
 import { useCallback, useEffect, useState } from "react";
 import type WaveSurfer from "wavesurfer.js";
@@ -11,6 +15,7 @@ const TimelineWaveform: React.FC = () => {
   const duration = useAudioStore((s) => s.duration);
   const audioElement = useAudioStore((s) => s.audioElement);
   const seekTo = useAudioStore((s) => s.seekTo);
+  useAppLanguage();
 
   const zoom = useTimelineStore((s) => s.zoom);
 
@@ -41,17 +46,16 @@ const TimelineWaveform: React.FC = () => {
 
   const onReady = useCallback((wavesurfer: WaveSurfer) => {
     setWs(wavesurfer);
-    const audio = useAudioStore.getState().audioElement;
-    if (audio && audio.currentTime > 0) {
-      wavesurfer.setTime(audio.currentTime);
+    const currentTime = useAudioStore.getState().currentTime;
+    if (currentTime > 0) {
+      wavesurfer.setTime(currentTime);
     }
   }, []);
 
   if (!source) return null;
-
   return (
     <div
-      className="sticky ml-12 top-0 z-40 bg-composer-bg w-max border-b border-composer-border shadow-lg transition-opacity duration-150 ease-in"
+      className="sticky ml-12 top-0 z-40 bg-calleditor-bg w-max border-b border-calleditor-border shadow-lg transition-opacity duration-150 ease-in"
       style={{ opacity: ws ? 1 : 0 }}
     >
       <WavesurferPlayer

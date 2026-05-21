@@ -1,5 +1,6 @@
 import { isLinked } from "@/domain/instance/predicates";
 import { isLineSynced } from "@/domain/line/predicates";
+import { useAppLanguage } from "@/lib/i18n";
 import { useAudioStore } from "@/stores/audio";
 import { useProjectStore } from "@/stores/project";
 import type { WordTiming } from "@/domain/word/timing";
@@ -7,14 +8,23 @@ import { getEffectiveKeysArray } from "@/stores/shortcut-bindings";
 import { useSettingsStore } from "@/stores/settings";
 import { Button } from "@/ui/button";
 import { InlineKeyBadge } from "@/ui/inline-key-badge";
+import { Popover } from "@/ui/popover";
 import { cn } from "@/utils/cn";
 import { MOD_KEY } from "@/utils/platform";
-import { convertLineToWord, splitIntoWordsWithMeta } from "@/utils/sync-helpers";
-import { MAX_ZOOM, MIN_ZOOM, useTimelineStore } from "@/views/timeline/timeline-store";
+import {
+  convertLineToWord,
+  splitIntoWordsWithMeta,
+} from "@/utils/sync-helpers";
+import {
+  MAX_ZOOM,
+  MIN_ZOOM,
+  useTimelineStore,
+} from "@/views/timeline/timeline-store";
 import {
   IconArrowBarBoth,
   IconChevronsDown,
   IconChevronsUp,
+  IconDots,
   IconEye,
   IconFocusCentered,
   IconLayoutDistributeHorizontal,
@@ -34,6 +44,7 @@ interface TimelineHeaderProps {
 // -- Component -----------------------------------------------------------------
 
 const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
+  const { t } = useAppLanguage();
   const zoom = useTimelineStore((s) => s.zoom);
   const zoomIn = useTimelineStore((s) => s.zoomIn);
   const zoomOut = useTimelineStore((s) => s.zoomOut);
@@ -42,7 +53,9 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
   const previewSidebarOpen = useTimelineStore((s) => s.previewSidebarOpen);
   const togglePreviewSidebar = useTimelineStore((s) => s.togglePreviewSidebar);
   const rollingEditMode = useTimelineStore((s) => s.rollingEditMode);
-  const toggleRollingEditMode = useTimelineStore((s) => s.toggleRollingEditMode);
+  const toggleRollingEditMode = useTimelineStore(
+    (s) => s.toggleRollingEditMode,
+  );
   const showHints = useSettingsStore((s) => s.showShortcutHints);
   const snapEnabled = useSettingsStore((s) => s.timelineSnap);
   const setSetting = useSettingsStore((s) => s.set);
@@ -52,7 +65,10 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
   const collapsedInstances = useTimelineStore((s) => s.collapsedInstances);
   const setInstanceCollapsed = useTimelineStore((s) => s.setInstanceCollapsed);
 
-  const hasUnexpandedLines = useMemo(() => lines.some((l) => !l.words?.length && l.text.trim().length > 0), [lines]);
+  const hasUnexpandedLines = useMemo(
+    () => lines.some((l) => !l.words?.length && l.text.trim().length > 0),
+    [lines],
+  );
 
   const instanceKeys = useMemo(() => {
     const keys = new Set<string>();
@@ -77,9 +93,13 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
   const handleExpandAll = useCallback(() => {
     const currentTime = useAudioStore.getState().currentTime;
     const wordDuration = useSettingsStore.getState().defaultWordDuration;
-    const updateLinesWithHistory = useProjectStore.getState().updateLinesWithHistory;
+    const updateLinesWithHistory =
+      useProjectStore.getState().updateLinesWithHistory;
 
-    const updates: Array<{ id: string; updates: { words?: WordTiming[]; begin?: undefined; end?: undefined } }> = [];
+    const updates: Array<{
+      id: string;
+      updates: { words?: WordTiming[]; begin?: undefined; end?: undefined };
+    }> = [];
 
     for (const line of lines) {
       if (line.words?.length) continue;
@@ -88,7 +108,14 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
       if (isLineSynced(line)) {
         const converted = convertLineToWord(line);
         if (converted.words) {
-          updates.push({ id: line.id, updates: { words: converted.words, begin: undefined, end: undefined } });
+          updates.push({
+            id: line.id,
+            updates: {
+              words: converted.words,
+              begin: undefined,
+              end: undefined,
+            },
+          });
         }
       } else {
         const { parts, trailingSpace } = splitIntoWordsWithMeta(line.text);
@@ -107,12 +134,22 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
 
       const lineIndexById = new Map<string, number>();
       for (let i = 0; i < lines.length; i++) lineIndexById.set(lines[i].id, i);
-      const newSelections: Array<{ lineId: string; lineIndex: number; wordIndex: number; type: "word" | "bg" }> = [];
+      const newSelections: Array<{
+        lineId: string;
+        lineIndex: number;
+        wordIndex: number;
+        type: "word" | "bg";
+      }> = [];
       for (const u of updates) {
         const lineIndex = lineIndexById.get(u.id);
         if (lineIndex === undefined || !u.updates.words) continue;
         for (let wi = 0; wi < u.updates.words.length; wi++) {
-          newSelections.push({ lineId: u.id, lineIndex, wordIndex: wi, type: "word" });
+          newSelections.push({
+            lineId: u.id,
+            lineIndex,
+            wordIndex: wi,
+            type: "word",
+          });
         }
       }
       if (newSelections.length > 0) {
@@ -127,13 +164,19 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
     return () => window.removeEventListener("timeline:expand-all", handler);
   }, [handleExpandAll]);
 
-  const zoomPercent = Math.round(((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100);
+  const zoomPercent = Math.round(
+    ((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100,
+  );
+  const toggleSnapShortcut =
+    toggleSnapKeys.length > 0 ? ` (${toggleSnapKeys.join(" ")})` : "";
 
   return (
-    <div className="flex items-center justify-between px-6 py-3 border-b border-composer-border">
-      <h2 className="text-lg font-medium select-none">Timeline</h2>
+    <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-calleditor-border md:px-6">
+      <h2 className="text-lg font-medium select-none">
+        {t("timeline.header.title")}
+      </h2>
 
-      <div className="flex items-center gap-4">
+      <div className="hidden items-center gap-4 md:flex">
         {/* Follow toggle */}
         <Button
           variant={followEnabled ? "primary" : "ghost"}
@@ -143,8 +186,12 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
           className={cn(!followEnabled && "opacity-60")}
         >
           <IconFocusCentered size={16} />
-          <span>Follow</span>
-          {showHints && <InlineKeyBadge keys={getEffectiveKeysArray("timeline.toggleFollow")} />}
+          <span>{t("timeline.header.follow")}</span>
+          {showHints && (
+            <InlineKeyBadge
+              keys={getEffectiveKeysArray("timeline.toggleFollow")}
+            />
+          )}
         </Button>
 
         {/* Rolling edit toggle */}
@@ -154,11 +201,15 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
           onClick={toggleRollingEditMode}
           hasIcon
           className={cn(!rollingEditMode && "opacity-60")}
-          title="Rolling edit: drag a shared word boundary and both words move together"
+          title={t("timeline.header.rollingTitle")}
         >
           <IconArrowBarBoth size={16} />
-          <span>Rolling</span>
-          {showHints && <InlineKeyBadge keys={getEffectiveKeysArray("timeline.toggleRollingEdit")} />}
+          <span>{t("timeline.header.rolling")}</span>
+          {showHints && (
+            <InlineKeyBadge
+              keys={getEffectiveKeysArray("timeline.toggleRollingEdit")}
+            />
+          )}
         </Button>
 
         {/* Preview sidebar toggle */}
@@ -170,38 +221,68 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
           className={cn(!previewSidebarOpen && "opacity-60")}
         >
           <IconEye size={16} />
-          <span>Preview</span>
-          {showHints && <InlineKeyBadge keys={getEffectiveKeysArray("timeline.togglePreview")} />}
+          <span>{t("timeline.header.preview")}</span>
+          {showHints && (
+            <InlineKeyBadge
+              keys={getEffectiveKeysArray("timeline.togglePreview")}
+            />
+          )}
         </Button>
 
         <Button
           variant={snapEnabled ? "primary" : "ghost"}
           size="sm"
           hasIcon
-          className={cn(!snapEnabled && "opacity-60", isBypassing && "opacity-50")}
+          className={cn(
+            !snapEnabled && "opacity-60",
+            isBypassing && "opacity-50",
+          )}
           onClick={() => setSetting("timelineSnap", !snapEnabled)}
-          title={`Snap${toggleSnapKeys.length ? ` (${toggleSnapKeys.join(" ")})` : ""} · hold ${MOD_KEY} to bypass`}
+          title={t("timeline.header.snapTitle", {
+            shortcut: toggleSnapShortcut,
+            modKey: MOD_KEY,
+          })}
         >
           <IconMagnet size={16} />
-          <span>Snap</span>
+          <span>{t("timeline.header.snap")}</span>
           {showHints && <InlineKeyBadge keys={toggleSnapKeys} />}
         </Button>
 
         {/* Import lyrics */}
         {onImportLyrics && (
-          <Button variant="ghost" size="sm" onClick={onImportLyrics} hasIcon className="opacity-60">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onImportLyrics}
+            hasIcon
+            className="opacity-60"
+          >
             <IconTextPlus size={16} />
-            <span>Import</span>
-            {showHints && <InlineKeyBadge keys={getEffectiveKeysArray("timeline.importLyrics")} />}
+            <span>{t("timeline.header.importLyrics")}</span>
+            {showHints && (
+              <InlineKeyBadge
+                keys={getEffectiveKeysArray("timeline.importLyrics")}
+              />
+            )}
           </Button>
         )}
 
         {/* Expand all unexpanded lines */}
         {hasUnexpandedLines && (
-          <Button variant="ghost" size="sm" onClick={handleExpandAll} hasIcon className="opacity-60">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleExpandAll}
+            hasIcon
+            className="opacity-60"
+          >
             <IconLayoutDistributeHorizontal size={16} />
-            <span>Expand All</span>
-            {showHints && <InlineKeyBadge keys={getEffectiveKeysArray("timeline.expandAll")} />}
+            <span>{t("timeline.header.expandAll")}</span>
+            {showHints && (
+              <InlineKeyBadge
+                keys={getEffectiveKeysArray("timeline.expandAll")}
+              />
+            )}
           </Button>
         )}
 
@@ -213,28 +294,214 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
             onClick={handleToggleAllCollapsed}
             hasIcon
             className="opacity-60"
-            title={anyExpanded ? "Collapse all groups" : "Expand all groups"}
+            title={t(
+              anyExpanded
+                ? "timeline.header.collapseGroups"
+                : "timeline.header.expandGroups",
+            )}
           >
-            {anyExpanded ? <IconChevronsUp size={16} /> : <IconChevronsDown size={16} />}
-            <span>{anyExpanded ? "Collapse all" : "Expand all"}</span>
-            {showHints && <InlineKeyBadge keys={getEffectiveKeysArray("timeline.toggleAllCollapsed")} />}
+            {anyExpanded ? (
+              <IconChevronsUp size={16} />
+            ) : (
+              <IconChevronsDown size={16} />
+            )}
+            <span>
+              {t(
+                anyExpanded
+                  ? "timeline.header.collapseGroups"
+                  : "timeline.header.expandGroups",
+              )}
+            </span>
+            {showHints && (
+              <InlineKeyBadge
+                keys={getEffectiveKeysArray("timeline.toggleAllCollapsed")}
+              />
+            )}
           </Button>
         )}
 
         {/* Zoom controls */}
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={zoomOut} disabled={zoom <= MIN_ZOOM} className="size-7">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={zoomOut}
+            disabled={zoom <= MIN_ZOOM}
+            className="size-7"
+          >
             <IconMinus size={16} />
           </Button>
 
-          <span className="w-12 text-center text-xs text-composer-text-muted select-none tabular-nums">
+          <span className="w-12 text-center text-xs text-calleditor-text-muted select-none tabular-nums">
             {zoomPercent}%
           </span>
 
-          <Button variant="ghost" size="icon" onClick={zoomIn} disabled={zoom >= MAX_ZOOM} className="size-7">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={zoomIn}
+            disabled={zoom >= MAX_ZOOM}
+            className="size-7"
+          >
             <IconPlus size={16} />
           </Button>
         </div>
+      </div>
+
+      <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={zoomOut}
+            disabled={zoom <= MIN_ZOOM}
+            className="size-8"
+          >
+            <IconMinus size={16} />
+          </Button>
+
+          <span className="w-12 text-center text-xs text-calleditor-text-muted select-none tabular-nums">
+            {zoomPercent}%
+          </span>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={zoomIn}
+            disabled={zoom >= MAX_ZOOM}
+            className="size-8"
+          >
+            <IconPlus size={16} />
+          </Button>
+        </div>
+
+        <Popover
+          placement="bottom-end"
+          trigger={
+            <Button
+              variant="ghost"
+              size="icon"
+              title={t("action.more")}
+              className="size-8"
+            >
+              <IconDots size={16} />
+            </Button>
+          }
+        >
+          {(close) => (
+            <div className="flex w-56 flex-col gap-1 p-2">
+              <Button
+                variant={followEnabled ? "primary" : "ghost"}
+                size="sm"
+                hasIcon
+                className={cn("justify-start", !followEnabled && "opacity-80")}
+                onClick={() => {
+                  toggleFollow();
+                  close();
+                }}
+              >
+                <IconFocusCentered size={16} />
+                {t("timeline.header.follow")}
+              </Button>
+              <Button
+                variant={rollingEditMode ? "primary" : "ghost"}
+                size="sm"
+                hasIcon
+                className={cn("justify-start", !rollingEditMode && "opacity-80")}
+                onClick={() => {
+                  toggleRollingEditMode();
+                  close();
+                }}
+              >
+                <IconArrowBarBoth size={16} />
+                {t("timeline.header.rolling")}
+              </Button>
+              <Button
+                variant={previewSidebarOpen ? "primary" : "ghost"}
+                size="sm"
+                hasIcon
+                className={cn("justify-start", !previewSidebarOpen && "opacity-80")}
+                onClick={() => {
+                  togglePreviewSidebar();
+                  close();
+                }}
+              >
+                <IconEye size={16} />
+                {t("timeline.header.preview")}
+              </Button>
+              <Button
+                variant={snapEnabled ? "primary" : "ghost"}
+                size="sm"
+                hasIcon
+                className={cn(
+                  "justify-start",
+                  !snapEnabled && "opacity-80",
+                  isBypassing && "opacity-50",
+                )}
+                onClick={() => {
+                  setSetting("timelineSnap", !snapEnabled);
+                  close();
+                }}
+              >
+                <IconMagnet size={16} />
+                {t("timeline.header.snap")}
+              </Button>
+              {onImportLyrics && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  hasIcon
+                  className="justify-start"
+                  onClick={() => {
+                    onImportLyrics();
+                    close();
+                  }}
+                >
+                  <IconTextPlus size={16} />
+                  {t("timeline.header.importLyrics")}
+                </Button>
+              )}
+              {hasUnexpandedLines && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  hasIcon
+                  className="justify-start"
+                  onClick={() => {
+                    handleExpandAll();
+                    close();
+                  }}
+                >
+                  <IconLayoutDistributeHorizontal size={16} />
+                  {t("timeline.header.expandAll")}
+                </Button>
+              )}
+              {hasGroups && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  hasIcon
+                  className="justify-start"
+                  onClick={() => {
+                    handleToggleAllCollapsed();
+                    close();
+                  }}
+                >
+                  {anyExpanded ? (
+                    <IconChevronsUp size={16} />
+                  ) : (
+                    <IconChevronsDown size={16} />
+                  )}
+                  {t(
+                    anyExpanded
+                      ? "timeline.header.collapseGroups"
+                      : "timeline.header.expandGroups",
+                  )}
+                </Button>
+              )}
+            </div>
+          )}
+        </Popover>
       </div>
     </div>
   );

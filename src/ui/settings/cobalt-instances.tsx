@@ -27,23 +27,25 @@ function formatRelativeTime(timestamp: number): string {
 // -- Cobalt Instances ---------------------------------------------------------
 
 const CobaltDirectoryLink: React.FC = () => (
-  <div className="flex flex-col gap-0.5 mt-4 pt-3 border-t border-composer-border">
+  <div className="flex flex-col gap-0.5 mt-4 pt-3 border-t border-calleditor-border">
     <a
       href="https://cobalt.directory/service"
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 text-xs text-composer-text-secondary hover:text-composer-text transition-colors w-fit"
+      className="inline-flex items-center gap-1 text-xs text-calleditor-text-secondary hover:text-calleditor-text transition-colors w-fit"
     >
       <IconExternalLink size={12} />
       Find more on cobalt.directory
     </a>
-    <span className="text-[11px] text-composer-text-muted">
+    <span className="text-[11px] text-calleditor-text-muted">
       Set the Service filter to <strong>YouTube Music</strong> when browsing.
     </span>
   </div>
 );
 
-const CobaltInstanceStatusIcon: React.FC<{ status: CobaltInstanceStatus }> = ({ status }) => {
+const CobaltInstanceStatusIcon: React.FC<{ status: CobaltInstanceStatus }> = ({
+  status,
+}) => {
   const tooltip =
     status.status === "success"
       ? `Last attempt worked (${formatRelativeTime(status.at)})`
@@ -57,7 +59,11 @@ const CobaltInstanceStatusIcon: React.FC<{ status: CobaltInstanceStatus }> = ({ 
         status.status === "success" ? "text-emerald-400" : "text-amber-400",
       )}
     >
-      {status.status === "success" ? <IconMoodCheck size={14} /> : <IconMoodSadDizzy size={14} />}
+      {status.status === "success" ? (
+        <IconMoodCheck size={14} />
+      ) : (
+        <IconMoodSadDizzy size={14} />
+      )}
     </span>
   );
 };
@@ -99,25 +105,31 @@ const CobaltInstanceRow: React.FC<{
       className={cn(
         "group flex items-center gap-3 px-3 py-2 rounded-lg border transition-colors cursor-pointer text-left min-w-0",
         isSelected
-          ? "bg-composer-accent/15 border-composer-accent/50"
-          : "bg-composer-input border-transparent hover:bg-composer-button",
+          ? "bg-calleditor-accent/15 border-calleditor-accent/50"
+          : "bg-calleditor-input border-transparent hover:bg-calleditor-button",
       )}
     >
       <span
         className={cn(
           "size-3.5 rounded-full border-[1.5px] shrink-0 relative transition-colors",
-          isSelected ? "border-composer-accent" : "border-composer-text opacity-50",
+          isSelected
+            ? "border-calleditor-accent"
+            : "border-calleditor-text opacity-50",
         )}
       >
-        {isSelected && <span className="absolute inset-[2.5px] rounded-full bg-composer-accent" />}
+        {isSelected && (
+          <span className="absolute inset-[2.5px] rounded-full bg-calleditor-accent" />
+        )}
       </span>
       <span className="flex items-center gap-1.5 min-w-0 max-w-[50%]">
-        <span className="text-sm font-medium text-composer-text truncate">{instance.label}</span>
+        <span className="text-sm font-medium text-calleditor-text truncate">
+          {instance.label}
+        </span>
         {!onRemove ? (
           <span
-            aria-label="Composer's default instance"
-            title="Composer's default instance"
-            className="inline-flex items-center justify-center shrink-0 text-composer-text-faint"
+            aria-label="CallEditor's default instance"
+            title="CallEditor's default instance"
+            className="inline-flex items-center justify-center shrink-0 text-calleditor-text-faint"
           >
             <IconMoodHappy size={14} />
           </span>
@@ -125,7 +137,7 @@ const CobaltInstanceRow: React.FC<{
           <CobaltInstanceStatusIcon status={status} />
         ) : null}
       </span>
-      <span className="text-[11px] text-composer-text-muted font-mono truncate ml-auto text-right min-w-0">
+      <span className="text-[11px] text-calleditor-text-muted font-mono truncate ml-auto text-right min-w-0">
         {displayHostFromUrl(instance.url)}
       </span>
       {onRemove ? (
@@ -137,12 +149,15 @@ const CobaltInstanceRow: React.FC<{
             e.stopPropagation();
             onRemove();
           }}
-          className="size-6 rounded text-composer-text-faint hover:text-composer-error hover:bg-transparent shrink-0"
+          className="size-6 rounded text-calleditor-text-faint hover:text-calleditor-error hover:bg-transparent shrink-0"
         >
           <IconTrash size={14} />
         </Button>
       ) : (
-        <span aria-hidden className="size-6 shrink-0 flex items-center justify-center text-composer-text-faint">
+        <span
+          aria-hidden
+          className="size-6 shrink-0 flex items-center justify-center text-calleditor-text-faint"
+        >
           <IconLock size={13} />
         </span>
       )}

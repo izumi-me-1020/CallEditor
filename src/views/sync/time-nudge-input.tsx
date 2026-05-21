@@ -1,4 +1,8 @@
-import { getNudgeAmount, formatTimeMs, parseTimeMs } from "@/utils/sync-helpers";
+import {
+  getNudgeAmount,
+  formatTimeMs,
+  parseTimeMs,
+} from "@/utils/sync-helpers";
 import { useState } from "react";
 
 const focusAndSelectOnMount = (el: HTMLInputElement | null) => {
@@ -65,14 +69,14 @@ const TimeNudgeInput: React.FC<TimeNudgeInputProps> = ({
   };
 
   return (
-    <span className="flex items-center gap-1 font-mono text-[10px] tabular-nums">
+    <span className="flex items-center gap-0.5 font-mono text-[11px] tabular-nums sm:gap-1 sm:text-[10px]">
       <button
         type="button"
         onClick={(e) => canDecrease && handleNudgeClick(e, -getNudgeAmount())}
-        className={`px-1 ${
+        className={`px-1.5 py-0.5 sm:px-1 ${
           canDecrease
-            ? "text-composer-text-muted hover:text-composer-text cursor-pointer"
-            : "text-composer-text-muted/30 cursor-not-allowed"
+            ? "text-calleditor-text-muted hover:text-calleditor-text cursor-pointer"
+            : "text-calleditor-text-muted/30 cursor-not-allowed"
         }`}
       >
         -
@@ -86,13 +90,13 @@ const TimeNudgeInput: React.FC<TimeNudgeInputProps> = ({
           onBlur={handleCommit}
           onKeyDown={handleKeyDown}
           onClick={(e) => e.stopPropagation()}
-          className="w-16 px-1 text-center border rounded select-text bg-composer-bg-elevated border-composer-accent text-composer-accent-text"
+          className="w-[4.5rem] px-1 py-0.5 text-center border rounded select-text bg-calleditor-bg-elevated border-calleditor-accent text-calleditor-accent-text sm:w-16"
         />
       ) : (
         <button
           type="button"
           onClick={handleStartEdit}
-          className="text-composer-accent-text hover:underline cursor-text"
+          className="text-calleditor-accent-text hover:underline cursor-text"
         >
           {formatTimeMs(value)}
         </button>
@@ -100,10 +104,10 @@ const TimeNudgeInput: React.FC<TimeNudgeInputProps> = ({
       <button
         type="button"
         onClick={(e) => canIncrease && handleNudgeClick(e, getNudgeAmount())}
-        className={`px-1 ${
+        className={`px-1.5 py-0.5 sm:px-1 ${
           canIncrease
-            ? "text-composer-text-muted hover:text-composer-text cursor-pointer"
-            : "text-composer-text-muted/30 cursor-not-allowed"
+            ? "text-calleditor-text-muted hover:text-calleditor-text cursor-pointer"
+            : "text-calleditor-text-muted/30 cursor-not-allowed"
         }`}
       >
         +

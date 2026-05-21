@@ -18,9 +18,11 @@ const BASE_STYLES =
   "inline-flex items-center justify-center gap-1.5 font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
 
 const VARIANT_STYLES: Record<ButtonVariant, string> = {
-  primary: "bg-composer-accent-dark hover:bg-composer-accent text-white",
-  secondary: "bg-composer-button hover:bg-composer-button-hover text-composer-text",
-  ghost: "text-composer-text-muted hover:text-composer-text hover:bg-composer-button",
+  primary: "bg-calleditor-accent-dark hover:bg-calleditor-accent text-white",
+  secondary:
+    "bg-calleditor-button hover:bg-calleditor-button-hover text-calleditor-text",
+  ghost:
+    "text-calleditor-text-muted hover:text-calleditor-text hover:bg-calleditor-button",
 };
 
 const SIZE_STYLES: Record<ButtonSize, string> = {
@@ -52,7 +54,12 @@ const Button: React.FC<ButtonProps> = ({
     <button
       ref={ref}
       type="button"
-      className={cn(BASE_STYLES, VARIANT_STYLES[variant], sizeStyles, className)}
+      className={cn(
+        BASE_STYLES,
+        VARIANT_STYLES[variant],
+        sizeStyles,
+        className,
+      )}
       {...props}
     >
       {children}

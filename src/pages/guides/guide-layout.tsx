@@ -1,7 +1,11 @@
 import { LandingLayout } from "@/pages/landing/landing-layout";
 import { BetterLyricsPromo } from "@/pages/landing/sections/better-lyrics-promo";
 import { PageHead } from "@/seo/page-head";
-import { articleSchema, breadcrumbListSchema, organizationSchema } from "@/seo/schemas";
+import {
+  articleSchema,
+  breadcrumbListSchema,
+  organizationSchema,
+} from "@/seo/schemas";
 import { Button } from "@/ui/button";
 import { IconArrowRight, IconChevronLeft } from "@tabler/icons-react";
 import type { ReactNode } from "react";
@@ -21,18 +25,25 @@ interface GuideLayoutProps {
   children: ReactNode;
 }
 
-const GuideLayout: React.FC<GuideLayoutProps> = ({ slug, title, description, datePublished, related, children }) => {
+const GuideLayout: React.FC<GuideLayoutProps> = ({
+  slug,
+  title,
+  description,
+  datePublished,
+  related,
+  children,
+}) => {
   const path = `/guides/${slug}`;
   return (
     <LandingLayout>
       <PageHead
-        title={`${title} ・ Composer`}
+        title={`${title} ・ CallEditor`}
         description={description}
         path={path}
         jsonLd={[
           articleSchema(title, description, path, datePublished),
           breadcrumbListSchema([
-            { name: "Composer", path: "/" },
+            { name: "CallEditor", path: "/" },
             { name: "Guides", path: "/guides" },
             { name: title, path },
           ]),
@@ -42,34 +53,44 @@ const GuideLayout: React.FC<GuideLayoutProps> = ({ slug, title, description, dat
       <article className="px-6 py-14 max-w-3xl mx-auto">
         <Link
           to="/guides"
-          className="inline-flex items-center gap-1 text-sm text-composer-text-muted hover:text-composer-text mb-8 select-none"
+          className="inline-flex items-center gap-1 text-sm text-calleditor-text-muted hover:text-calleditor-text mb-8 select-none"
         >
           <IconChevronLeft size={14} />
           Back to all guides
         </Link>
         <header className="mb-10">
-          <h1 className="text-3xl md:text-5xl font-semibold text-composer-text mb-5 leading-tight">{title}</h1>
-          <p className="text-lg text-composer-text-secondary leading-relaxed">{description}</p>
+          <h1 className="text-3xl md:text-5xl font-semibold text-calleditor-text mb-5 leading-tight">
+            {title}
+          </h1>
+          <p className="text-lg text-calleditor-text-secondary leading-relaxed">
+            {description}
+          </p>
         </header>
-        <div className="prose-guide text-composer-text-secondary leading-relaxed space-y-6 select-text">{children}</div>
-        <div className="mt-14 pt-10 border-t border-composer-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <span className="text-sm text-composer-text-muted">Ready to try it?</span>
+        <div className="prose-guide text-calleditor-text-secondary leading-relaxed space-y-6 select-text">
+          {children}
+        </div>
+        <div className="mt-14 pt-10 border-t border-calleditor-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <span className="text-sm text-calleditor-text-muted">
+            Ready to try it?
+          </span>
           <Link to="/">
             <Button variant="primary" size="md" hasIcon>
-              Open Composer
+              Open CallEditor
               <IconArrowRight size={14} />
             </Button>
           </Link>
         </div>
         {related.length > 0 ? (
           <aside className="mt-16">
-            <h2 className="text-lg font-semibold text-composer-text mb-4">Related guides</h2>
+            <h2 className="text-lg font-semibold text-calleditor-text mb-4">
+              Related guides
+            </h2>
             <ul className="space-y-2">
               {related.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}
-                    className="text-composer-accent-text hover:text-composer-accent inline-flex items-center gap-1"
+                    className="text-calleditor-accent-text hover:text-calleditor-accent inline-flex items-center gap-1"
                   >
                     {link.title}
                     <IconArrowRight size={12} />

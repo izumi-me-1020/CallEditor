@@ -30,7 +30,7 @@ const RenameInput: React.FC<{
       onBlur={() => onCommit(value)}
       onClick={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
-      className="w-full bg-transparent text-[10px] font-semibold text-composer-text text-center leading-none focus:outline-none px-0"
+      className="w-full bg-transparent text-[10px] font-semibold text-calleditor-text text-center leading-none focus:outline-none px-0"
     />
   );
 };
@@ -66,7 +66,8 @@ const GroupHeaderRowComponent: React.FC<GroupHeaderRowProps> = ({
   const renamingInstanceIdx = useTimelineStore((s) => s.renamingInstanceIdx);
   const setRenamingGroupId = useTimelineStore((s) => s.setRenamingGroupId);
   const isCollapsed = collapsedInstances[`${group.id}:${instanceIdx}`] ?? false;
-  const renaming = renamingGroupId === group.id && renamingInstanceIdx === instanceIdx;
+  const renaming =
+    renamingGroupId === group.id && renamingInstanceIdx === instanceIdx;
 
   const openGroupMenu = useCallback(
     (e: React.MouseEvent) => {
@@ -75,7 +76,12 @@ const GroupHeaderRowComponent: React.FC<GroupHeaderRowProps> = ({
       setContextMenu({
         x: e.clientX,
         y: e.clientY,
-        target: { kind: "group-banner", groupId: group.id, instanceIdx, source: "gutter" },
+        target: {
+          kind: "group-banner",
+          groupId: group.id,
+          instanceIdx,
+          source: "gutter",
+        },
       });
     },
     [group.id, instanceIdx, setContextMenu],
@@ -116,13 +122,17 @@ const GroupHeaderRowComponent: React.FC<GroupHeaderRowProps> = ({
       <div
         className="shrink-0 w-12 sticky left-0 z-[60] flex items-center justify-center px-1 select-none overflow-hidden border-r-2"
         style={{
-          background: `color-mix(in srgb, ${group.color} 30%, var(--color-composer-bg))`,
+          background: `color-mix(in srgb, ${group.color} 30%, var(--color-calleditor-bg))`,
           borderRightColor: group.color,
-          boxShadow: `0 -1px 0 0 color-mix(in srgb, ${group.color} 40%, var(--color-composer-border)), inset 0 -1px 0 0 color-mix(in srgb, ${group.color} 35%, var(--color-composer-border)), 10px 0 15px -3px rgb(0 0 0 / 0.1), 4px 0 6px -4px rgb(0 0 0 / 0.1)`,
+          boxShadow: `0 -1px 0 0 color-mix(in srgb, ${group.color} 40%, var(--color-calleditor-border)), inset 0 -1px 0 0 color-mix(in srgb, ${group.color} 35%, var(--color-calleditor-border)), 10px 0 15px -3px rgb(0 0 0 / 0.1), 4px 0 6px -4px rgb(0 0 0 / 0.1)`,
         }}
       >
         {renaming ? (
-          <RenameInput initialValue={group.label} onCommit={commitRename} onCancel={cancelRename} />
+          <RenameInput
+            initialValue={group.label}
+            onCommit={commitRename}
+            onCancel={cancelRename}
+          />
         ) : (
           <button
             type="button"
@@ -131,13 +141,13 @@ const GroupHeaderRowComponent: React.FC<GroupHeaderRowProps> = ({
             className="w-full h-full flex items-center justify-center cursor-pointer hover:brightness-110 transition-[filter]"
             title={`${group.label} · ${instanceIdx + 1} of ${totalInstances}`}
           >
-            <span className="text-[10px] font-semibold text-composer-text truncate w-full text-center leading-none">
+            <span className="text-[10px] font-semibold text-calleditor-text truncate w-full text-center leading-none">
               {group.label}
             </span>
           </button>
         )}
       </div>
-      <div className="flex-1 overflow-hidden border-b border-composer-border relative">
+      <div className="flex-1 overflow-hidden border-b border-calleditor-border relative">
         <GroupBanner
           group={group}
           instanceIdx={instanceIdx}

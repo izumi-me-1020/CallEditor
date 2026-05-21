@@ -1,14 +1,18 @@
 import { beforeEach } from "vitest";
 import { resetAllStores } from "@/test/stores";
-import { registerConsoleGuard, addGlobalAllowedConsolePattern } from "@/test/console-guard";
+import {
+  registerConsoleGuard,
+  addGlobalAllowedConsolePattern,
+} from "@/test/console-guard";
 
-const COMPOSER_DBS = ["ttml-composer"];
+const COMPOSER_DBS = ["ttml-calleditor"];
 
 async function deleteDB(name: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.deleteDatabase(name);
     req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error ?? new Error(`deleteDatabase(${name}) failed`));
+    req.onerror = () =>
+      reject(req.error ?? new Error(`deleteDatabase(${name}) failed`));
     req.onblocked = () => resolve();
   });
 }

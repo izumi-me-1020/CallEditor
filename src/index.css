@@ -4,44 +4,48 @@
 
 @theme {
   /* Background Colors */
-  --color-composer-bg: #28292c;
-  --color-composer-bg-dark: #1a1a1c;
-  --color-composer-bg-elevated: #3e3e41;
-  --color-composer-overlay: rgba(0, 0, 0, 0.2);
-  --color-composer-overlay-hover: rgba(0, 0, 0, 0.3);
+  --color-calleditor-bg: #28292c;
+  --color-calleditor-bg-dark: #1a1a1c;
+  --color-calleditor-bg-elevated: #3e3e41;
+  --color-calleditor-overlay: rgba(0, 0, 0, 0.2);
+  --color-calleditor-overlay-hover: rgba(0, 0, 0, 0.3);
 
   /* Text Colors */
-  --color-composer-text: #fff;
-  --color-composer-text-secondary: rgba(255, 255, 255, 0.75);
-  --color-composer-text-muted: rgba(255, 255, 255, 0.5);
-  --color-composer-text-disabled: rgba(255, 255, 255, 0.4);
-  --color-composer-text-tertiary: #aaa;
-  --color-composer-text-faint: #696b77;
+  --color-calleditor-text: #fff;
+  --color-calleditor-text-secondary: rgba(255, 255, 255, 0.75);
+  --color-calleditor-text-muted: rgba(255, 255, 255, 0.5);
+  --color-calleditor-text-disabled: rgba(255, 255, 255, 0.4);
+  --color-calleditor-text-tertiary: #aaa;
+  --color-calleditor-text-faint: #696b77;
 
   /* Interactive Elements */
-  --color-composer-button: hsla(0, 0%, 100%, 0.1);
-  --color-composer-button-hover: hsla(0, 0%, 100%, 0.2);
-  --color-composer-input: rgba(255, 255, 255, 0.05);
-  --color-composer-border: rgba(255, 255, 255, 0.1);
-  --color-composer-border-hover: rgba(255, 255, 255, 0.15);
+  --color-calleditor-button: hsla(0, 0%, 100%, 0.1);
+  --color-calleditor-button-hover: hsla(0, 0%, 100%, 0.2);
+  --color-calleditor-input: rgba(255, 255, 255, 0.05);
+  --color-calleditor-border: rgba(255, 255, 255, 0.1);
+  --color-calleditor-border-hover: rgba(255, 255, 255, 0.15);
 
   /* Accent Colors */
-  --color-composer-accent: rgb(129, 140, 248);
-  --color-composer-accent-dark: rgb(100, 112, 220);
-  --color-composer-accent-darker: rgb(80, 90, 200);
-  --color-composer-accent-text: rgb(165, 180, 252);
-  --color-composer-accent-warm: #d4a5a5;
-  --color-composer-link: #5865f2;
+  --color-calleditor-accent: rgb(129, 140, 248);
+  --color-calleditor-accent-dark: rgb(100, 112, 220);
+  --color-calleditor-accent-darker: rgb(80, 90, 200);
+  --color-calleditor-accent-text: rgb(165, 180, 252);
+  --color-calleditor-accent-warm: #d4a5a5;
+  --color-calleditor-link: #5865f2;
 
   /* Error/Warning */
-  --color-composer-error: #b45555;
-  --color-composer-error-text: #ffe5e5;
-  --color-composer-warning: #f5a623;
-  --color-composer-explicit: #ff7a85;
+  --color-calleditor-error: #b45555;
+  --color-calleditor-error-text: #ffe5e5;
+  --color-calleditor-warning: #f5a623;
+  --color-calleditor-explicit: #ff7a85;
 
   /* Typography */
-  --font-family-sans: "Satoshi", "Avenir", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-family-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-family-sans:
+    "Satoshi", "Avenir", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  --font-family-mono:
+    "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    monospace;
 
   /* Animation */
   --transition-timing-scroll: cubic-bezier(0.86, 0, 0.07, 1);
@@ -56,8 +60,8 @@ html {
 }
 
 body {
-  background-color: var(--color-composer-bg);
-  color: var(--color-composer-text);
+  background-color: var(--color-calleditor-bg);
+  color: var(--color-calleditor-text);
   font-family: var(--font-family-sans);
 }
 
@@ -163,13 +167,13 @@ input[type="range"].settings-slider::-moz-range-thumb {
 input[type="range"].settings-slider::-moz-range-track {
   height: 6px;
   border-radius: 3px;
-  background: var(--color-composer-button);
+  background: var(--color-calleditor-button);
 }
 
 input[type="range"].settings-slider::-moz-range-progress {
   height: 6px;
   border-radius: 3px;
-  background: var(--color-composer-accent);
+  background: var(--color-calleditor-accent);
 }
 
 /* OverlayScrollbars: ensure tracks render above timeline content */
@@ -209,7 +213,7 @@ input[type="range"].settings-slider::-moz-range-progress {
 .is-explicit-word {
   background-image: repeating-linear-gradient(
     45deg,
-    color-mix(in srgb, var(--color-composer-explicit) 20%, transparent) 0 3px,
+    color-mix(in srgb, var(--color-calleditor-explicit) 20%, transparent) 0 3px,
     transparent 3px 8px
   );
 }
@@ -220,8 +224,10 @@ input[type="range"].settings-slider::-moz-range-progress {
 }
 
 .is-snapped {
-  box-shadow: 0 0 0 1.5px rgba(255, 214, 107, 0.85), 0 0 14px 2px rgba(255, 214, 107, 0.28), 0 1px 2px
-    rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 0 1.5px rgba(255, 214, 107, 0.85),
+    0 0 14px 2px rgba(255, 214, 107, 0.28),
+    0 1px 2px rgba(0, 0, 0, 0.4);
   transition: box-shadow 110ms cubic-bezier(0.25, 1.4, 0.5, 1);
 }
 

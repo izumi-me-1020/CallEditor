@@ -7,12 +7,19 @@ import { useTimelineStore } from "@/views/timeline/timeline-store";
 import { isLineSynced } from "@/domain/line/predicates";
 import { getEffectiveLines } from "@/domain/line/effective-words";
 import { formatTime } from "@/views/timeline/utils";
-import { IconBracketsContainEnd, IconBracketsContainStart, IconLink } from "@tabler/icons-react";
+import {
+  IconBracketsContainEnd,
+  IconBracketsContainStart,
+  IconLink,
+} from "@tabler/icons-react";
 import { useCallback, useMemo, useState } from "react";
 
 // -- Components ----------------------------------------------------------------
 
-const BackgroundTextEditor: React.FC<{ lineId: string; backgroundText?: string }> = ({ lineId, backgroundText }) => {
+const BackgroundTextEditor: React.FC<{
+  lineId: string;
+  backgroundText?: string;
+}> = ({ lineId, backgroundText }) => {
   const [value, setValue] = useState(() => backgroundText ?? "");
   const [isEditing, setIsEditing] = useState(false);
   const focusOnMount = useCallback((el: HTMLInputElement | null) => {
@@ -23,11 +30,21 @@ const BackgroundTextEditor: React.FC<{ lineId: string; backgroundText?: string }
   const handleCommit = useCallback(() => {
     const trimmed = value.trim() || undefined;
     if (trimmed) {
-      const line = useProjectStore.getState().lines.find((l) => l.id === lineId);
-      const bgWords = line ? createBgWordsFromLine({ ...line, backgroundText: trimmed }) : null;
-      updateLineWithHistory(lineId, { backgroundText: trimmed, backgroundWords: bgWords ?? undefined });
+      const line = useProjectStore
+        .getState()
+        .lines.find((l) => l.id === lineId);
+      const bgWords = line
+        ? createBgWordsFromLine({ ...line, backgroundText: trimmed })
+        : null;
+      updateLineWithHistory(lineId, {
+        backgroundText: trimmed,
+        backgroundWords: bgWords ?? undefined,
+      });
     } else {
-      updateLineWithHistory(lineId, { backgroundText: undefined, backgroundWords: undefined });
+      updateLineWithHistory(lineId, {
+        backgroundText: undefined,
+        backgroundWords: undefined,
+      });
     }
     setIsEditing(false);
   }, [lineId, value, updateLineWithHistory]);
@@ -40,7 +57,7 @@ const BackgroundTextEditor: React.FC<{ lineId: string; backgroundText?: string }
           setValue(backgroundText ?? "");
           setIsEditing(true);
         }}
-        className="text-xs cursor-pointer text-composer-text-muted hover:text-composer-text px-1.5 py-0.5 rounded hover:bg-composer-button"
+        className="text-xs cursor-pointer text-calleditor-text-muted hover:text-calleditor-text px-1.5 py-0.5 rounded hover:bg-calleditor-button"
         title="Edit background vocals"
       >
         {backgroundText ? `BG: ${backgroundText}` : "Add BG"}
@@ -61,7 +78,7 @@ const BackgroundTextEditor: React.FC<{ lineId: string; backgroundText?: string }
         if (e.key === "Escape") setIsEditing(false);
       }}
       placeholder="Background vocals"
-      className="w-32 px-1.5 py-0.5 text-xs border rounded bg-composer-input border-composer-border focus:outline-none focus:border-composer-accent"
+      className="w-32 px-1.5 py-0.5 text-xs border rounded bg-calleditor-input border-calleditor-border focus:outline-none focus:border-calleditor-accent"
     />
   );
 };
@@ -98,7 +115,11 @@ const TimelineInfoPanel: React.FC = () => {
     if (!group) return null;
     const sameInstance = instanceKeys.size === 1;
     const totalInstances = new Set(
-      rawLines.flatMap((l) => (l.groupId === firstGroupId && l.instanceIdx !== undefined ? [l.instanceIdx] : [])),
+      rawLines.flatMap((l) =>
+        l.groupId === firstGroupId && l.instanceIdx !== undefined
+          ? [l.instanceIdx]
+          : [],
+      ),
     ).size;
     return {
       group,
@@ -124,7 +145,8 @@ const TimelineInfoPanel: React.FC = () => {
     const line = lines[selectedWord.lineIndex];
     if (!line) return null;
 
-    const wordsArray = selectedWord.type === "word" ? line.words : line.backgroundWords;
+    const wordsArray =
+      selectedWord.type === "word" ? line.words : line.backgroundWords;
     if (!wordsArray) return null;
 
     const word = wordsArray[selectedWord.wordIndex];
@@ -143,7 +165,8 @@ const TimelineInfoPanel: React.FC = () => {
     for (const sel of selectedWords) {
       const line = lines[sel.lineIndex];
       if (!line) continue;
-      const wordsArray = sel.type === "word" ? line.words : line.backgroundWords;
+      const wordsArray =
+        sel.type === "word" ? line.words : line.backgroundWords;
       const word = wordsArray?.[sel.wordIndex];
       if (!word) continue;
       minBegin = Math.min(minBegin, word.begin);
@@ -157,7 +180,13 @@ const TimelineInfoPanel: React.FC = () => {
     }
     if (minBegin === Number.POSITIVE_INFINITY) return null;
     const wordCount = selectedWords.length - lineCount;
-    return { count: selectedWords.length, wordCount, lineCount, begin: minBegin, end: maxEnd };
+    return {
+      count: selectedWords.length,
+      wordCount,
+      lineCount,
+      begin: minBegin,
+      end: maxEnd,
+    };
   }, [selectedWords, lines, rawLines]);
 
   const handleSetBeginToCursor = useCallback(() => {
@@ -165,11 +194,11 @@ const TimelineInfoPanel: React.FC = () => {
     const line = lines[selectedWord.lineIndex];
     if (!line) return;
 
-    const wordsArray = selectedWord.type === "word" ? line.words : line.backgroundWords;
+    const wordsArray =
+      selectedWord.type === "word" ? line.words : line.backgroundWords;
     if (!wordsArray) return;
 
-    const audioEl = useAudioStore.getState().audioElement;
-    const currentTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+    const currentTime = useAudioStore.getState().currentTime;
 
     const wordIndex = selectedWord.wordIndex;
     const word = wordsArray[wordIndex];
@@ -177,7 +206,10 @@ const TimelineInfoPanel: React.FC = () => {
 
     const prevEnd = wordIndex > 0 ? wordsArray[wordIndex - 1].end : 0;
     const maxBegin = word.end - 0.05;
-    const clampedBegin = Math.max(prevEnd, Math.min(maxBegin, Math.max(0, currentTime)));
+    const clampedBegin = Math.max(
+      prevEnd,
+      Math.min(maxBegin, Math.max(0, currentTime)),
+    );
 
     const updatedWords = [...wordsArray];
     updatedWords[wordIndex] = { ...word, begin: clampedBegin };
@@ -194,19 +226,25 @@ const TimelineInfoPanel: React.FC = () => {
     const line = lines[selectedWord.lineIndex];
     if (!line) return;
 
-    const wordsArray = selectedWord.type === "word" ? line.words : line.backgroundWords;
+    const wordsArray =
+      selectedWord.type === "word" ? line.words : line.backgroundWords;
     if (!wordsArray) return;
 
-    const audioEl = useAudioStore.getState().audioElement;
-    const currentTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+    const currentTime = useAudioStore.getState().currentTime;
 
     const wordIndex = selectedWord.wordIndex;
     const word = wordsArray[wordIndex];
     if (!word) return;
 
     const minEnd = word.begin + 0.05;
-    const nextBegin = wordIndex < wordsArray.length - 1 ? wordsArray[wordIndex + 1].begin : duration;
-    const clampedEnd = Math.min(nextBegin, Math.max(minEnd, Math.min(duration, currentTime)));
+    const nextBegin =
+      wordIndex < wordsArray.length - 1
+        ? wordsArray[wordIndex + 1].begin
+        : duration;
+    const clampedEnd = Math.min(
+      nextBegin,
+      Math.max(minEnd, Math.min(duration, currentTime)),
+    );
 
     const updatedWords = [...wordsArray];
     updatedWords[wordIndex] = { ...word, end: clampedEnd };
@@ -221,7 +259,7 @@ const TimelineInfoPanel: React.FC = () => {
   if (multiSelectionInfo) {
     const spanDuration = multiSelectionInfo.end - multiSelectionInfo.begin;
     return (
-      <div className="relative flex items-center gap-6 px-6 h-[54px] border-t border-composer-border bg-composer-bg-elevated">
+      <div className="relative flex items-center gap-6 px-6 h-[54px] border-t border-calleditor-border bg-calleditor-bg-elevated">
         {groupHighlight && (
           <span
             className="flex items-center gap-1 px-2 h-5 rounded-md text-[11px] font-medium select-none"
@@ -235,7 +273,7 @@ const TimelineInfoPanel: React.FC = () => {
             <span className="tabular-nums">{groupHighlight.label}</span>
           </span>
         )}
-        <span className="text-sm font-medium text-composer-text">
+        <span className="text-sm font-medium text-calleditor-text">
           {multiSelectionInfo.lineCount > 0 && multiSelectionInfo.wordCount > 0
             ? `${multiSelectionInfo.wordCount} words, ${multiSelectionInfo.lineCount} lines selected`
             : multiSelectionInfo.lineCount > 0
@@ -244,14 +282,17 @@ const TimelineInfoPanel: React.FC = () => {
         </span>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1">
-            <span className="text-composer-text-muted">Range:</span>
-            <span className="font-mono text-composer-text select-text">
-              {formatTime(multiSelectionInfo.begin)} - {formatTime(multiSelectionInfo.end)}
+            <span className="text-calleditor-text-muted">Range:</span>
+            <span className="font-mono text-calleditor-text select-text">
+              {formatTime(multiSelectionInfo.begin)} -{" "}
+              {formatTime(multiSelectionInfo.end)}
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-composer-text-muted">Span:</span>
-            <span className="font-mono text-composer-text select-text">{formatTime(spanDuration)}</span>
+            <span className="text-calleditor-text-muted">Span:</span>
+            <span className="font-mono text-calleditor-text select-text">
+              {formatTime(spanDuration)}
+            </span>
           </div>
         </div>
       </div>
@@ -267,7 +308,7 @@ const TimelineInfoPanel: React.FC = () => {
   const itemDuration = selectedItem.end - selectedItem.begin;
 
   return (
-    <div className="relative flex items-center gap-6 px-6 py-3 border-t border-composer-border bg-composer-bg-elevated">
+    <div className="relative flex items-center gap-6 px-6 py-3 border-t border-calleditor-border bg-calleditor-bg-elevated">
       {groupHighlight && (
         <span
           className="flex items-center gap-1 px-2 h-5 rounded-md text-[11px] font-medium select-none"
@@ -282,39 +323,67 @@ const TimelineInfoPanel: React.FC = () => {
         </span>
       )}
       <div className="flex items-center gap-2">
-        <div className="size-2.5 rounded-full" style={{ backgroundColor: color }} />
-        <span className="text-sm text-composer-text-muted">Line {selectedWord.lineIndex + 1}</span>
+        <div
+          className="size-2.5 rounded-full"
+          style={{ backgroundColor: color }}
+        />
+        <span className="text-sm text-calleditor-text-muted">
+          Line {selectedWord.lineIndex + 1}
+        </span>
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-composer-text">
-          {selectedWord.type === "bg" ? `(${selectedItem.text})` : selectedItem.text}
+        <span className="text-sm font-medium text-calleditor-text">
+          {selectedWord.type === "bg"
+            ? `(${selectedItem.text})`
+            : selectedItem.text}
         </span>
       </div>
 
       <div className="flex items-center gap-4 text-sm">
         <div className="flex items-center gap-1">
-          <span className="text-composer-text-muted">Begin:</span>
-          <span className="font-mono text-composer-text select-text">{formatTime(selectedItem.begin)}</span>
+          <span className="text-calleditor-text-muted">Begin:</span>
+          <span className="font-mono text-calleditor-text select-text">
+            {formatTime(selectedItem.begin)}
+          </span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-composer-text-muted">End:</span>
-          <span className="font-mono text-composer-text select-text">{formatTime(selectedItem.end)}</span>
+          <span className="text-calleditor-text-muted">End:</span>
+          <span className="font-mono text-calleditor-text select-text">
+            {formatTime(selectedItem.end)}
+          </span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-composer-text-muted">Duration:</span>
-          <span className="font-mono text-composer-text select-text">{formatTime(itemDuration)}</span>
+          <span className="text-calleditor-text-muted">Duration:</span>
+          <span className="font-mono text-calleditor-text select-text">
+            {formatTime(itemDuration)}
+          </span>
         </div>
       </div>
 
-      <BackgroundTextEditor lineId={line.id} backgroundText={line.backgroundText} />
+      <BackgroundTextEditor
+        lineId={line.id}
+        backgroundText={line.backgroundText}
+      />
 
       <div className="flex items-center gap-2 ml-auto">
-        <Button variant="secondary" size="sm" hasIcon onClick={handleSetBeginToCursor} title="Set begin to cursor ([)">
+        <Button
+          variant="secondary"
+          size="sm"
+          hasIcon
+          onClick={handleSetBeginToCursor}
+          title="Set begin to cursor ([)"
+        >
           <IconBracketsContainStart className="size-3.5" />
           <span>Set Begin</span>
         </Button>
-        <Button variant="secondary" size="sm" hasIcon onClick={handleSetEndToCursor} title="Set end to cursor (])">
+        <Button
+          variant="secondary"
+          size="sm"
+          hasIcon
+          onClick={handleSetEndToCursor}
+          title="Set end to cursor (])"
+        >
           <IconBracketsContainEnd className="size-3.5" />
           <span>Set End</span>
         </Button>

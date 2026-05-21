@@ -2,16 +2,25 @@ import { DndContext } from "@dnd-kit/core";
 import { MotionConfig } from "motion/react";
 import type { ReactElement, ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { render as baseRender, type RenderOptions, type RenderResult } from "vitest-browser-react";
+import {
+  render as baseRender,
+  type RenderOptions,
+  type RenderResult,
+} from "vitest-browser-react";
 
-interface ComposerRenderOptions extends RenderOptions {
+interface CallEditorRenderOptions extends RenderOptions {
   dndContext?: boolean;
   withRouter?: boolean | { initialEntries?: string[]; initialIndex?: number };
 }
 
-function buildWrapper(dndContext: boolean, withRouter: ComposerRenderOptions["withRouter"]) {
-  return function ComposerWrapper({ children }: { children: ReactNode }) {
-    let tree: ReactNode = <MotionConfig reducedMotion="always">{children}</MotionConfig>;
+function buildWrapper(
+  dndContext: boolean,
+  withRouter: CallEditorRenderOptions["withRouter"],
+) {
+  return function CallEditorWrapper({ children }: { children: ReactNode }) {
+    let tree: ReactNode = (
+      <MotionConfig reducedMotion="always">{children}</MotionConfig>
+    );
     if (dndContext) tree = <DndContext>{tree}</DndContext>;
     if (withRouter) {
       const routerOptions = typeof withRouter === "object" ? withRouter : {};
@@ -28,7 +37,10 @@ function buildWrapper(dndContext: boolean, withRouter: ComposerRenderOptions["wi
   };
 }
 
-function render(ui: ReactElement, options: ComposerRenderOptions = {}): Promise<RenderResult> {
+function render(
+  ui: ReactElement,
+  options: CallEditorRenderOptions = {},
+): Promise<RenderResult> {
   const { dndContext = false, withRouter = false, ...rest } = options;
   return baseRender(ui, {
     ...rest,

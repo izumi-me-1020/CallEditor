@@ -19,8 +19,7 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({ lastSyncedTime }) => {
     const update = () => {
       const el = currentTimeRef.current;
       if (el) {
-        const audioEl = useAudioStore.getState().audioElement;
-        const time = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+        const time = useAudioStore.getState().currentTime;
         el.textContent = formatTimeMs(time);
       }
       rafRef.current = requestAnimationFrame(update);
@@ -33,17 +32,21 @@ const TimingDisplay: React.FC<TimingDisplayProps> = ({ lastSyncedTime }) => {
   }, []);
 
   return (
-    <div className="flex items-center justify-center gap-8 font-mono text-sm select-text tabular-nums">
+    <div className="flex items-center justify-center gap-4 font-mono text-sm select-text tabular-nums sm:gap-8">
       <div className="text-center">
-        <div className="mb-1 text-xs text-composer-text-muted">Current</div>
-        <div ref={currentTimeRef} className="text-xl text-composer-text">
+        <div className="mb-1 text-xs text-calleditor-text-muted">Current</div>
+        <div ref={currentTimeRef} className="text-lg text-calleditor-text sm:text-xl">
           0:00.000
         </div>
       </div>
       {lastSyncedTime !== undefined && (
         <div className="text-center">
-          <div className="mb-1 text-xs text-composer-text-muted">Last Synced</div>
-          <div className="text-xl text-composer-accent-text">{formatTimeMs(lastSyncedTime)}</div>
+          <div className="mb-1 text-xs text-calleditor-text-muted">
+            Last Synced
+          </div>
+          <div className="text-lg text-calleditor-accent-text sm:text-xl">
+            {formatTimeMs(lastSyncedTime)}
+          </div>
         </div>
       )}
     </div>

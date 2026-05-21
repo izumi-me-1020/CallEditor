@@ -19,13 +19,20 @@ function MenuItem({
   onClick,
   danger,
   shortcut,
-}: { label: string; onClick: () => void; danger?: boolean; shortcut?: string[] }) {
+}: {
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+  shortcut?: string[];
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`w-full flex items-center justify-between gap-4 px-3 py-1.5 text-sm cursor-pointer rounded-md transition-colors ${
-        danger ? "text-composer-error hover:bg-composer-error/10" : "text-composer-text hover:bg-composer-button"
+        danger
+          ? "text-calleditor-error hover:bg-calleditor-error/10"
+          : "text-calleditor-text hover:bg-calleditor-button"
       }`}
     >
       <span>{label}</span>
@@ -34,9 +41,13 @@ function MenuItem({
           {shortcut.map((key) => (
             <span
               key={key}
-              className="inline-flex items-center justify-center min-w-4 h-4 px-1 text-[10px] font-medium rounded bg-white/10 text-composer-text-muted leading-none shadow-[0_2px_0_0_rgba(0,0,0,0.3)]"
+              className="inline-flex items-center justify-center min-w-4 h-4 px-1 text-[10px] font-medium rounded bg-white/10 text-calleditor-text-muted leading-none shadow-[0_2px_0_0_rgba(0,0,0,0.3)]"
             >
-              {key === "Mod" && isMac ? <IconCommand className="size-2.5" /> : formatKey(key)}
+              {key === "Mod" && isMac ? (
+                <IconCommand className="size-2.5" />
+              ) : (
+                formatKey(key)
+              )}
             </span>
           ))}
         </span>
@@ -46,7 +57,7 @@ function MenuItem({
 }
 
 function MenuDivider() {
-  return <div className="my-1 border-t border-composer-border" />;
+  return <div className="my-1 border-t border-calleditor-border" />;
 }
 
 // -- Component ----------------------------------------------------------------
@@ -57,7 +68,10 @@ const TimelineContextMenu: React.FC = () => {
 
   const { refs, floatingStyles } = useFloating({
     placement: "bottom-start",
-    middleware: [flip({ fallbackPlacements: ["top-start", "bottom-end", "top-end"] }), shift({ padding: 8 })],
+    middleware: [
+      flip({ fallbackPlacements: ["top-start", "bottom-end", "top-end"] }),
+      shift({ padding: 8 }),
+    ],
   });
 
   const agents = useProjectStore((s) => s.agents);
@@ -158,7 +172,7 @@ const TimelineContextMenu: React.FC = () => {
     <FloatingPortal>
       <div
         ref={refs.setFloating}
-        className="z-100 min-w-36 p-1 border shadow-2xl rounded-lg bg-composer-bg border-composer-border select-none"
+        className="z-100 min-w-36 p-1 border shadow-2xl rounded-lg bg-calleditor-bg border-calleditor-border select-none"
         style={floatingStyles}
       >
         {target.kind === "word" && (
@@ -188,11 +202,18 @@ const TimelineContextMenu: React.FC = () => {
             {groupedWordInfo && (
               <MenuItem
                 label="Merge syllables"
-                shortcut={getEffectiveKeysArray("timeline.mergeSyllablesIntoWord")}
+                shortcut={getEffectiveKeysArray(
+                  "timeline.mergeSyllablesIntoWord",
+                )}
                 onClick={handleMergeSyllables}
               />
             )}
-            {snapNeededInfo && <MenuItem label="Snap syllables flush" onClick={handleSnapSyllables} />}
+            {snapNeededInfo && (
+              <MenuItem
+                label="Snap syllables flush"
+                onClick={handleSnapSyllables}
+              />
+            )}
             {splitIntoWordsInfo && (
               <>
                 <MenuDivider />
@@ -251,8 +272,14 @@ const TimelineContextMenu: React.FC = () => {
 
         {target.kind === "track" && (
           <>
-            <MenuItem label="Add word here" shortcut={["Double Click"]} onClick={handleAddWordHere} />
-            {placeLineHereInfo && <MenuItem label="Place line here" onClick={handlePlaceLineHere} />}
+            <MenuItem
+              label="Add word here"
+              shortcut={["Double Click"]}
+              onClick={handleAddWordHere}
+            />
+            {placeLineHereInfo && (
+              <MenuItem label="Place line here" onClick={handlePlaceLineHere} />
+            )}
             {groupableSelection && (
               <>
                 <MenuDivider />
@@ -272,8 +299,16 @@ const TimelineContextMenu: React.FC = () => {
 
         {target.kind === "gutter" && (
           <>
-            <MenuItem label="Add line above" shortcut={["Shift", "N"]} onClick={() => handleAddLine("above")} />
-            <MenuItem label="Add line below" shortcut={["N"]} onClick={() => handleAddLine("below")} />
+            <MenuItem
+              label="Add line above"
+              shortcut={["Shift", "N"]}
+              onClick={() => handleAddLine("above")}
+            />
+            <MenuItem
+              label="Add line below"
+              shortcut={["N"]}
+              onClick={() => handleAddLine("below")}
+            />
             {groupableSelection && (
               <>
                 <MenuDivider />
@@ -291,7 +326,9 @@ const TimelineContextMenu: React.FC = () => {
             <MenuDivider />
             {agents.length > 1 && (
               <>
-                <p className="px-3 py-1 text-xs text-composer-text-muted">Assign agent</p>
+                <p className="px-3 py-1 text-xs text-calleditor-text-muted">
+                  Assign agent
+                </p>
                 <div className="flex flex-col gap-px">
                   {agents.map((agent) => {
                     const color = getAgentColor(agent.id);
@@ -304,11 +341,14 @@ const TimelineContextMenu: React.FC = () => {
                         onClick={() => handleAssignAgent(agent.id)}
                         className={`w-full text-left px-2 py-1 text-sm cursor-pointer rounded-md flex items-center gap-2 transition-colors ${
                           isActive
-                            ? "bg-composer-accent/15 text-composer-text"
-                            : "text-composer-text hover:bg-composer-button"
+                            ? "bg-calleditor-accent/15 text-calleditor-text"
+                            : "text-calleditor-text hover:bg-calleditor-button"
                         }`}
                       >
-                        <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                        <span
+                          className="size-2 rounded-full shrink-0"
+                          style={{ backgroundColor: color }}
+                        />
                         {agent.name || agent.id}
                       </button>
                     );
@@ -331,15 +371,21 @@ const TimelineContextMenu: React.FC = () => {
           <>
             <MenuItem
               label={
-                useTimelineStore.getState().collapsedInstances[`${target.groupId}:${target.instanceIdx}`]
+                useTimelineStore.getState().collapsedInstances[
+                  `${target.groupId}:${target.instanceIdx}`
+                ]
                   ? "Expand instance"
                   : "Collapse instance"
               }
-              shortcut={getEffectiveKeysArray("timeline.toggleCollapseInstance")}
+              shortcut={getEffectiveKeysArray(
+                "timeline.toggleCollapseInstance",
+              )}
               onClick={handleToggleCollapse}
             />
             <MenuItem
-              label={target.source === "gutter" ? "Jump to group" : "Jump to start"}
+              label={
+                target.source === "gutter" ? "Jump to group" : "Jump to start"
+              }
               shortcut={getEffectiveKeysArray("timeline.jumpToInstanceStart")}
               onClick={handleJumpToGroupFromBanner}
             />
@@ -356,7 +402,9 @@ const TimelineContextMenu: React.FC = () => {
             />
             <MenuItem
               label="Shift instance to playhead"
-              shortcut={getEffectiveKeysArray("timeline.shiftInstanceToPlayhead")}
+              shortcut={getEffectiveKeysArray(
+                "timeline.shiftInstanceToPlayhead",
+              )}
               onClick={handleShiftToPlayhead}
             />
             <MenuItem
@@ -370,9 +418,15 @@ const TimelineContextMenu: React.FC = () => {
               onClick={handleJumpNextInstance}
             />
             <MenuDivider />
-            <MenuItem label="Rename" shortcut={["Double Click"]} onClick={handleRenameStart} />
+            <MenuItem
+              label="Rename"
+              shortcut={["Double Click"]}
+              onClick={handleRenameStart}
+            />
             <MenuDivider />
-            <p className="px-3 pt-1.5 pb-1 text-xs text-composer-text-muted">Recolor</p>
+            <p className="px-3 pt-1.5 pb-1 text-xs text-calleditor-text-muted">
+              Recolor
+            </p>
             <div className="px-3 pb-1.5 grid grid-cols-5 gap-1.5">
               {GROUP_COLORS.map((c) => (
                 <button

@@ -1,10 +1,20 @@
-import { getEffectiveKeysArray, useShortcutBindingsStore } from "@/stores/shortcut-bindings";
-import type { ShortcutBinding, ShortcutDefinition } from "@/stores/shortcut-registry";
+import {
+  getEffectiveKeysArray,
+  useShortcutBindingsStore,
+} from "@/stores/shortcut-bindings";
+import { useAppLanguage } from "@/lib/i18n";
+import type {
+  ShortcutBinding,
+  ShortcutDefinition,
+} from "@/stores/shortcut-registry";
 import { Button } from "@/ui/button";
 import { KeyBadge } from "@/ui/shortcut-reference";
 import { Modal } from "@/ui/modal";
 import { isMac } from "@/utils/platform";
-import { detectConflicts, isReservedBrowserShortcut } from "@/utils/shortcut-matcher";
+import {
+  detectConflicts,
+  isReservedBrowserShortcut,
+} from "@/utils/shortcut-matcher";
 import { useCallback, useEffect, useState } from "react";
 
 // -- Types --------------------------------------------------------------------
@@ -17,16 +27,25 @@ type CaptureState =
   | { status: "idle" }
   | { status: "listening" }
   | { status: "warning"; newBinding: ShortcutBinding }
-  | { status: "conflict"; newBinding: ShortcutBinding; conflicts: ShortcutDefinition[] };
+  | {
+      status: "conflict";
+      newBinding: ShortcutBinding;
+      conflicts: ShortcutDefinition[];
+    };
 
 // -- Component ----------------------------------------------------------------
 
-const ShortcutRebindRow: React.FC<ShortcutRebindRowProps> = ({ definition }) => {
-  const [captureState, setCaptureState] = useState<CaptureState>({ status: "idle" });
+const ShortcutRebindRow: React.FC<ShortcutRebindRowProps> = ({
+  definition,
+}) => {
+  const [captureState, setCaptureState] = useState<CaptureState>({
+    status: "idle",
+  });
   const setBinding = useShortcutBindingsStore((s) => s.setBinding);
   const resetBinding = useShortcutBindingsStore((s) => s.resetBinding);
   const overrides = useShortcutBindingsStore((s) => s.overrides);
   const isOverridden = definition.id in overrides;
+  const { t } = useAppLanguage();
 
   const keys = getEffectiveKeysArray(definition.id);
 
@@ -74,7 +93,13 @@ const ShortcutRebindRow: React.FC<ShortcutRebindRowProps> = ({ definition }) => 
         return;
       }
 
-      if (e.key === "Shift" || e.key === "Alt" || e.key === "Control" || e.key === "Meta") return;
+      if (
+        e.key === "Shift" ||
+        e.key === "Alt" ||
+        e.key === "Control" ||
+        e.key === "Meta"
+      )
+        return;
 
       const modPressed = isMac ? e.metaKey : e.ctrlKey;
       const rawCtrl = isMac ? e.ctrlKey : false;
@@ -110,24 +135,28 @@ const ShortcutRebindRow: React.FC<ShortcutRebindRowProps> = ({ definition }) => 
   return (
     <>
       <div className="flex items-center justify-between py-2.5">
-        <span className="text-sm text-composer-text-secondary">{definition.description}</span>
+        <span className="text-sm text-calleditor-text-secondary">
+          {definition.description}
+        </span>
         <div className="flex items-center gap-2">
           {isOverridden && (
             <button
               type="button"
               onClick={() => resetBinding(definition.id)}
-              className="text-xs text-composer-text-muted hover:text-composer-text cursor-pointer transition-colors"
+              className="text-xs text-calleditor-text-muted hover:text-calleditor-text cursor-pointer transition-colors"
             >
-              Reset
+              {t("shortcut.reset")}
             </button>
           )}
           <button
             type="button"
             onClick={startCapture}
-            className="flex items-center gap-1 cursor-pointer rounded px-1 py-0.5 -mx-1 transition-colors hover:bg-composer-button/50"
+            className="flex items-center gap-1 cursor-pointer rounded px-1 py-0.5 -mx-1 transition-colors hover:bg-calleditor-button/50"
           >
             {keys.length === 0 ? (
-              <span className="text-xs text-composer-text-muted italic">Unbound</span>
+              <span className="text-xs text-calleditor-text-muted italic">
+                {t("shortcut.unbound")}
+              </span>
             ) : (
               keys.map((key) => <KeyBadge key={key} keyName={key} />)
             )}
@@ -135,10 +164,18 @@ const ShortcutRebindRow: React.FC<ShortcutRebindRowProps> = ({ definition }) => 
         </div>
       </div>
 
-      <Modal isOpen={captureState.status === "listening"} onClose={cancelCapture} title="Rebind shortcut">
+      <Modal
+        isOpen={captureState.status === "listening"}
+        onClose={cancelCapture}
+        title={t("shortcut.rebindTitle")}
+      >
         <div className="text-center py-4">
-          <p className="text-sm text-composer-text-secondary mb-1">Press a new key combination</p>
-          <p className="text-xs text-composer-text-muted">Press Escape to cancel</p>
+          <p className="text-sm text-calleditor-text-secondary mb-1">
+            {t("shortcut.pressNew")}
+          </p>
+          <p className="text-xs text-calleditor-text-muted">
+            {t("shortcut.pressEscape")}
+          </p>
         </div>
       </Modal>
 
@@ -154,7 +191,9 @@ const ShortcutRebindRow: React.FC<ShortcutRebindRowProps> = ({ definition }) => 
         <ConflictModal
           newBinding={captureState.newBinding}
           conflicts={captureState.conflicts}
-          onReplace={() => applyBinding(captureState.newBinding, captureState.conflicts)}
+          onReplace={() =>
+            applyBinding(captureState.newBinding, captureState.conflicts)
+          }
           onCancel={cancelCapture}
         />
       )}
@@ -169,6 +208,7 @@ const BrowserWarningModal: React.FC<{
   onContinue: () => void;
   onCancel: () => void;
 }> = ({ binding, onCancel, onContinue }) => {
+  const { t } = useAppLanguage();
   const displayKey = binding.key === " " ? "Space" : binding.key;
   const bindingKeys: string[] = [];
   if (binding.mod) bindingKeys.push("Mod");
@@ -179,26 +219,27 @@ const BrowserWarningModal: React.FC<{
   bindingKeys.push(displayKey);
 
   return (
-    <Modal isOpen onClose={onCancel} title="Browser shortcut">
+    <Modal isOpen onClose={onCancel} title={t("shortcut.browserTitle")}>
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-sm text-composer-text">
+        <div className="flex items-center gap-2 text-sm text-calleditor-text">
           <span className="inline-flex items-center gap-1">
             {bindingKeys.map((key) => (
               <KeyBadge key={key} keyName={key} />
             ))}
           </span>
-          <span className="text-composer-text-secondary">may be reserved by the browser.</span>
+          <span className="text-calleditor-text-secondary">
+            {t("shortcut.browserReserved")}
+          </span>
         </div>
-        <p className="text-xs text-composer-text-muted">
-          This combination might be handled by your browser before it reaches the app. You can still assign it, but it
-          may not work in all browsers.
+        <p className="text-xs text-calleditor-text-muted">
+          {t("shortcut.browserDescription")}
         </p>
         <div className="flex gap-2 justify-end">
           <Button variant="secondary" size="sm" onClick={onCancel}>
-            Cancel
+            {t("shortcut.cancel")}
           </Button>
           <Button variant="primary" size="sm" onClick={onContinue}>
-            Assign anyway
+            {t("shortcut.assignAnyway")}
           </Button>
         </div>
       </div>
@@ -208,18 +249,18 @@ const BrowserWarningModal: React.FC<{
 
 // -- Conflict Modal -----------------------------------------------------------
 
-const SCOPE_LABELS: Record<string, string> = {
-  global: "General",
-  sync: "Sync Mode",
-  timeline: "Timeline Mode",
-};
-
 const ConflictModal: React.FC<{
   newBinding: ShortcutBinding;
   conflicts: ShortcutDefinition[];
   onReplace: () => void;
   onCancel: () => void;
 }> = ({ newBinding, conflicts, onReplace, onCancel }) => {
+  const { t } = useAppLanguage();
+  const scopeLabels: Record<string, string> = {
+    global: t("shortcutsSettings.general"),
+    sync: t("shortcutsSettings.sync"),
+    timeline: t("shortcutsSettings.timeline"),
+  };
   const displayKey = newBinding.key === " " ? "Space" : newBinding.key;
   const bindingKeys: string[] = [];
   if (newBinding.mod) bindingKeys.push("Mod");
@@ -230,36 +271,45 @@ const ConflictModal: React.FC<{
   bindingKeys.push(displayKey);
 
   return (
-    <Modal isOpen onClose={onCancel} title="Shortcut conflict">
+    <Modal isOpen onClose={onCancel} title={t("shortcut.conflictTitle")}>
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-sm text-composer-text">
+        <div className="flex items-center gap-2 text-sm text-calleditor-text">
           <span className="inline-flex items-center gap-1">
             {bindingKeys.map((key) => (
               <KeyBadge key={key} keyName={key} />
             ))}
           </span>
-          <span className="text-composer-text-secondary">is already used by:</span>
+          <span className="text-calleditor-text-secondary">
+            {t("shortcut.conflictUsedBy")}
+          </span>
         </div>
 
-        <div className="rounded-lg bg-composer-bg-elevated border border-composer-border divide-y divide-composer-border">
+        <div className="rounded-lg bg-calleditor-bg-elevated border border-calleditor-border divide-y divide-calleditor-border">
           {conflicts.map((c) => (
-            <div key={c.id} className="flex items-center justify-between px-3 py-2.5">
-              <span className="text-sm text-composer-text">{c.description}</span>
-              <span className="text-xs text-composer-text-muted">{SCOPE_LABELS[c.scope] ?? c.scope}</span>
+            <div
+              key={c.id}
+              className="flex items-center justify-between px-3 py-2.5"
+            >
+              <span className="text-sm text-calleditor-text">
+                {c.description}
+              </span>
+              <span className="text-xs text-calleditor-text-muted">
+                {scopeLabels[c.scope] ?? c.scope}
+              </span>
             </div>
           ))}
         </div>
 
-        <p className="text-xs text-composer-text-muted">
-          Replacing will reset the conflicting shortcut to its default.
+        <p className="text-xs text-calleditor-text-muted">
+          {t("shortcut.conflictReplaceDescription")}
         </p>
 
         <div className="flex gap-2 justify-end">
           <Button variant="secondary" size="sm" onClick={onCancel}>
-            Cancel
+            {t("shortcut.cancel")}
           </Button>
           <Button variant="primary" size="sm" onClick={onReplace}>
-            Replace
+            {t("shortcut.replace")}
           </Button>
         </div>
       </div>

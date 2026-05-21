@@ -22,20 +22,24 @@ const SliderSetting: React.FC<{
     <div className="flex flex-col gap-2 py-3">
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium text-composer-text">{label}</span>
-          <span className="text-xs text-composer-text-muted">{description}</span>
+          <span className="text-sm font-medium text-calleditor-text">
+            {label}
+          </span>
+          <span className="text-xs text-calleditor-text-muted">
+            {description}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {action && (
             <button
               type="button"
               onClick={action.onClick}
-              className="text-xs text-composer-accent-text hover:text-composer-accent cursor-pointer transition-colors"
+              className="text-xs text-calleditor-accent-text hover:text-calleditor-accent cursor-pointer transition-colors"
             >
               {action.label}
             </button>
           )}
-          <span className="text-sm font-mono text-composer-text-secondary tabular-nums min-w-12 text-right">
+          <span className="text-sm font-mono text-calleditor-text-secondary tabular-nums min-w-12 text-right">
             {format ? format(value) : value}
           </span>
         </div>
@@ -49,7 +53,7 @@ const SliderSetting: React.FC<{
         onChange={(e) => set(settingKey, Number(e.target.value))}
         className="settings-slider w-full cursor-pointer"
         style={{
-          background: `linear-gradient(to right, var(--color-composer-accent) ${percent}%, var(--color-composer-button) ${percent}%)`,
+          background: `linear-gradient(to right, var(--color-calleditor-accent) ${percent}%, var(--color-calleditor-button) ${percent}%)`,
         }}
       />
     </div>
@@ -67,8 +71,12 @@ const ToggleSetting: React.FC<{
   return (
     <div className="flex items-center justify-between py-3">
       <div className="flex flex-col gap-0.5">
-        <span className="text-sm font-medium text-composer-text">{label}</span>
-        <span className="text-xs text-composer-text-muted">{description}</span>
+        <span className="text-sm font-medium text-calleditor-text">
+          {label}
+        </span>
+        <span className="text-xs text-calleditor-text-muted">
+          {description}
+        </span>
       </div>
       <button
         type="button"
@@ -78,7 +86,7 @@ const ToggleSetting: React.FC<{
         onClick={() => set(settingKey, !value)}
         className={cn(
           "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors",
-          value ? "bg-composer-accent" : "bg-composer-button",
+          value ? "bg-calleditor-accent" : "bg-calleditor-button",
         )}
       >
         <span
@@ -104,13 +112,19 @@ const SelectSetting: React.FC<{
   return (
     <div className="flex items-center justify-between py-3">
       <div className="flex flex-col gap-0.5">
-        <span className="text-sm font-medium text-composer-text">{label}</span>
-        <span className="text-xs text-composer-text-muted">{description}</span>
+        <span className="text-sm font-medium text-calleditor-text">
+          {label}
+        </span>
+        <span className="text-xs text-calleditor-text-muted">
+          {description}
+        </span>
       </div>
       <select
         value={value}
-        onChange={(e) => set(settingKey, e.target.value as SettingsState[typeof settingKey])}
-        className="h-7 px-2 text-sm rounded-lg bg-composer-input text-composer-text border border-composer-border focus:outline-none focus:border-composer-accent cursor-pointer"
+        onChange={(e) =>
+          set(settingKey, e.target.value as SettingsState[typeof settingKey])
+        }
+        className="h-7 px-2 text-sm rounded-lg bg-calleditor-input text-calleditor-text border border-calleditor-border focus:outline-none focus:border-calleditor-accent cursor-pointer"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>

@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/lib/i18n";
 import { getEffectiveKeysArray } from "@/stores/shortcut-bindings";
 import { HEADING, PROSE } from "@/ui/help-sections/shared";
 import { InlineKeyBadge } from "@/ui/inline-key-badge";
@@ -5,94 +6,159 @@ import { MOD_KEY } from "@/utils/platform";
 
 // -- Getting Started ----------------------------------------------------------
 
-const GettingStartedSection: React.FC = () => (
-  <div className="space-y-5">
-    <p className={PROSE}>
-      Composer is the lyrics editor for{" "}
-      <a
-        href="https://betterlyrics.org"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-composer-text underline underline-offset-2 hover:text-composer-text-bright"
-      >
-        Better Lyrics
-      </a>
-      . It guides you through four steps to create synced lyrics. Follow the tabs left-to-right for a guided experience,
-      or jump straight to the Timeline for a DAW-like workflow.
-      <br /> As of now, Composer is still in early access, so expect some rough edges. If you run into any issues or
-      have feedback, please reach out on{" "}
-      <a
-        href="https://discord.gg/UsHE3d5fWF"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-composer-text underline underline-offset-2 hover:text-composer-text-bright"
-      >
-        Discord
-      </a>{" "}
-      or submit an issue on{" "}
-      <a
-        href="https://github.com/better-lyrics/composer/issues/new/choose"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-composer-text underline underline-offset-2 hover:text-composer-text-bright"
-      >
-        GitHub
-      </a>
-      .
-    </p>
+const COPY = {
+  en: {
+    introA: "CallEditor is the lyrics editor for",
+    introB:
+      ". It guides you through four steps to create synced lyrics. Follow the tabs left-to-right for a guided experience, or jump straight to the Timeline for a DAW-like workflow.",
+    introC:
+      "As of now, CallEditor is still in early access, so expect some rough edges. If you run into any issues or have feedback, please reach out on",
+    introD: "or submit an issue on",
+    step1: "1. Import your audio",
+    step1Body:
+      "Paste a YouTube URL into the Import tab to pull audio from a video. The waveform appears once the audio loads.",
+    step2: "2. Add your lyrics",
+    step2BodyA:
+      "Go to the Edit tab and type or paste your lyrics, one line per row. If you have a lyrics file (.lrc, .srt, .ttml, .txt), drop it there instead. You can also use",
+    step2BodyB: "in Timeline to import lyrics without leaving that view.",
+    step3: "3. Sync the timing",
+    step3Body:
+      "The Sync tab lets you sync words to the music using two keys: tap Space to mark gapless word boundaries, or hold F to capture a word's full duration. You can also tap Space while holding F to create gapless syllable boundaries. If you miss one, use the arrow keys to nudge the timing. For finer control, switch to Timeline and drag word blocks directly on the waveform.",
+    step4: "4. Preview and export",
+    step4Body:
+      "The Preview tab shows a live karaoke-style playback of your work. When you're happy with it, go to Export and download your TTML file. You can also copy the raw XML or export a project file to share with someone else.",
+    footer:
+      "The tabs are meant to be followed left-to-right, but you can jump between them anytime using",
+    tutorial: "CallEditor tutorial",
+  },
+  ja: {
+    introA: "CallEditor は",
+    introB:
+      "向けの歌詞エディタです。同期歌詞を作るまでの流れを 4 ステップで案内します。左から順にタブを進めてもいいですし、DAW に近い感覚で Timeline から始めても大丈夫です。",
+    introC:
+      "現在の CallEditor はまだ early access 段階なので、少し荒い部分があります。問題やフィードバックがあれば",
+    introD: "または",
+    step1: "1. 音声を読み込む",
+    step1Body:
+      "Import タブに YouTube URL を貼り付けて動画から音声を取得します。読み込み後は波形が表示されます。",
+    step2: "2. 歌詞を入れる",
+    step2BodyA:
+      "Edit タブで歌詞を 1 行ずつ入力または貼り付けます。.lrc / .srt / .ttml / .txt の歌詞ファイルがあるならそこへドロップしても構いません。Timeline から離れずに読み込むなら",
+    step2BodyB: "も使えます。",
+    step3: "3. タイミングを合わせる",
+    step3Body:
+      "Sync タブでは 2 つのキーで単語のタイミングを取れます。Space をタップすると単語境界を隙間なく打てて、F を押し続けると単語の長さをそのまま記録できます。F を押したまま Space を叩けば音節の境界も作れます。ずれたときは矢印キーで微調整し、さらに細かく詰めたいときは Timeline で波形上のブロックを直接動かします。",
+    step4: "4. 確認して書き出す",
+    step4Body:
+      "Preview タブではカラオケ風の再生で見え方を確認できます。問題なければ Export で TTML を保存します。生の XML をコピーしたり、プロジェクトファイルを書き出して他の人に渡したりもできます。",
+    footer: "基本は左から順に進める構成ですが、",
+    tutorial: "CallEditor チュートリアル",
+  },
+  ko: {
+    introA: "CallEditor는",
+    introB:
+      "용 가사 편집기입니다. 동기화 가사를 만드는 과정을 네 단계로 안내합니다. 왼쪽에서 오른쪽으로 탭을 따라가도 되고, DAW 같은 흐름으로 Timeline부터 시작해도 됩니다.",
+    introC:
+      "현재 CallEditor는 아직 얼리 액세스 단계라 거친 부분이 남아 있습니다. 문제를 발견하거나 의견이 있다면",
+    introD: "또는",
+    step1: "1. 오디오 가져오기",
+    step1Body:
+      "Import 탭에 YouTube URL을 붙여 넣어 영상에서 오디오를 가져옵니다. 오디오가 로드되면 파형이 표시됩니다.",
+    step2: "2. 가사 넣기",
+    step2BodyA:
+      "Edit 탭에서 가사를 한 줄씩 입력하거나 붙여 넣습니다. .lrc, .srt, .ttml, .txt 파일이 있다면 그쪽을 드롭해도 됩니다. Timeline을 벗어나지 않고 가져오려면",
+    step2BodyB: "도 사용할 수 있습니다.",
+    step3: "3. 타이밍 맞추기",
+    step3Body:
+      "Sync 탭에서는 두 개의 키로 단어 타이밍을 맞춥니다. Space를 탭하면 단어 경계를 빈틈 없이 찍을 수 있고, F를 누르고 있으면 단어 전체 길이를 기록할 수 있습니다. F를 누른 채 Space를 누르면 음절 경계도 만들 수 있습니다. 놓친 부분은 방향키로 미세 조정하고, 더 세밀하게 다듬으려면 Timeline에서 파형 위 블록을 직접 드래그하세요.",
+    step4: "4. 미리 보고 내보내기",
+    step4Body:
+      "Preview 탭에서는 가라오케 스타일 재생으로 결과를 확인할 수 있습니다. 만족스러우면 Export에서 TTML 파일을 저장하세요. 원본 XML을 복사하거나 프로젝트 파일을 내보내 다른 사람과 공유할 수도 있습니다.",
+    footer: "탭은 기본적으로 왼쪽에서 오른쪽 순서로 따라가도록 되어 있지만,",
+    tutorial: "CallEditor 튜토리얼",
+  },
+} as const;
 
-    <div className="space-y-4">
-      <div>
-        <h4 className={HEADING}>1. Import your audio</h4>
-        <p className={PROSE}>
-          Drop an audio file (MP3, WAV, M4A, OGG, FLAC) into the Import tab, or paste a YouTube URL to pull the audio
-          from a video. Local files can also be dropped straight onto the Timeline. The waveform appears once the audio
-          loads.
-        </p>
+const GettingStartedSection: React.FC = () => {
+  const { language } = useAppLanguage();
+  const copy = COPY[language];
+
+  return (
+    <div className="space-y-5">
+      <p className={PROSE}>
+        {copy.introA}{" "}
+        <a
+          href="https://betterlyrics.org"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-calleditor-text underline underline-offset-2 hover:text-calleditor-text-bright"
+        >
+          Better Lyrics
+        </a>
+        {copy.introB}
+        <br /> {copy.introC}{" "}
+        <a
+          href="https://discord.gg/UsHE3d5fWF"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-calleditor-text underline underline-offset-2 hover:text-calleditor-text-bright"
+        >
+          Discord
+        </a>{" "}
+        {copy.introD}{" "}
+        <a
+          href="https://github.com/better-lyrics/calleditor/issues/new/choose"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-calleditor-text underline underline-offset-2 hover:text-calleditor-text-bright"
+        >
+          GitHub
+        </a>
+        .
+      </p>
+
+      <div className="space-y-4">
+        <div>
+          <h4 className={HEADING}>{copy.step1}</h4>
+          <p className={PROSE}>{copy.step1Body}</p>
+        </div>
+        <div>
+          <h4 className={HEADING}>{copy.step2}</h4>
+          <p className={PROSE}>
+            {copy.step2BodyA}{" "}
+            <InlineKeyBadge
+              keys={getEffectiveKeysArray("timeline.importLyrics")}
+            />{" "}
+            in Timeline to import lyrics without
+            {copy.step2BodyB}
+          </p>
+        </div>
+        <div>
+          <h4 className={HEADING}>{copy.step3}</h4>
+          <p className={PROSE}>{copy.step3Body}</p>
+        </div>
+        <div>
+          <h4 className={HEADING}>{copy.step4}</h4>
+          <p className={PROSE}>{copy.step4Body}</p>
+        </div>
       </div>
-      <div>
-        <h4 className={HEADING}>2. Add your lyrics</h4>
-        <p className={PROSE}>
-          Go to the Edit tab and type or paste your lyrics, one line per row. If you have a lyrics file (.lrc, .srt,
-          .ttml, .txt), drop it there instead. You can also use{" "}
-          <InlineKeyBadge keys={getEffectiveKeysArray("timeline.importLyrics")} /> in Timeline to import lyrics without
-          leaving that view.
-        </p>
-      </div>
-      <div>
-        <h4 className={HEADING}>3. Sync the timing</h4>
-        <p className={PROSE}>
-          The Sync tab lets you sync words to the music using two keys: tap Space to mark gapless word boundaries, or
-          hold F to capture a word's full duration. You can also tap Space while holding F to create gapless syllable
-          boundaries. If you miss one, use the arrow keys to nudge the timing. For finer control, switch to Timeline and
-          drag word blocks directly on the waveform.
-        </p>
-      </div>
-      <div>
-        <h4 className={HEADING}>4. Preview and export</h4>
-        <p className={PROSE}>
-          The Preview tab shows a live karaoke-style playback of your work. When you're happy with it, go to Export and
-          download your TTML file. You can also copy the raw XML or export a project file to share with someone else.
-        </p>
+
+      <p className={PROSE}>
+        {copy.footer} {MOD_KEY} + 1 through 6.
+      </p>
+
+      <div className="aspect-video w-full rounded-lg overflow-hidden border border-calleditor-border">
+        <iframe
+          src="https://www.youtube.com/embed/IEA0W4qpRIs?rel=0"
+          title={copy.tutorial}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="w-full h-full"
+        />
       </div>
     </div>
-
-    <p className={PROSE}>
-      The tabs are meant to be followed left-to-right, but you can jump between them anytime using {MOD_KEY} + 1 through
-      6.
-    </p>
-
-    <div className="aspect-video w-full rounded-lg overflow-hidden border border-composer-border">
-      <iframe
-        src="https://www.youtube.com/embed/IEA0W4qpRIs?rel=0"
-        title="Composer tutorial"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        className="w-full h-full"
-      />
-    </div>
-  </div>
-);
+  );
+};
 
 // -- Exports ------------------------------------------------------------------
 

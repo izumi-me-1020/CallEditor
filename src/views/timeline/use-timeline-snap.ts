@@ -58,7 +58,7 @@ function useTimelineSnap(): UseTimelineSnap {
   const beginGesture = useCallback((args: BeginGestureArgs) => {
     const lines = useProjectStore.getState().lines;
     const audio = useAudioStore.getState();
-    const playhead = audio.audioElement?.currentTime ?? audio.currentTime ?? null;
+    const playhead = audio.currentTime ?? null;
     ctxRef.current.anchors = collectSnapAnchors(lines, args.selfIds, playhead);
     ctxRef.current.selfIds = args.selfIds;
     ctxRef.current.leaderKey = args.leaderKey;

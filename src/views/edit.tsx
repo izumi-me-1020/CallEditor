@@ -15,8 +15,21 @@ import { decideEditTextAction } from "@/views/edit/decide-edit-text-action";
 import { detachInstancesFromLines } from "@/views/edit/diff-edit-text";
 import { parseLyrics } from "@/views/edit/parse-lyrics";
 import type { ParsedLine } from "@/views/edit/parse-lyrics";
-import { IconAlertTriangle, IconFileImport, IconMicrophone, IconX } from "@tabler/icons-react";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useAppLanguage } from "@/lib/i18n";
+import {
+  IconAlertTriangle,
+  IconFileImport,
+  IconMicrophone,
+  IconX,
+} from "@tabler/icons-react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 // -- Components ---------------------------------------------------------------
 
@@ -24,10 +37,11 @@ const BracketWarning: React.FC<{ count: number }> = ({ count }) => {
   if (count === 0) return null;
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-composer-error/10 text-composer-error">
+    <div className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-calleditor-error/10 text-calleditor-error">
       <IconAlertTriangle className="size-4 shrink-0" />
       <span>
-        {count} line{count > 1 ? "s" : ""} contain{count === 1 ? "s" : ""} [brackets]
+        {count} line{count > 1 ? "s" : ""} contain{count === 1 ? "s" : ""}{" "}
+        [brackets]
       </span>
     </div>
   );
@@ -39,21 +53,35 @@ const ImportSuccessBanner: React.FC<{
   onDismiss: () => void;
 }> = ({ result, filename, onDismiss }) => {
   const lineCount = result.lines.length;
-  const timedLineCount = result.lines.filter((l) => l.begin !== undefined).length;
+  const timedLineCount = result.lines.filter(
+    (l) => l.begin !== undefined,
+  ).length;
   const wordTimedCount = result.lines.filter((l) => l.words?.length).length;
 
   return (
-    <div className="flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-lg bg-composer-accent/10 text-composer-accent-text">
+    <div className="flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-lg bg-calleditor-accent/10 text-calleditor-accent-text">
       <div className="flex items-center gap-2">
         <IconFileImport className="size-4 shrink-0" />
         <span>
           Imported {lineCount} lines from {filename}
           {result.hasTimingData && (
-            <> with {wordTimedCount > 0 ? `${wordTimedCount} word-timed` : `${timedLineCount} timed`} lines</>
+            <>
+              {" "}
+              with{" "}
+              {wordTimedCount > 0
+                ? `${wordTimedCount} word-timed`
+                : `${timedLineCount} timed`}{" "}
+              lines
+            </>
           )}
         </span>
       </div>
-      <Button size="icon" variant="ghost" onClick={onDismiss} className="size-6">
+      <Button
+        size="icon"
+        variant="ghost"
+        onClick={onDismiss}
+        className="size-6"
+      >
         <IconX className="size-4" />
       </Button>
     </div>
@@ -127,12 +155,14 @@ const LinePreview: React.FC<{
     return (
       <div className="flex items-baseline gap-2 px-3 py-0.5 opacity-50">
         <span
-          className="w-8 font-mono text-xs text-right shrink-0 text-composer-text-muted tabular-nums select-none"
+          className="w-8 font-mono text-xs text-right shrink-0 text-calleditor-text-muted tabular-nums select-none"
           onMouseEnter={(e) => onGutterMouseEnter(line.lineNumber, e)}
         >
           {line.lineNumber}
         </span>
-        <span className="flex-1 text-sm italic text-composer-text-muted">(empty line)</span>
+        <span className="flex-1 text-sm italic text-calleditor-text-muted">
+          (empty line)
+        </span>
       </div>
     );
   }
@@ -142,7 +172,11 @@ const LinePreview: React.FC<{
       role="button"
       tabIndex={-1}
       className={`relative flex items-center gap-2 px-3 py-0.5 group cursor-pointer ${
-        isSelected ? "bg-composer-accent/15" : line.hasBrackets ? "bg-composer-error/5" : "hover:bg-composer-button/30"
+        isSelected
+          ? "bg-calleditor-accent/15"
+          : line.hasBrackets
+            ? "bg-calleditor-error/5"
+            : "hover:bg-calleditor-button/30"
       }`}
       onMouseDown={handleMouseDown}
       onClick={selectLineForBulkEdit}
@@ -161,25 +195,30 @@ const LinePreview: React.FC<{
       <span
         role="button"
         tabIndex={-1}
-        className="w-8 font-mono text-xs text-right shrink-0 text-composer-text-muted tabular-nums select-none cursor-pointer"
+        className="w-8 font-mono text-xs text-right shrink-0 text-calleditor-text-muted tabular-nums select-none cursor-pointer"
         onMouseDown={(e) => onGutterMouseDown(line.lineNumber, e)}
         onMouseEnter={(e) => onGutterMouseEnter(line.lineNumber, e)}
         onClick={handleGutterClick}
         onKeyDown={(e) => {
-          if (e.key === "Enter") handleGutterClick(e as unknown as React.MouseEvent);
+          if (e.key === "Enter")
+            handleGutterClick(e as unknown as React.MouseEvent);
         }}
       >
         {line.lineNumber}
       </span>
 
       <span
-        className={`text-sm ${line.hasBrackets ? "text-composer-error" : "text-composer-text"}`}
+        className={`text-sm ${line.hasBrackets ? "text-calleditor-error" : "text-calleditor-text"}`}
         style={{ borderLeft: `2px solid ${agentColor}`, paddingLeft: "6px" }}
       >
         {stripSplitCharacter(line.text)}
       </span>
 
-      {line.backgroundText && <span className="text-xs italic text-composer-text-muted">{line.backgroundText}</span>}
+      {line.backgroundText && (
+        <span className="text-xs italic text-calleditor-text-muted">
+          {line.backgroundText}
+        </span>
+      )}
 
       <div className="flex items-center gap-1.5 ml-auto transition-opacity opacity-0 group-hover:opacity-100">
         {agents.length > 1 && line.lineId && (
@@ -193,7 +232,7 @@ const LinePreview: React.FC<{
               }
             }}
             onMouseDown={(e) => e.stopPropagation()}
-            className="h-5 px-1 text-xs border rounded cursor-pointer bg-composer-input border-composer-border focus:outline-none focus:border-composer-accent"
+            className="h-5 px-1 text-xs border rounded cursor-pointer bg-calleditor-input border-calleditor-border focus:outline-none focus:border-calleditor-accent"
             style={{ borderLeftColor: agentColor, borderLeftWidth: "2px" }}
           >
             {agents.map((agent) => (
@@ -210,7 +249,7 @@ const LinePreview: React.FC<{
             trigger={
               <button
                 type="button"
-                className="flex items-center gap-1 px-1.5 h-5 text-xs rounded cursor-pointer bg-composer-button hover:bg-composer-button-hover text-composer-text-muted hover:text-composer-text"
+                className="flex items-center gap-1 px-1.5 h-5 text-xs rounded cursor-pointer bg-calleditor-button hover:bg-calleditor-button-hover text-calleditor-text-muted hover:text-calleditor-text"
               >
                 <IconMicrophone className="size-3" />
                 BG
@@ -219,7 +258,9 @@ const LinePreview: React.FC<{
           >
             {(close) => (
               <div className="p-2 w-48">
-                <p className="mb-1 text-xs text-composer-text-secondary">Background vocals</p>
+                <p className="mb-1 text-xs text-calleditor-text-secondary">
+                  Background vocals
+                </p>
                 <input
                   type="text"
                   value={bgInput}
@@ -233,15 +274,19 @@ const LinePreview: React.FC<{
                     }
                   }}
                   placeholder="ooh, ah, etc."
-                  className="w-full px-2 py-1 text-sm border rounded bg-composer-input border-composer-border focus:outline-none focus:border-composer-accent"
+                  className="w-full px-2 py-1 text-sm border rounded bg-calleditor-input border-calleditor-border focus:outline-none focus:border-calleditor-accent"
                 />
               </div>
             )}
           </Popover>
         )}
 
-        {line.hasTiming && <span className="text-xs text-composer-accent-text">synced</span>}
-        {line.hasBrackets && <IconAlertTriangle className="size-4 text-composer-error" />}
+        {line.hasTiming && (
+          <span className="text-xs text-calleditor-accent-text">synced</span>
+        )}
+        {line.hasBrackets && (
+          <IconAlertTriangle className="size-4 text-calleditor-error" />
+        )}
       </div>
     </div>
   );
@@ -258,7 +303,9 @@ const EditPanel: React.FC = () => {
   const addAgent = useProjectStore((s) => s.addAgent);
   const confirm = useConfirm();
 
-  const [rawText, setRawText] = useState(() => (lines.length > 0 ? lines.map((l) => l.text).join("\n") : ""));
+  const [rawText, setRawText] = useState(() =>
+    lines.length > 0 ? lines.map((l) => l.text).join("\n") : "",
+  );
   const rawTextRef = useRef(rawText);
   rawTextRef.current = rawText;
   const linesSetByUs = useRef<LyricLine[] | null>(null);
@@ -271,6 +318,7 @@ const EditPanel: React.FC = () => {
   const [lastSelectedLine, setLastSelectedLine] = useState<number | null>(null);
   const dragAnchorRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
+  const { t, language } = useAppLanguage();
 
   // Sync rawText when lines change externally (persistence restore, project import, etc.)
   useEffect(() => {
@@ -282,9 +330,18 @@ const EditPanel: React.FC = () => {
   }, [lines]);
 
   const defaultAgentId = agents?.[0]?.id ?? "v1";
-  const parsed = useMemo(() => parseLyrics(rawText, lines, defaultAgentId), [rawText, lines, defaultAgentId]);
-  const bracketCount = useMemo(() => parsed.filter((p) => p.hasBrackets).length, [parsed]);
-  const nonEmptyCount = useMemo(() => parsed.filter((p) => !p.isEmpty).length, [parsed]);
+  const parsed = useMemo(
+    () => parseLyrics(rawText, lines, defaultAgentId),
+    [rawText, lines, defaultAgentId],
+  );
+  const bracketCount = useMemo(
+    () => parsed.filter((p) => p.hasBrackets).length,
+    [parsed],
+  );
+  const nonEmptyCount = useMemo(
+    () => parsed.filter((p) => !p.isEmpty).length,
+    [parsed],
+  );
   const instanceCountByGroup = useMemo(() => {
     const indices = new Map<string, Set<number>>();
     for (const l of lines) {
@@ -308,11 +365,16 @@ const EditPanel: React.FC = () => {
 
   const handleBackgroundChange = useCallback((lineId: string, text: string) => {
     const newBgText = text || undefined;
-    const target = useProjectStore.getState().lines.find((l) => l.id === lineId);
+    const target = useProjectStore
+      .getState()
+      .lines.find((l) => l.id === lineId);
 
     const updates: Partial<LyricLine> = { backgroundText: newBgText };
     if (newBgText && target?.backgroundWords?.length) {
-      const remapped = remapWordTextsPreservingTiming(target.backgroundWords, newBgText);
+      const remapped = remapWordTextsPreservingTiming(
+        target.backgroundWords,
+        newBgText,
+      );
       if (remapped) updates.backgroundWords = remapped;
       else updates.backgroundWords = undefined;
     } else if (!newBgText) {
@@ -346,39 +408,50 @@ const EditPanel: React.FC = () => {
     [lastSelectedLine],
   );
 
-  const handleGutterMouseDown = useCallback((lineNumber: number, e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    window.getSelection()?.removeAllRanges();
-    dragAnchorRef.current = lineNumber;
-    didDragRef.current = false;
-  }, []);
-
-  const handleGutterMouseEnter = useCallback((lineNumber: number, e: React.MouseEvent) => {
-    const anchor = dragAnchorRef.current;
-    if (anchor === null) return;
-    if (e.buttons === 0) {
-      dragAnchorRef.current = null;
+  const handleGutterMouseDown = useCallback(
+    (lineNumber: number, e: React.MouseEvent) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      window.getSelection()?.removeAllRanges();
+      dragAnchorRef.current = lineNumber;
       didDragRef.current = false;
-      return;
-    }
-    didDragRef.current = true;
-    const start = Math.min(anchor, lineNumber);
-    const end = Math.max(anchor, lineNumber);
-    const next = new Set<number>();
-    for (let i = start; i <= end; i++) {
-      next.add(i);
-    }
-    setSelectedLines(next);
-    setLastSelectedLine(lineNumber);
-  }, []);
+    },
+    [],
+  );
+
+  const handleGutterMouseEnter = useCallback(
+    (lineNumber: number, e: React.MouseEvent) => {
+      const anchor = dragAnchorRef.current;
+      if (anchor === null) return;
+      if (e.buttons === 0) {
+        dragAnchorRef.current = null;
+        didDragRef.current = false;
+        return;
+      }
+      didDragRef.current = true;
+      const start = Math.min(anchor, lineNumber);
+      const end = Math.max(anchor, lineNumber);
+      const next = new Set<number>();
+      for (let i = start; i <= end; i++) {
+        next.add(i);
+      }
+      setSelectedLines(next);
+      setLastSelectedLine(lineNumber);
+    },
+    [],
+  );
 
   const handleBulkAgentChange = useCallback(
     (agentId: string) => {
       const selectedLineIds = new Set(
-        parsed.flatMap((p) => (selectedLines.has(p.lineNumber) && p.lineId ? [p.lineId] : [])),
+        parsed.flatMap((p) =>
+          selectedLines.has(p.lineNumber) && p.lineId ? [p.lineId] : [],
+        ),
       );
-      const updates = [...selectedLineIds].map((id) => ({ id: id as string, updates: { agentId } }));
+      const updates = [...selectedLineIds].map((id) => ({
+        id: id as string,
+        updates: { agentId },
+      }));
       useProjectStore.getState().updateLinesWithHistory(updates);
       setSelectedLines(new Set());
     },
@@ -428,7 +501,9 @@ const EditPanel: React.FC = () => {
         confirm({
           title: `Detach ${labelText} to apply this edit?`,
           description: `Adding or removing rows inside ${
-            action.labels.length === 1 ? `the ${labelText} group` : "these groups"
+            action.labels.length === 1
+              ? `the ${labelText} group`
+              : "these groups"
           } will detach ${action.impacted.length === 1 ? "this instance" : "these instances"} from the link. Other instances stay linked.`,
           confirmLabel: "Detach and apply",
           variant: "destructive",
@@ -436,8 +511,13 @@ const EditPanel: React.FC = () => {
         }).then((ok) => {
           modalPendingRef.current = false;
           if (!ok) return;
-          const detached = detachInstancesFromLines(action.lyricLines, action.impacted);
-          const remainingGroupIds = new Set(detached.flatMap((l) => (l.groupId ? [l.groupId] : [])));
+          const detached = detachInstancesFromLines(
+            action.lyricLines,
+            action.impacted,
+          );
+          const remainingGroupIds = new Set(
+            detached.flatMap((l) => (l.groupId ? [l.groupId] : [])),
+          );
           const nextGroups = groups.filter((g) => remainingGroupIds.has(g.id));
           linesSetByUs.current = detached;
           setLines(detached);
@@ -464,7 +544,11 @@ const EditPanel: React.FC = () => {
     async (file: File) => {
       const content = await file.text();
       const audioDuration = useAudioStore.getState().duration;
-      const result = parseLyricsFile(file.name, content, audioDuration > 0 ? audioDuration : undefined);
+      const result = parseLyricsFile(
+        file.name,
+        content,
+        audioDuration > 0 ? audioDuration : undefined,
+      );
 
       if (result.lines.length > 0) {
         const existingLineCount = useProjectStore.getState().lines.length;
@@ -539,19 +623,20 @@ const EditPanel: React.FC = () => {
   return (
     <div
       data-tour="edit-panel"
-      className="flex flex-col flex-1 gap-4 p-4 overflow-hidden"
+      className="flex flex-col flex-1 gap-4 overflow-y-auto p-4 lg:overflow-hidden"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      <div className="flex items-center justify-between select-none">
-        <h2 className="text-lg font-medium">Lyrics Editor</h2>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-composer-text-muted">
-            {nonEmptyCount} line{nonEmptyCount !== 1 ? "s" : ""}
+      <div className="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-lg font-medium">{t("edit.title")}</h2>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-sm text-calleditor-text-muted">
+            {new Intl.NumberFormat(language).format(nonEmptyCount)} line
+            {nonEmptyCount !== 1 ? "s" : ""}
           </span>
           <Button hasIcon onClick={handleImportClick}>
             <IconFileImport className="size-4" />
-            Import File
+            {t("edit.importFile")}
           </Button>
           <input
             ref={fileInputRef}
@@ -575,42 +660,46 @@ const EditPanel: React.FC = () => {
 
       <AgentManager />
 
-      <div className="flex flex-1 min-h-0 gap-4">
+      <div className="flex min-h-0 flex-col gap-4 lg:flex-1 lg:flex-row">
         {/* Input */}
-        <div className="flex flex-col flex-1 min-w-0">
-          <label htmlFor={textareaId} className="mb-2 text-sm font-medium select-none text-composer-text-secondary">
-            Paste or type lyrics
+        <div className="flex min-h-[18rem] min-w-0 flex-col lg:min-h-0 lg:flex-1">
+          <label
+            htmlFor={textareaId}
+            className="mb-2 text-sm font-medium select-none text-calleditor-text-secondary"
+          >
+            {t("edit.pasteLyrics")}
           </label>
           <textarea
             id={textareaId}
             value={rawText}
             onChange={handleTextChange}
-            placeholder="Paste your lyrics here, one line at a time...
-
-Or drag and drop a lyrics file (.txt, .lrc, .srt, .ttml)"
-            className="flex-1 p-3 text-sm border rounded-lg resize-none bg-composer-input border-composer-border focus:outline-none focus:border-composer-accent placeholder:text-composer-text-muted"
+            placeholder={t("edit.placeholder")}
+            className="min-h-[16rem] p-3 text-sm border rounded-lg resize-none bg-calleditor-input border-calleditor-border focus:outline-none focus:border-calleditor-accent placeholder:text-calleditor-text-muted lg:min-h-0 lg:flex-1"
             spellCheck={false}
           />
         </div>
 
         {/* Preview */}
-        <div className="flex flex-col flex-1 min-w-0">
-          <div className="flex items-center justify-between h-5 mb-2">
-            <span className="text-sm font-medium select-none text-composer-text-secondary">Preview</span>
+        <div className="flex min-h-[18rem] min-w-0 flex-col lg:min-h-0 lg:flex-1">
+          <div className="mb-2 flex min-h-5 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm font-medium select-none text-calleditor-text-secondary">
+              {t("edit.preview")}
+            </span>
             <div
-              className={`flex items-center gap-2 transition-opacity ${selectedLines.size > 0 ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+              className={`flex flex-wrap items-center gap-2 transition-opacity ${selectedLines.size > 0 ? "opacity-100" : "opacity-0 pointer-events-none"}`}
             >
-              <span className="text-xs text-composer-text-muted">
-                {selectedLines.size} line{selectedLines.size !== 1 ? "s" : ""} selected
+              <span className="text-xs text-calleditor-text-muted">
+                {selectedLines.size} line{selectedLines.size !== 1 ? "s" : ""}{" "}
+                selected
               </span>
               {agents.length > 1 && (
                 <select
                   onChange={(e) => handleBulkAgentChange(e.target.value)}
                   value=""
-                  className="h-6 px-1.5 text-xs border rounded cursor-pointer bg-composer-input border-composer-border focus:outline-none focus:border-composer-accent"
+                  className="h-6 px-1.5 text-xs border rounded cursor-pointer bg-calleditor-input border-calleditor-border focus:outline-none focus:border-calleditor-accent"
                 >
                   <option value="" disabled>
-                    Assign agent
+                    {t("edit.assignAgent")}
                   </option>
                   {agents.map((agent) => (
                     <option key={agent.id} value={agent.id}>
@@ -622,32 +711,40 @@ Or drag and drop a lyrics file (.txt, .lrc, .srt, .ttml)"
               <button
                 type="button"
                 onClick={handleClearSelection}
-                className="text-xs cursor-pointer text-composer-text-muted hover:text-composer-text"
+                className="text-xs cursor-pointer text-calleditor-text-muted hover:text-calleditor-text"
               >
-                Clear
+                {t("edit.clear")}
               </button>
             </div>
           </div>
-          <Scroll className="flex-1 border rounded-lg border-composer-border bg-composer-bg-dark">
-            {parsed.length === 0 || (parsed.length === 1 && parsed[0].isEmpty) ? (
-              <div className="flex items-center justify-center h-full text-sm text-composer-text-muted">
-                Lyrics will appear here
+          <Scroll className="min-h-[16rem] border rounded-lg border-calleditor-border bg-calleditor-bg-dark lg:min-h-0 lg:flex-1">
+            {parsed.length === 0 ||
+            (parsed.length === 1 && parsed[0].isEmpty) ? (
+              <div className="flex items-center justify-center h-full text-sm text-calleditor-text-muted">
+                {t("edit.previewEmpty")}
               </div>
             ) : (
               <div className="py-2">
                 {parsed.map((line, index) => {
                   const prev = index > 0 ? parsed[index - 1] : null;
-                  const next = index < parsed.length - 1 ? parsed[index + 1] : null;
+                  const next =
+                    index < parsed.length - 1 ? parsed[index + 1] : null;
                   const isFirstOfInstance =
                     line.groupId !== undefined &&
                     line.instanceIdx !== undefined &&
-                    (prev?.groupId !== line.groupId || prev?.instanceIdx !== line.instanceIdx);
+                    (prev?.groupId !== line.groupId ||
+                      prev?.instanceIdx !== line.instanceIdx);
                   const isLastOfInstance =
                     line.groupId !== undefined &&
                     line.instanceIdx !== undefined &&
-                    (next?.groupId !== line.groupId || next?.instanceIdx !== line.instanceIdx);
-                  const group = line.groupId ? groups.find((g) => g.id === line.groupId) : undefined;
-                  const totalInstances = group ? (instanceCountByGroup.get(group.id) ?? 0) : 0;
+                    (next?.groupId !== line.groupId ||
+                      next?.instanceIdx !== line.instanceIdx);
+                  const group = line.groupId
+                    ? groups.find((g) => g.id === line.groupId)
+                    : undefined;
+                  const totalInstances = group
+                    ? (instanceCountByGroup.get(group.id) ?? 0)
+                    : 0;
                   const groupTooltip =
                     group && totalInstances > 1
                       ? `Part of ${group.label} · linked to ${totalInstances - 1} other instance${totalInstances - 1 === 1 ? "" : "s"}. Edits propagate.`
@@ -656,14 +753,22 @@ Or drag and drop a lyrics file (.txt, .lrc, .srt, .ttml)"
                     <div key={line.lineNumber}>
                       {isFirstOfInstance && group && (
                         <div
-                          className="mx-3 mt-2 mb-1 flex items-center gap-2 text-xs text-composer-text-muted select-none"
+                          className="mx-3 mt-2 mb-1 flex items-center gap-2 text-xs text-calleditor-text-muted select-none"
                           aria-hidden
                         >
-                          <span className="font-medium text-composer-text">{group.label}</span>
+                          <span className="font-medium text-calleditor-text">
+                            {group.label}
+                          </span>
                           <span className="tabular-nums">
                             · {(line.instanceIdx ?? 0) + 1} of {totalInstances}
                           </span>
-                          <span className="flex-1 h-px" style={{ backgroundColor: group.color, opacity: 0.4 }} />
+                          <span
+                            className="flex-1 h-px"
+                            style={{
+                              backgroundColor: group.color,
+                              opacity: 0.4,
+                            }}
+                          />
                         </div>
                       )}
                       <LinePreview
@@ -682,8 +787,17 @@ Or drag and drop a lyrics file (.txt, .lrc, .srt, .ttml)"
                         didDragRef={didDragRef}
                       />
                       {isLastOfInstance && group && (
-                        <div className="mx-3 mt-1 mb-2 flex items-center select-none" aria-hidden>
-                          <span className="flex-1 h-px" style={{ backgroundColor: group.color, opacity: 0.4 }} />
+                        <div
+                          className="mx-3 mt-1 mb-2 flex items-center select-none"
+                          aria-hidden
+                        >
+                          <span
+                            className="flex-1 h-px"
+                            style={{
+                              backgroundColor: group.color,
+                              opacity: 0.4,
+                            }}
+                          />
                         </div>
                       )}
                     </div>

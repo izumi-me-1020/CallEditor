@@ -5,7 +5,14 @@ import { render } from "@/test/render";
 describe("WordRenderer", () => {
   it("renders an unsynced word with text only", async () => {
     const screen = await render(
-      <WordRenderer word="hello" idx={0} timing={undefined} allWords={undefined} handlers={{}} editMode={false} />,
+      <WordRenderer
+        word="hello"
+        idx={0}
+        timing={undefined}
+        allWords={undefined}
+        handlers={{}}
+        editMode={false}
+      />,
     );
     expect(screen.container.textContent ?? "").toContain("hello");
   });
@@ -36,7 +43,9 @@ describe("WordRenderer", () => {
         editMode={false}
       />,
     );
-    expect(screen.container.querySelector(".text-composer-warning")).not.toBeNull();
+    expect(
+      screen.container.querySelector(".text-calleditor-warning"),
+    ).not.toBeNull();
   });
 
   it("renders background style (italic) when isBackground is true", async () => {

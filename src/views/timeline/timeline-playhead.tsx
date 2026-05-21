@@ -4,7 +4,11 @@ import { getBannerNodes } from "@/views/timeline/banner-progress-registry";
 import { GROUP_HEADER_HEIGHT } from "@/views/timeline/group-header-row";
 import { buildPlayheadMask } from "@/views/timeline/timeline-playhead-mask";
 import { createPlayheadDrag } from "@/views/timeline/playhead-drag";
-import { GUTTER_WIDTH, useTimelineStore, WAVEFORM_HEIGHT } from "@/views/timeline/timeline-store";
+import {
+  GUTTER_WIDTH,
+  useTimelineStore,
+  WAVEFORM_HEIGHT,
+} from "@/views/timeline/timeline-store";
 import { isLinked } from "@/domain/instance/predicates";
 import { effectiveBounds } from "@/domain/line/bounds";
 import { computeRowLayout } from "@/views/timeline/utils";
@@ -23,7 +27,10 @@ const HIT_BUFFER_PX = 18;
 
 // -- Component -----------------------------------------------------------------
 
-const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, scrollContainerRef }) => {
+const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({
+  containerHeight,
+  scrollContainerRef,
+}) => {
   const duration = useAudioStore((s) => s.duration);
   const seekTo = useAudioStore((s) => s.seekTo);
   const setIsPlaying = useAudioStore((s) => s.setIsPlaying);
@@ -49,10 +56,10 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
       }
 
       // Read directly from audio element for smooth updates
-      const audioEl = useAudioStore.getState().audioElement;
       const isPlaying = useAudioStore.getState().isPlaying;
-      const currentTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
-      const { zoom, scrollLeft, isDraggingPlayhead, dragTime, followEnabled } = useTimelineStore.getState();
+      const currentTime = useAudioStore.getState().currentTime;
+      const { zoom, scrollLeft, isDraggingPlayhead, dragTime, followEnabled } =
+        useTimelineStore.getState();
 
       // Auto-scroll to keep playhead centered when follow is enabled
       const container = scrollContainerRef.current;
@@ -66,16 +73,24 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
         let activeLineIndex = -1;
         for (let i = 0; i < lines.length; i++) {
           const timing = effectiveBounds(lines[i]);
-          if (timing && currentTime >= timing.begin && currentTime < timing.end) {
+          if (
+            timing &&
+            currentTime >= timing.begin &&
+            currentTime < timing.end
+          ) {
             activeLineIndex = i;
             break;
           }
         }
 
-        if (activeLineIndex >= 0 && activeLineIndex !== lastFollowedLineRef.current) {
+        if (
+          activeLineIndex >= 0 &&
+          activeLineIndex !== lastFollowedLineRef.current
+        ) {
           lastFollowedLineRef.current = activeLineIndex;
           const BG_DROP_ZONE_HEIGHT = 24;
-          const { rowHeights, defaultRowHeight, collapsedInstances } = useTimelineStore.getState();
+          const { rowHeights, defaultRowHeight, collapsedInstances } =
+            useTimelineStore.getState();
 
           const layout = computeRowLayout({
             lines,
@@ -88,8 +103,11 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
           });
 
           const activeLine = lines[activeLineIndex];
-          const activeInstanceKey = isLinked(activeLine) ? `${activeLine.groupId}:${activeLine.instanceIdx}` : null;
-          const isActiveCollapsed = activeInstanceKey !== null && collapsedInstances[activeInstanceKey];
+          const activeInstanceKey = isLinked(activeLine)
+            ? `${activeLine.groupId}:${activeLine.instanceIdx}`
+            : null;
+          const isActiveCollapsed =
+            activeInstanceKey !== null && collapsedInstances[activeInstanceKey];
 
           const target =
             isActiveCollapsed && activeInstanceKey !== null
@@ -101,7 +119,10 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
             const rowCenter = target.top + target.height / 2;
             verticalTargetRef.current = Math.max(
               0,
-              Math.min(container.scrollHeight - viewportHeight, rowCenter - viewportHeight / 2),
+              Math.min(
+                container.scrollHeight - viewportHeight,
+                rowCenter - viewportHeight / 2,
+              ),
             );
           }
         }
@@ -121,7 +142,10 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
         verticalTargetRef.current = null;
       }
 
-      container?.parentElement?.classList.toggle("scrollbar-hidden", isPlaying && followEnabled);
+      container?.parentElement?.classList.toggle(
+        "scrollbar-hidden",
+        isPlaying && followEnabled,
+      );
 
       const displayTime = isDraggingPlayhead ? dragTime : currentTime;
       const actualScrollLeft = container?.scrollLeft ?? scrollLeft;
@@ -135,11 +159,16 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
 
       const containerRect = containerRef.current?.getBoundingClientRect();
       if (containerRect) {
-        const playheadCenterXLocal = displayTime * zoom - actualScrollLeft + GUTTER_WIDTH;
-        const playheadCenterXViewport = playheadCenterXLocal + containerRect.left;
+        const playheadCenterXLocal =
+          displayTime * zoom - actualScrollLeft + GUTTER_WIDTH;
+        const playheadCenterXViewport =
+          playheadCenterXLocal + containerRect.left;
         playheadCenterXLocalRef.current = playheadCenterXLocal;
         containerLeftRef.current = containerRect.left;
-        const mask = buildPlayheadMask(playheadCenterXViewport, containerRect.top);
+        const mask = buildPlayheadMask(
+          playheadCenterXViewport,
+          containerRect.top,
+        );
         if (mask !== lastMaskRef.current) {
           lastMaskRef.current = mask;
           const style = playheadRef.current.style;
@@ -163,7 +192,10 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
         }
         const ratio = (currentTime - startNum) / span;
         const clamped = Math.max(0, Math.min(1, ratio));
-        banner.style.setProperty("--progress-fill", `${(clamped * 100).toFixed(2)}%`);
+        banner.style.setProperty(
+          "--progress-fill",
+          `${(clamped * 100).toFixed(2)}%`,
+        );
       }
 
       rafRef.current = requestAnimationFrame(update);
@@ -182,9 +214,11 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
       const playhead = playheadRef.current;
       if (!playhead) return;
 
-      const playheadCenterXViewport = containerLeftRef.current + playheadCenterXLocalRef.current;
+      const playheadCenterXViewport =
+        containerLeftRef.current + playheadCenterXLocalRef.current;
       const nearPlayhead =
-        e.clientX >= playheadCenterXViewport - HIT_BUFFER_PX && e.clientX <= playheadCenterXViewport + HIT_BUFFER_PX;
+        e.clientX >= playheadCenterXViewport - HIT_BUFFER_PX &&
+        e.clientX <= playheadCenterXViewport + HIT_BUFFER_PX;
 
       if (!nearPlayhead) {
         if (yielded) {
@@ -197,7 +231,10 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
       const stack = document.elementsFromPoint(e.clientX, e.clientY);
       const overWord = stack.some(
         (el) =>
-          el instanceof HTMLElement && el !== playhead && !playhead.contains(el) && el.closest("[data-word-block]"),
+          el instanceof HTMLElement &&
+          el !== playhead &&
+          !playhead.contains(el) &&
+          el.closest("[data-word-block]"),
       );
 
       if (overWord !== yielded) {
@@ -219,15 +256,21 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
         getZoom: () => useTimelineStore.getState().zoom,
         getStoreScrollLeft: () => useTimelineStore.getState().scrollLeft,
         getCurrentTime: () => {
-          const audioEl = useAudioStore.getState().audioElement;
-          return audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+          return useAudioStore.getState().currentTime;
         },
         setIsPlaying,
         setDraggingPlayhead,
         setDragTime,
         seekTo,
       }),
-    [duration, seekTo, setIsPlaying, setDraggingPlayhead, setDragTime, scrollContainerRef],
+    [
+      duration,
+      seekTo,
+      setIsPlaying,
+      setDraggingPlayhead,
+      setDragTime,
+      scrollContainerRef,
+    ],
   );
 
   useEffect(() => drag.dispose, [drag]);
@@ -245,11 +288,11 @@ const TimelinePlayhead: React.FC<TimelinePlayheadProps> = ({ containerHeight, sc
         role="separator"
         aria-label="Playhead"
         aria-orientation="vertical"
-        className="timeline-playhead-bar absolute top-0 left-0 w-0.5 bg-composer-accent cursor-ew-resize pointer-events-auto expanded-hit-x-sm"
+        className="timeline-playhead-bar absolute top-0 left-0 w-0.5 bg-calleditor-accent cursor-ew-resize pointer-events-auto expanded-hit-x-sm"
         style={{ height: containerHeight }}
         onMouseDown={drag.onMouseDown}
       >
-        <div className="absolute top-0 -left-1.5 w-3.5 h-3 bg-composer-accent rounded-t expanded-hit-lg" />
+        <div className="absolute top-0 -left-1.5 w-3.5 h-3 bg-calleditor-accent rounded-t expanded-hit-lg" />
       </div>
     </div>
   );

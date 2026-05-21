@@ -1,4 +1,5 @@
 import { getEffectiveKeysArray } from "@/stores/shortcut-bindings";
+import { useAppLanguage } from "@/lib/i18n";
 import { isMac } from "@/utils/platform";
 import { IconCommand } from "@tabler/icons-react";
 
@@ -34,122 +35,298 @@ function formatKey(key: string): string {
 
 // -- Data ---------------------------------------------------------------------
 
-const SHORTCUT_SECTIONS: ShortcutSectionProps[] = [
-  {
-    title: "General",
-    shortcuts: [
-      { keys: ["Shift", "?"], description: "Show keyboard shortcuts", shortcutId: "global.help" },
-      { keys: ["Enter"], description: "Play / Pause audio", shortcutId: "global.playPause" },
-      { keys: ["Mod", "Shift", "Alt", "E"], description: "Download saved work", shortcutId: "global.panicRecovery" },
-    ],
-  },
-  {
-    title: "Navigation",
-    shortcuts: [
-      { keys: ["Mod", "1"], description: "Go to Import tab" },
-      { keys: ["Mod", "2"], description: "Go to Edit tab" },
-      { keys: ["Mod", "3"], description: "Go to Sync tab" },
-      { keys: ["Mod", "4"], description: "Go to Timeline tab" },
-      { keys: ["Mod", "5"], description: "Go to Preview tab" },
-      { keys: ["Mod", "6"], description: "Go to Export tab" },
-    ],
-  },
-  {
-    title: "Sync Mode",
-    shortcuts: [
-      { keys: ["Space"], description: "Start sync / Tap to sync word", shortcutId: "sync.tap" },
-      { keys: ["F"], description: "Hold to sync word (hold mode)", shortcutId: "sync.holdSync" },
-      { keys: ["ArrowLeft"], description: "Nudge last synced -50ms", shortcutId: "sync.nudgeLeft" },
-      { keys: ["ArrowRight"], description: "Nudge last synced +50ms", shortcutId: "sync.nudgeRight" },
-      { keys: ["Mod", "Z"], description: "Undo" },
-      { keys: ["Mod", "Shift", "Z"], description: "Redo" },
-    ],
-  },
-  {
-    title: "Timeline Mode",
-    shortcuts: [
-      { keys: ["F"], description: "Toggle follow playhead", shortcutId: "timeline.toggleFollow" },
-      { keys: ["P"], description: "Toggle preview sidebar", shortcutId: "timeline.togglePreview" },
-      { keys: ["R"], description: "Toggle rolling edit", shortcutId: "timeline.toggleRollingEdit" },
-      { keys: ["T"], description: "Toggle snap (magnet)", shortcutId: "timeline.toggleSnap" },
-      { keys: ["N"], description: "Insert line below selected word", shortcutId: "timeline.insertLineBelow" },
-      { keys: ["Shift", "N"], description: "Insert line above selected word", shortcutId: "timeline.insertLineAbove" },
-      { keys: ["X"], description: "Expand all lines", shortcutId: "timeline.expandAll" },
-      { keys: ["Space"], description: "Jump viewport to playhead", shortcutId: "timeline.jumpToPlayhead" },
-      { keys: ["Escape"], description: "Deselect / cancel paste" },
-      { keys: ["["], description: "Set word begin to playhead", shortcutId: "timeline.setWordBegin" },
-      { keys: ["]"], description: "Set word end to playhead", shortcutId: "timeline.setWordEnd" },
-      { keys: ["Mod", "Z"], description: "Undo" },
-      { keys: ["Mod", "Shift", "Z"], description: "Redo" },
-      { keys: ["Mod", "Shift", "V"], description: "Import lyrics", shortcutId: "timeline.importLyrics" },
-      { keys: ["Mod", "Scroll"], description: "Zoom in / out" },
-      { keys: ["Middle", "Drag"], description: "Pan timeline" },
-      { keys: ["Shift", "Middle", "Drag"], description: "Pan locked to axis" },
-    ],
-  },
-  {
-    title: "Timeline Selection",
-    shortcuts: [
-      { keys: ["Click"], description: "Select word" },
-      { keys: ["Shift", "Click"], description: "Select all syllables in word" },
-      { keys: ["Mod", "A"], description: "Select all words" },
-      { keys: ["A"], description: "Select word under playhead", shortcutId: "timeline.selectWordAtPlayhead" },
-      { keys: ["Mod", "Click"], description: "Toggle word in selection" },
-      { keys: ["Drag"], description: "Marquee select words" },
-      { keys: ["Shift", "Drag"], description: "Add to selection with marquee" },
-      { keys: ["Mod", "C"], description: "Copy selected words" },
-      { keys: ["Mod", "X"], description: "Cut selected words" },
-      { keys: ["Mod", "V"], description: "Paste (ghost preview, click to place)" },
-      { keys: ["Delete"], description: "Delete selected words" },
-      { keys: ["Alt", "Drag"], description: "Duplicate selected words" },
-      { keys: ["E"], description: "Edit selected word text", shortcutId: "timeline.editWord" },
-      { keys: ["F2"], description: "Edit selected word text" },
-      { keys: ["S"], description: "Split selected word into syllables", shortcutId: "timeline.splitSyllable" },
-      { keys: ["Shift", "S"], description: "Split word into words", shortcutId: "timeline.splitWord" },
-      { keys: ["M"], description: "Merge adjacent selected words", shortcutId: "timeline.mergeWords" },
-      { keys: ["Y"], description: "Merge syllables into one word", shortcutId: "timeline.mergeSyllablesIntoWord" },
-      { keys: ["W"], description: "Split line into words", shortcutId: "timeline.splitIntoWords" },
-      { keys: ["Shift", "E"], description: "Mark / unmark explicit", shortcutId: "timeline.toggleExplicit" },
-      { keys: ["ArrowLeft"], description: "Nudge selected words left", shortcutId: "timeline.nudgeLeft" },
-      { keys: ["ArrowRight"], description: "Nudge selected words right", shortcutId: "timeline.nudgeRight" },
-      { keys: ["Double Click"], description: "Edit word / create word" },
-    ],
-  },
-  {
-    title: "Linked Groups",
-    shortcuts: [
-      { keys: ["Mod", "G"], description: "Group selected lines", shortcutId: "timeline.createGroup" },
-      { keys: ["Mod", "D"], description: "Duplicate as linked instance", shortcutId: "timeline.duplicateAsLinked" },
-      { keys: ["C"], description: "Collapse / expand current instance", shortcutId: "timeline.toggleCollapseInstance" },
-      { keys: ["Shift", "C"], description: "Collapse / expand all", shortcutId: "timeline.toggleAllCollapsed" },
-      { keys: ["Mod", "J"], description: "Jump to previous instance", shortcutId: "timeline.jumpPrevInstance" },
-      { keys: ["Mod", "K"], description: "Jump to next instance", shortcutId: "timeline.jumpNextInstance" },
-      { keys: ["H"], description: "Ping sibling instances", shortcutId: "timeline.pingSiblings" },
-      {
-        keys: ["Shift", "P"],
-        description: "Shift current instance to playhead",
-        shortcutId: "timeline.shiftInstanceToPlayhead",
-      },
-      {
-        keys: ["Shift", "J"],
-        description: "Jump to start of current instance",
-        shortcutId: "timeline.jumpToInstanceStart",
-      },
-      { keys: ["ArrowLeft"], description: "Nudge selected words / instance earlier" },
-      { keys: ["ArrowRight"], description: "Nudge selected words / instance later" },
-      { keys: ["Mod", "Shift", "D"], description: "Detach current instance", shortcutId: "timeline.detachInstance" },
-      { keys: ["Mod", "Shift", "G"], description: "Delete current group", shortcutId: "timeline.deleteGroup" },
-    ],
-  },
-  {
-    title: "Edit Mode",
-    shortcuts: [
-      { keys: ["Click"], description: "Select / deselect line" },
-      { keys: ["Shift", "Click"], description: "Select range of lines" },
-      { keys: ["Drag"], description: "Drag on line numbers to select a range" },
-    ],
-  },
-];
+function useShortcutSections(): ShortcutSectionProps[] {
+  const { t } = useAppLanguage();
+
+  return [
+    {
+      title: t("shortcuts.section.general"),
+      shortcuts: [
+        {
+          keys: ["Shift", "?"],
+          description: t("shortcuts.showHelp"),
+          shortcutId: "global.help",
+        },
+        {
+          keys: ["Enter"],
+          description: t("shortcuts.playPause"),
+          shortcutId: "global.playPause",
+        },
+        {
+          keys: ["Mod", "Shift", "Alt", "E"],
+          description: t("shortcuts.downloadSavedWork"),
+          shortcutId: "global.panicRecovery",
+        },
+      ],
+    },
+    {
+      title: t("shortcuts.section.navigation"),
+      shortcuts: [
+        { keys: ["Mod", "1"], description: t("shortcuts.goImport") },
+        { keys: ["Mod", "2"], description: t("shortcuts.goEdit") },
+        { keys: ["Mod", "3"], description: t("shortcuts.goSync") },
+        { keys: ["Mod", "4"], description: t("shortcuts.goTimeline") },
+        { keys: ["Mod", "5"], description: t("shortcuts.goPreview") },
+        { keys: ["Mod", "6"], description: t("shortcuts.goExport") },
+      ],
+    },
+    {
+      title: t("shortcuts.section.sync"),
+      shortcuts: [
+        {
+          keys: ["Space"],
+          description: t("shortcuts.startSync"),
+          shortcutId: "sync.tap",
+        },
+        {
+          keys: ["F"],
+          description: t("shortcuts.holdSync"),
+          shortcutId: "sync.holdSync",
+        },
+        {
+          keys: ["ArrowLeft"],
+          description: t("shortcuts.nudgeLastLeft"),
+          shortcutId: "sync.nudgeLeft",
+        },
+        {
+          keys: ["ArrowRight"],
+          description: t("shortcuts.nudgeLastRight"),
+          shortcutId: "sync.nudgeRight",
+        },
+        { keys: ["Mod", "Z"], description: t("shortcuts.undo") },
+        { keys: ["Mod", "Shift", "Z"], description: t("shortcuts.redo") },
+      ],
+    },
+    {
+      title: t("shortcuts.section.timeline"),
+      shortcuts: [
+        {
+          keys: ["F"],
+          description: t("shortcuts.toggleFollow"),
+          shortcutId: "timeline.toggleFollow",
+        },
+        {
+          keys: ["P"],
+          description: t("shortcuts.togglePreview"),
+          shortcutId: "timeline.togglePreview",
+        },
+        {
+          keys: ["R"],
+          description: t("shortcuts.toggleRolling"),
+          shortcutId: "timeline.toggleRollingEdit",
+        },
+        {
+          keys: ["T"],
+          description: t("shortcuts.toggleSnap"),
+          shortcutId: "timeline.toggleSnap",
+        },
+        {
+          keys: ["N"],
+          description: t("shortcuts.insertBelow"),
+          shortcutId: "timeline.insertLineBelow",
+        },
+        {
+          keys: ["Shift", "N"],
+          description: t("shortcuts.insertAbove"),
+          shortcutId: "timeline.insertLineAbove",
+        },
+        {
+          keys: ["X"],
+          description: t("shortcuts.expandAll"),
+          shortcutId: "timeline.expandAll",
+        },
+        {
+          keys: ["Space"],
+          description: t("shortcuts.jumpToPlayhead"),
+          shortcutId: "timeline.jumpToPlayhead",
+        },
+        { keys: ["Escape"], description: t("shortcuts.deselectCancel") },
+        {
+          keys: ["["],
+          description: t("shortcuts.setWordBegin"),
+          shortcutId: "timeline.setWordBegin",
+        },
+        {
+          keys: ["]"],
+          description: t("shortcuts.setWordEnd"),
+          shortcutId: "timeline.setWordEnd",
+        },
+        { keys: ["Mod", "Z"], description: t("shortcuts.undo") },
+        { keys: ["Mod", "Shift", "Z"], description: t("shortcuts.redo") },
+        {
+          keys: ["Mod", "Shift", "V"],
+          description: t("shortcuts.importLyrics"),
+          shortcutId: "timeline.importLyrics",
+        },
+        { keys: ["Mod", "Scroll"], description: t("shortcuts.zoomInOut") },
+        { keys: ["Middle", "Drag"], description: t("shortcuts.panTimeline") },
+        {
+          keys: ["Shift", "Middle", "Drag"],
+          description: t("shortcuts.panLocked"),
+        },
+      ],
+    },
+    {
+      title: t("shortcuts.section.timelineSelection"),
+      shortcuts: [
+        { keys: ["Click"], description: t("shortcuts.selectWord") },
+        {
+          keys: ["Shift", "Click"],
+          description: t("shortcuts.selectAllSyllables"),
+        },
+        { keys: ["Mod", "A"], description: t("shortcuts.selectAllWords") },
+        {
+          keys: ["A"],
+          description: t("shortcuts.selectWordAtPlayhead"),
+          shortcutId: "timeline.selectWordAtPlayhead",
+        },
+        {
+          keys: ["Mod", "Click"],
+          description: t("shortcuts.toggleWordSelection"),
+        },
+        { keys: ["Drag"], description: t("shortcuts.marqueeSelect") },
+        {
+          keys: ["Shift", "Drag"],
+          description: t("shortcuts.addMarqueeSelection"),
+        },
+        { keys: ["Mod", "C"], description: t("shortcuts.copySelectedWords") },
+        { keys: ["Mod", "X"], description: t("shortcuts.cutSelectedWords") },
+        { keys: ["Mod", "V"], description: t("shortcuts.pasteGhost") },
+        { keys: ["Delete"], description: t("shortcuts.deleteSelectedWords") },
+        {
+          keys: ["Alt", "Drag"],
+          description: t("shortcuts.duplicateSelectedWords"),
+        },
+        {
+          keys: ["E"],
+          description: t("shortcuts.editSelectedWord"),
+          shortcutId: "timeline.editWord",
+        },
+        { keys: ["F2"], description: t("shortcuts.editSelectedWord") },
+        {
+          keys: ["S"],
+          description: t("shortcuts.splitSyllables"),
+          shortcutId: "timeline.splitSyllable",
+        },
+        {
+          keys: ["Shift", "S"],
+          description: t("shortcuts.splitWords"),
+          shortcutId: "timeline.splitWord",
+        },
+        {
+          keys: ["M"],
+          description: t("shortcuts.mergeWords"),
+          shortcutId: "timeline.mergeWords",
+        },
+        {
+          keys: ["Y"],
+          description: t("shortcuts.mergeSyllables"),
+          shortcutId: "timeline.mergeSyllablesIntoWord",
+        },
+        {
+          keys: ["W"],
+          description: t("shortcuts.splitLineIntoWords"),
+          shortcutId: "timeline.splitIntoWords",
+        },
+        {
+          keys: ["Shift", "E"],
+          description: t("shortcuts.toggleExplicit"),
+          shortcutId: "timeline.toggleExplicit",
+        },
+        {
+          keys: ["ArrowLeft"],
+          description: t("shortcuts.nudgeSelectedLeft"),
+          shortcutId: "timeline.nudgeLeft",
+        },
+        {
+          keys: ["ArrowRight"],
+          description: t("shortcuts.nudgeSelectedRight"),
+          shortcutId: "timeline.nudgeRight",
+        },
+        { keys: ["Double Click"], description: t("shortcuts.doubleClickEdit") },
+      ],
+    },
+    {
+      title: t("shortcuts.section.linkedGroups"),
+      shortcuts: [
+        {
+          keys: ["Mod", "G"],
+          description: t("shortcuts.groupSelectedLines"),
+          shortcutId: "timeline.createGroup",
+        },
+        {
+          keys: ["Mod", "D"],
+          description: t("shortcuts.duplicateLinked"),
+          shortcutId: "timeline.duplicateAsLinked",
+        },
+        {
+          keys: ["C"],
+          description: t("shortcuts.collapseInstance"),
+          shortcutId: "timeline.toggleCollapseInstance",
+        },
+        {
+          keys: ["Shift", "C"],
+          description: t("shortcuts.collapseAll"),
+          shortcutId: "timeline.toggleAllCollapsed",
+        },
+        {
+          keys: ["Mod", "J"],
+          description: t("shortcuts.jumpPrevInstance"),
+          shortcutId: "timeline.jumpPrevInstance",
+        },
+        {
+          keys: ["Mod", "K"],
+          description: t("shortcuts.jumpNextInstance"),
+          shortcutId: "timeline.jumpNextInstance",
+        },
+        {
+          keys: ["H"],
+          description: t("shortcuts.pingSiblings"),
+          shortcutId: "timeline.pingSiblings",
+        },
+        {
+          keys: ["Shift", "P"],
+          description: t("shortcuts.shiftInstanceToPlayhead"),
+          shortcutId: "timeline.shiftInstanceToPlayhead",
+        },
+        {
+          keys: ["Shift", "J"],
+          description: t("shortcuts.jumpInstanceStart"),
+          shortcutId: "timeline.jumpToInstanceStart",
+        },
+        {
+          keys: ["ArrowLeft"],
+          description: t("shortcuts.nudgeInstanceEarlier"),
+        },
+        {
+          keys: ["ArrowRight"],
+          description: t("shortcuts.nudgeInstanceLater"),
+        },
+        {
+          keys: ["Mod", "Shift", "D"],
+          description: t("shortcuts.detachInstance"),
+          shortcutId: "timeline.detachInstance",
+        },
+        {
+          keys: ["Mod", "Shift", "G"],
+          description: t("shortcuts.deleteGroup"),
+          shortcutId: "timeline.deleteGroup",
+        },
+      ],
+    },
+    {
+      title: t("shortcuts.section.editMode"),
+      shortcuts: [
+        { keys: ["Click"], description: t("shortcuts.selectDeselectLine") },
+        {
+          keys: ["Shift", "Click"],
+          description: t("shortcuts.selectLineRange"),
+        },
+        { keys: ["Drag"], description: t("shortcuts.dragSelectLines") },
+      ],
+    },
+  ];
+}
 
 // -- Components ---------------------------------------------------------------
 
@@ -159,20 +336,30 @@ const KeyBadge: React.FC<{ keyName: string }> = ({ keyName }) => {
 
   return (
     <span
-      className={`inline-flex items-center justify-center min-w-6 h-6 px-1.5 text-xs font-medium rounded bg-composer-button border border-composer-border ${
+      className={`inline-flex items-center justify-center min-w-6 h-6 px-1.5 text-xs font-medium rounded bg-calleditor-button border border-calleditor-border ${
         isSymbol ? "text-base" : ""
       }`}
     >
-      {(keyName === "Mod" || keyName === "Meta") && isMac ? <IconCommand className="size-3.5" /> : formatted}
+      {(keyName === "Mod" || keyName === "Meta") && isMac ? (
+        <IconCommand className="size-3.5" />
+      ) : (
+        formatted
+      )}
     </span>
   );
 };
 
-const ShortcutItem: React.FC<ShortcutItemProps> = ({ keys, description, shortcutId }) => {
+const ShortcutItem: React.FC<ShortcutItemProps> = ({
+  keys,
+  description,
+  shortcutId,
+}) => {
   const resolvedKeys = shortcutId ? getEffectiveKeysArray(shortcutId) : keys;
   return (
     <div className="flex items-center justify-between py-1.5">
-      <span className="text-sm text-composer-text-secondary">{description}</span>
+      <span className="text-sm text-calleditor-text-secondary">
+        {description}
+      </span>
       <div className="flex items-center gap-1">
         {resolvedKeys.map((key) => (
           <KeyBadge key={key} keyName={key} />
@@ -182,12 +369,20 @@ const ShortcutItem: React.FC<ShortcutItemProps> = ({ keys, description, shortcut
   );
 };
 
-const ShortcutSection: React.FC<ShortcutSectionProps> = ({ title, shortcuts }) => (
+const ShortcutSection: React.FC<ShortcutSectionProps> = ({
+  title,
+  shortcuts,
+}) => (
   <div>
-    <h3 className="mb-2 text-xs font-medium tracking-wide text-composer-text-muted">{title}</h3>
+    <h3 className="mb-2 text-xs font-medium tracking-wide text-calleditor-text-muted">
+      {title}
+    </h3>
     <div className="flex flex-col">
       {shortcuts.map((shortcut) => (
-        <ShortcutItem key={shortcut.shortcutId ?? shortcut.description} {...shortcut} />
+        <ShortcutItem
+          key={shortcut.shortcutId ?? shortcut.description}
+          {...shortcut}
+        />
       ))}
     </div>
   </div>
@@ -195,4 +390,4 @@ const ShortcutSection: React.FC<ShortcutSectionProps> = ({ title, shortcuts }) =
 
 // -- Exports ------------------------------------------------------------------
 
-export { formatKey, KeyBadge, ShortcutSection, SHORTCUT_SECTIONS };
+export { formatKey, KeyBadge, ShortcutSection, useShortcutSections };

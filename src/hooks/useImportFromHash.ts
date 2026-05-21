@@ -36,7 +36,9 @@ async function isProjectNonEmpty(): Promise<boolean> {
   const saved = await loadCurrentProject();
   if (!saved) return false;
   if (saved.lines.length > 0) return true;
-  return Boolean(saved.metadata.title || saved.metadata.artist || saved.metadata.album);
+  return Boolean(
+    saved.metadata.title || saved.metadata.artist || saved.metadata.album,
+  );
 }
 
 function useImportFromHash(): void {
@@ -53,7 +55,7 @@ function useImportFromHash(): void {
         const decoded = decodeURIComponent(encoded);
         const payload: unknown = JSON.parse(decoded);
         if (!isValidPayload(payload)) {
-          console.error("[Composer] Invalid import payload structure");
+          console.error("[CallEditor] Invalid import payload structure");
           toast.error("Could not import converter result");
           return;
         }
@@ -68,7 +70,11 @@ function useImportFromHash(): void {
             settingsKey: "confirmReplaceProjectFromHash",
           });
           if (!ok) {
-            window.history.replaceState(null, "", window.location.pathname + window.location.search);
+            window.history.replaceState(
+              null,
+              "",
+              window.location.pathname + window.location.search,
+            );
             return;
           }
         }
@@ -86,10 +92,14 @@ function useImportFromHash(): void {
           }
         }
 
-        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+        window.history.replaceState(
+          null,
+          "",
+          window.location.pathname + window.location.search,
+        );
         toast.success("Imported from converter");
       } catch (importError) {
-        console.error("[Composer] Failed to import from hash", importError);
+        console.error("[CallEditor] Failed to import from hash", importError);
         toast.error("Could not import converter result");
       }
     };

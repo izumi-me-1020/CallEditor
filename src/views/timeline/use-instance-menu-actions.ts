@@ -36,8 +36,7 @@ function useInstanceMenuActions(clearContextMenu: () => void) {
   const handleAddInstanceAtPlayhead = useCallback(() => {
     if (!contextMenu || contextMenu.target.kind !== "group-banner") return;
     const { groupId, instanceIdx } = contextMenu.target;
-    const audioEl = useAudioStore.getState().audioElement;
-    const playheadTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+    const playheadTime = useAudioStore.getState().currentTime;
     const projectLines = useProjectStore.getState().lines;
     const template = instanceToTemplate(projectLines, groupId, instanceIdx);
     if (template.length === 0) {
@@ -66,8 +65,7 @@ function useInstanceMenuActions(clearContextMenu: () => void) {
   const handleShiftToPlayhead = useCallback(() => {
     if (!contextMenu || contextMenu.target.kind !== "group-banner") return;
     const { groupId, instanceIdx } = contextMenu.target;
-    const audioEl = useAudioStore.getState().audioElement;
-    const playheadTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+    const playheadTime = useAudioStore.getState().currentTime;
     const projectLines = useProjectStore.getState().lines;
     const instanceLines = linesOfInstance(projectLines, groupId, instanceIdx);
     const bounds = instanceBounds(instanceLines);

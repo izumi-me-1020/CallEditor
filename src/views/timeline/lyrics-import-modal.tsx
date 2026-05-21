@@ -18,7 +18,10 @@ interface LyricsImportModalProps {
 
 // -- Component ----------------------------------------------------------------
 
-const LyricsImportModal: React.FC<LyricsImportModalProps> = ({ isOpen, onClose }) => {
+const LyricsImportModal: React.FC<LyricsImportModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const [text, setText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -60,7 +63,11 @@ const LyricsImportModal: React.FC<LyricsImportModalProps> = ({ isOpen, onClose }
   const handleFileImport = useCallback(
     async (file: File) => {
       const content = await file.text();
-      const result = parseLyricsFile(file.name, content, duration > 0 ? duration : undefined);
+      const result = parseLyricsFile(
+        file.name,
+        content,
+        duration > 0 ? duration : undefined,
+      );
 
       if (result.lines.length > 0) {
         if (!(await confirmReplaceIfNeeded())) return;
@@ -93,7 +100,15 @@ const LyricsImportModal: React.FC<LyricsImportModalProps> = ({ isOpen, onClose }
         onClose();
       }
     },
-    [agents, duration, setLines, setMetadata, addAgent, onClose, confirmReplaceIfNeeded],
+    [
+      agents,
+      duration,
+      setLines,
+      setMetadata,
+      addAgent,
+      onClose,
+      confirmReplaceIfNeeded,
+    ],
   );
 
   const handleFileInputChange = useCallback(
@@ -121,8 +136,18 @@ const LyricsImportModal: React.FC<LyricsImportModalProps> = ({ isOpen, onClose }
   const lineCount = text.split("\n").filter((l) => l.trim() !== "").length;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Import Lyrics" className="max-w-lg" initialFocusRef={textareaRef}>
-      <div className="flex flex-col gap-4" onDrop={handleDrop} onDragOver={handleDragOver}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Import Lyrics"
+      className="max-w-lg"
+      initialFocusRef={textareaRef}
+    >
+      <div
+        className="flex flex-col gap-4"
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+      >
         <textarea
           ref={textareaRef}
           value={text}
@@ -131,13 +156,18 @@ const LyricsImportModal: React.FC<LyricsImportModalProps> = ({ isOpen, onClose }
           placeholder="Paste lyrics here, one line per line...
 
 Use | to split syllables (e.g. beau|ti|ful)"
-          className="h-48 p-3 text-sm border rounded-lg resize-none bg-composer-input border-composer-border focus:outline-none focus:border-composer-accent placeholder:text-composer-text-muted"
+          className="h-48 p-3 text-sm border rounded-lg resize-none bg-calleditor-input border-calleditor-border focus:outline-none focus:border-calleditor-accent placeholder:text-calleditor-text-muted"
           spellCheck={false}
         />
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" hasIcon onClick={() => fileInputRef.current?.click()}>
+            <Button
+              variant="ghost"
+              size="sm"
+              hasIcon
+              onClick={() => fileInputRef.current?.click()}
+            >
               <IconUpload size={16} />
               Import file
             </Button>
@@ -148,11 +178,13 @@ Use | to split syllables (e.g. beau|ti|ful)"
               onChange={handleFileInputChange}
               className="sr-only"
             />
-            <span className="text-xs text-composer-text-muted">.txt .lrc .srt .ttml</span>
+            <span className="text-xs text-calleditor-text-muted">
+              .txt .lrc .srt .ttml
+            </span>
           </div>
 
           {lineCount > 0 && (
-            <span className="text-xs text-composer-text-muted">
+            <span className="text-xs text-calleditor-text-muted">
               {lineCount} line{lineCount !== 1 ? "s" : ""}
             </span>
           )}
@@ -160,7 +192,12 @@ Use | to split syllables (e.g. beau|ti|ful)"
 
         <div className="flex justify-end gap-2">
           <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" onClick={handleConfirm} disabled={!text.trim()} hasIcon>
+          <Button
+            variant="primary"
+            onClick={handleConfirm}
+            disabled={!text.trim()}
+            hasIcon
+          >
             <IconFileImport size={16} />
             Import
           </Button>

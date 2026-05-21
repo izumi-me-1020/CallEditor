@@ -1,13 +1,11 @@
 import { useCallback } from "react";
 import { useAuthStore } from "@/stores/auth";
-import { getSession } from "@/utils/cobalt-api";
+import { CobaltApiError, getSession } from "@/utils/cobalt-api";
 import { runTurnstile } from "@/utils/turnstile";
 
 // -- Constants ----------------------------------------------------------------
 
 const REFRESH_BUFFER_SEC = 300;
-const LOG_PREFIX = "[EnsureAuth]";
-
 // -- Module state -------------------------------------------------------------
 
 let inFlight: Promise<string> | null = null;
@@ -28,7 +26,7 @@ async function fetchFreshJwt(sitekey: string): Promise<string> {
 
 function readSitekey(): string {
   const sitekey = import.meta.env.VITE_TURNSTILE_SITEKEY;
-  if (!sitekey) throw new Error(`${LOG_PREFIX} VITE_TURNSTILE_SITEKEY is not configured`);
+  if (!sitekey) throw new CobaltApiError("turnstile_unconfigured", 0);
   return sitekey;
 }
 

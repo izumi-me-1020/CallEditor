@@ -84,8 +84,7 @@ function useTimelineKeyboard(
 
   const handleSetWordTiming = useCallback(
     (edge: "begin" | "end") => {
-      const audioEl = useAudioStore.getState().audioElement;
-      const currentTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+      const currentTime = useAudioStore.getState().currentTime;
 
       const { selectedWords, zoom, rowHeights, defaultRowHeight } = useTimelineStore.getState();
       const selectedWord = selectedWords[0] ?? null;
@@ -270,8 +269,7 @@ function useTimelineKeyboard(
           const scrollContainer = scrollContainerRef.current;
           if (!scrollContainer) return;
 
-          const audioEl = useAudioStore.getState().audioElement;
-          const currentTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+          const currentTime = useAudioStore.getState().currentTime;
           const { zoom, rowHeights, defaultRowHeight } = useTimelineStore.getState();
 
           const viewportWidth = scrollContainer.clientWidth;
@@ -318,8 +316,7 @@ function useTimelineKeyboard(
         }
         case "timeline.selectWordAtPlayhead": {
           e.preventDefault();
-          const audioEl = useAudioStore.getState().audioElement;
-          const currentTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+          const currentTime = useAudioStore.getState().currentTime;
           const matches = findWordsAtTime(lines, currentTime);
           const next = pickNextWordAtPlayhead(matches, useTimelineStore.getState().selectedWords);
           if (!next) {
@@ -493,8 +490,7 @@ function useTimelineKeyboard(
           const [groupId, instanceIdxStr] = groupKey.split(":");
           const sourceInstanceIdx = Number.parseInt(instanceIdxStr, 10);
 
-          const audioEl = useAudioStore.getState().audioElement;
-          const playheadTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+          const playheadTime = useAudioStore.getState().currentTime;
           const template = instanceToTemplate(projectState.lines, groupId, sourceInstanceIdx);
           if (template.length === 0) {
             toast.error("Could not derive instance template");
@@ -664,8 +660,7 @@ function useTimelineKeyboard(
           const instanceLines = linesOfInstance(projectLines, inst.groupId, inst.instanceIdx);
           const bounds = instanceBounds(instanceLines);
           if (!bounds) break;
-          const audioEl = useAudioStore.getState().audioElement;
-          const playheadTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+          const playheadTime = useAudioStore.getState().currentTime;
           const delta = playheadTime - bounds.begin;
           if (Math.abs(delta) < 0.001) break;
           e.preventDefault();

@@ -7,7 +7,9 @@ import { useSettingsStore } from "@/stores/settings";
 
 // -- Types --------------------------------------------------------------------
 
-type SavedAudioSource = { kind: "file"; name: string } | { kind: "youtube"; videoId: string };
+type SavedAudioSource =
+  | { kind: "file"; name: string }
+  | { kind: "youtube"; videoId: string };
 
 interface SavedProject {
   version: 1;
@@ -25,7 +27,7 @@ interface SavedProject {
 
 // -- Constants ----------------------------------------------------------------
 
-const DB_NAME = "ttml-composer";
+const DB_NAME = "ttml-calleditor";
 const DB_VERSION = 1;
 const STORE_NAME = "projects";
 const CURRENT_PROJECT_KEY = "current";
@@ -104,7 +106,8 @@ async function saveCurrentProject(
   dismissedSuggestions: string[],
   dismissedExplicitSuggestions: string[],
 ): Promise<void> {
-  const audioFileName = audioSource?.kind === "file" ? audioSource.name : undefined;
+  const audioFileName =
+    audioSource?.kind === "file" ? audioSource.name : undefined;
   const project: SavedProject = {
     version: 1,
     savedAt: Date.now(),
@@ -180,7 +183,9 @@ function exportProjectToFile(
     dismissedExplicitSuggestions,
   };
 
-  const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(project, null, 2)], {
+    type: "application/json",
+  });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -244,7 +249,9 @@ function debouncedSave(
   const saveDelay = useSettingsStore.getState().autoSaveDelay;
   saveTimeout = setTimeout(() => {
     if (pendingSaveArgs) {
-      saveCurrentProject(...pendingSaveArgs).catch((err) => console.error(LOG_PREFIX, "Auto-save failed:", err));
+      saveCurrentProject(...pendingSaveArgs).catch((err) =>
+        console.error(LOG_PREFIX, "Auto-save failed:", err),
+      );
       pendingSaveArgs = null;
     }
     saveTimeout = null;
@@ -265,7 +272,9 @@ function flushPendingSave(): void {
     saveTimeout = null;
   }
   if (pendingSaveArgs) {
-    saveCurrentProject(...pendingSaveArgs).catch((err) => console.error(LOG_PREFIX, "Flush save failed:", err));
+    saveCurrentProject(...pendingSaveArgs).catch((err) =>
+      console.error(LOG_PREFIX, "Flush save failed:", err),
+    );
     pendingSaveArgs = null;
   }
 }

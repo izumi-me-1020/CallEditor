@@ -33,7 +33,9 @@ function declareMissingNamespaces(content: string): string {
   }
   if (missing.length === 0) return content;
 
-  const additions = missing.map((prefix) => ` xmlns:${prefix}="urn:composer:unbound:${prefix}"`).join("");
+  const additions = missing
+    .map((prefix) => ` xmlns:${prefix}="urn:calleditor:unbound:${prefix}"`)
+    .join("");
   const patchedRootTag = rootTag.replace(/>$/, `${additions}>`);
   return content.replace(rootTag, patchedRootTag);
 }
@@ -72,20 +74,26 @@ function readExplicitFlag(el: Element): boolean {
     const local = (attr.localName ?? attr.name).toLowerCase();
     if (local === "explicit" || local === "obscene") {
       const raw = (attr.value ?? "").trim().toLowerCase();
-      if (raw === "" || raw === "true" || raw === "1" || raw === "yes") return true;
+      if (raw === "" || raw === "true" || raw === "1" || raw === "yes")
+        return true;
       return false;
     }
   }
   return false;
 }
 
-function extractTimedWords(parent: Element, excludeContainer?: Element | null): WordTiming[] {
+function extractTimedWords(
+  parent: Element,
+  excludeContainer?: Element | null,
+): WordTiming[] {
   const words: WordTiming[] = [];
 
   for (const node of parent.childNodes) {
     if (node.nodeType === Node.ELEMENT_NODE) {
       const el = node as Element;
-      const role = el.getAttribute("ttm:role") || el.getAttributeNS("http://www.w3.org/ns/ttml#metadata", "role");
+      const role =
+        el.getAttribute("ttm:role") ||
+        el.getAttributeNS("http://www.w3.org/ns/ttml#metadata", "role");
 
       // Skip x-bg containers (handled separately)
       if (role === "x-bg" || excludeContainer?.contains(el)) continue;

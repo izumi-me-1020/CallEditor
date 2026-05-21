@@ -12,7 +12,12 @@ import {
   useRole,
 } from "@floating-ui/react";
 import type { Placement } from "@floating-ui/react";
-import { type ReactElement, type ReactNode, cloneElement, useState } from "react";
+import {
+  type ReactElement,
+  type ReactNode,
+  cloneElement,
+  useState,
+} from "react";
 
 // -- Types --------------------------------------------------------------------
 
@@ -25,7 +30,12 @@ interface PopoverProps {
 
 // -- Component ----------------------------------------------------------------
 
-const Popover: React.FC<PopoverProps> = ({ trigger, children, placement = "bottom", offsetPx = 8 }) => {
+const Popover: React.FC<PopoverProps> = ({
+  trigger,
+  children,
+  placement = "bottom",
+  offsetPx = 8,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
@@ -40,14 +50,20 @@ const Popover: React.FC<PopoverProps> = ({ trigger, children, placement = "botto
   const dismiss = useDismiss(context);
   const role = useRole(context);
 
-  const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    click,
+    dismiss,
+    role,
+  ]);
 
   return (
     <>
       {cloneElement(trigger, {
         ref: refs.setReference,
         ...getReferenceProps(),
-      } as React.HTMLAttributes<HTMLElement> & { ref: typeof refs.setReference })}
+      } as React.HTMLAttributes<HTMLElement> & {
+        ref: typeof refs.setReference;
+      })}
 
       {isOpen && (
         <FloatingPortal>
@@ -56,9 +72,11 @@ const Popover: React.FC<PopoverProps> = ({ trigger, children, placement = "botto
               ref={refs.setFloating}
               style={floatingStyles}
               {...getFloatingProps()}
-              className="z-100 border select-none shadow-2xl rounded-xl bg-composer-bg border-composer-border"
+              className="z-100 border select-none shadow-2xl rounded-xl bg-calleditor-bg border-calleditor-border"
             >
-              {typeof children === "function" ? children(() => setIsOpen(false)) : children}
+              {typeof children === "function"
+                ? children(() => setIsOpen(false))
+                : children}
             </div>
           </FloatingFocusManager>
         </FloatingPortal>

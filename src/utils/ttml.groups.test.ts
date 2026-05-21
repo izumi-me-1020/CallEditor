@@ -5,12 +5,19 @@ import { parseLyricsFile } from "@/utils/lyrics-parsers";
 import { generateTTML } from "@/utils/ttml";
 import { describe, expect, it } from "vitest";
 
-const baseMetadata: ProjectMetadata = { title: "Test", artist: "", album: "", duration: 60 };
+const baseMetadata: ProjectMetadata = {
+  title: "Test",
+  artist: "",
+  album: "",
+  duration: 60,
+};
 const baseAgents: Agent[] = [{ id: "v1", type: "person", name: "Lead" }];
 
 describe("ttml export · groups registry", () => {
-  it("emits composer:groups when project has groups", () => {
-    const groups: LinkGroup[] = [{ id: "g1", label: "Chorus", color: "#f472b6", templateVersion: 1 }];
+  it("emits calleditor:groups when project has groups", () => {
+    const groups: LinkGroup[] = [
+      { id: "g1", label: "Chorus", color: "#f472b6", templateVersion: 1 },
+    ];
     const ttml = generateTTML({
       metadata: baseMetadata,
       agents: baseAgents,
@@ -19,12 +26,12 @@ describe("ttml export · groups registry", () => {
       granularity: "word",
     });
 
-    expect(ttml).toContain("<composer:groups>");
+    expect(ttml).toContain("<calleditor:groups>");
     expect(ttml).toContain('id="g1"');
     expect(ttml).toContain('label="Chorus"');
     expect(ttml).toContain('color="#f472b6"');
     expect(ttml).toContain('templateVersion="1"');
-    expect(ttml).toContain("</composer:groups>");
+    expect(ttml).toContain("</calleditor:groups>");
   });
 
   it("emits multiple groups in order", () => {
@@ -32,7 +39,13 @@ describe("ttml export · groups registry", () => {
       { id: "g1", label: "Chorus", color: "#f472b6", templateVersion: 2 },
       { id: "g2", label: "Verse", color: "#60a5fa", templateVersion: 1 },
     ];
-    const ttml = generateTTML({ metadata: baseMetadata, agents: baseAgents, lines: [], groups, granularity: "word" });
+    const ttml = generateTTML({
+      metadata: baseMetadata,
+      agents: baseAgents,
+      lines: [],
+      groups,
+      granularity: "word",
+    });
 
     const i1 = ttml.indexOf('id="g1"');
     const i2 = ttml.indexOf('id="g2"');
@@ -42,15 +55,28 @@ describe("ttml export · groups registry", () => {
   });
 
   it("escapes label and color values", () => {
-    const groups: LinkGroup[] = [{ id: "g1", label: "Pre & Post", color: "#aaaaaa", templateVersion: 1 }];
-    const ttml = generateTTML({ metadata: baseMetadata, agents: baseAgents, lines: [], groups, granularity: "word" });
+    const groups: LinkGroup[] = [
+      { id: "g1", label: "Pre & Post", color: "#aaaaaa", templateVersion: 1 },
+    ];
+    const ttml = generateTTML({
+      metadata: baseMetadata,
+      agents: baseAgents,
+      lines: [],
+      groups,
+      granularity: "word",
+    });
 
     expect(ttml).toContain('label="Pre &amp; Post"');
   });
 
   it("omits the registry block when groups is undefined", () => {
-    const ttml = generateTTML({ metadata: baseMetadata, agents: baseAgents, lines: [], granularity: "word" });
-    expect(ttml).not.toContain("<composer:groups>");
+    const ttml = generateTTML({
+      metadata: baseMetadata,
+      agents: baseAgents,
+      lines: [],
+      granularity: "word",
+    });
+    expect(ttml).not.toContain("<calleditor:groups>");
   });
 
   it("omits the registry block when groups is empty", () => {
@@ -61,16 +87,23 @@ describe("ttml export · groups registry", () => {
       groups: [],
       granularity: "word",
     });
-    expect(ttml).not.toContain("<composer:groups>");
+    expect(ttml).not.toContain("<calleditor:groups>");
   });
 });
 
 describe("ttml export · per-line group attrs", () => {
-  const groups: LinkGroup[] = [{ id: "g1", label: "Chorus", color: "#f472b6", templateVersion: 1 }];
+  const groups: LinkGroup[] = [
+    { id: "g1", label: "Chorus", color: "#f472b6", templateVersion: 1 },
+  ];
 
   function syncedLine(
     id: string,
-    extras: Partial<{ groupId: string; instanceIdx: number; templateLineIdx: number; detached: boolean }>,
+    extras: Partial<{
+      groupId: string;
+      instanceIdx: number;
+      templateLineIdx: number;
+      detached: boolean;
+    }>,
   ) {
     return {
       id,
@@ -82,18 +115,20 @@ describe("ttml export · per-line group attrs", () => {
     };
   }
 
-  it("emits composer:groupId/instanceIdx/templateLineIdx on grouped lines", () => {
+  it("emits calleditor:groupId/instanceIdx/templateLineIdx on grouped lines", () => {
     const ttml = generateTTML({
       metadata: baseMetadata,
       agents: baseAgents,
-      lines: [syncedLine("a", { groupId: "g1", instanceIdx: 2, templateLineIdx: 0 })],
+      lines: [
+        syncedLine("a", { groupId: "g1", instanceIdx: 2, templateLineIdx: 0 }),
+      ],
       groups,
       granularity: "line",
     });
 
-    expect(ttml).toContain('composer:groupId="g1"');
-    expect(ttml).toContain('composer:instanceIdx="2"');
-    expect(ttml).toContain('composer:templateLineIdx="0"');
+    expect(ttml).toContain('calleditor:groupId="g1"');
+    expect(ttml).toContain('calleditor:instanceIdx="2"');
+    expect(ttml).toContain('calleditor:templateLineIdx="0"');
   });
 
   it("omits group attrs on standalone lines", () => {
@@ -105,38 +140,58 @@ describe("ttml export · per-line group attrs", () => {
       granularity: "line",
     });
 
-    expect(ttml).not.toContain("composer:groupId");
-    expect(ttml).not.toContain("composer:instanceIdx");
+    expect(ttml).not.toContain("calleditor:groupId");
+    expect(ttml).not.toContain("calleditor:instanceIdx");
   });
 
-  it("emits composer:detached only when true", () => {
+  it("emits calleditor:detached only when true", () => {
     const t1 = generateTTML({
       metadata: baseMetadata,
       agents: baseAgents,
-      lines: [syncedLine("a", { groupId: "g1", instanceIdx: 0, templateLineIdx: 0, detached: true })],
+      lines: [
+        syncedLine("a", {
+          groupId: "g1",
+          instanceIdx: 0,
+          templateLineIdx: 0,
+          detached: true,
+        }),
+      ],
       groups,
       granularity: "line",
     });
-    expect(t1).toContain('composer:detached="true"');
+    expect(t1).toContain('calleditor:detached="true"');
 
     const t2 = generateTTML({
       metadata: baseMetadata,
       agents: baseAgents,
-      lines: [syncedLine("b", { groupId: "g1", instanceIdx: 0, templateLineIdx: 0, detached: false })],
+      lines: [
+        syncedLine("b", {
+          groupId: "g1",
+          instanceIdx: 0,
+          templateLineIdx: 0,
+          detached: false,
+        }),
+      ],
       groups,
       granularity: "line",
     });
-    expect(t2).not.toContain("composer:detached");
+    expect(t2).not.toContain("calleditor:detached");
   });
 });
 
 describe("ttml import · groups registry", () => {
-  it("parses composer:groups registry from head metadata", () => {
+  it("parses calleditor:groups registry from head metadata", () => {
     const groups: LinkGroup[] = [
       { id: "g1", label: "Chorus", color: "#f472b6", templateVersion: 3 },
       { id: "g2", label: "Verse", color: "#60a5fa", templateVersion: 1 },
     ];
-    const ttml = generateTTML({ metadata: baseMetadata, agents: baseAgents, lines: [], groups, granularity: "word" });
+    const ttml = generateTTML({
+      metadata: baseMetadata,
+      agents: baseAgents,
+      lines: [],
+      groups,
+      granularity: "word",
+    });
     const result = parseLyricsFile("test.ttml", ttml);
 
     expect(result.groups).toHaveLength(2);
@@ -146,14 +201,21 @@ describe("ttml import · groups registry", () => {
   });
 
   it("returns no groups when none in TTML", () => {
-    const ttml = generateTTML({ metadata: baseMetadata, agents: baseAgents, lines: [], granularity: "word" });
+    const ttml = generateTTML({
+      metadata: baseMetadata,
+      agents: baseAgents,
+      lines: [],
+      granularity: "word",
+    });
     const result = parseLyricsFile("test.ttml", ttml);
     expect(result.groups).toBeUndefined();
   });
 });
 
 describe("ttml import · per-line group attrs", () => {
-  const groups: LinkGroup[] = [{ id: "g1", label: "Chorus", color: "#f472b6", templateVersion: 1 }];
+  const groups: LinkGroup[] = [
+    { id: "g1", label: "Chorus", color: "#f472b6", templateVersion: 1 },
+  ];
 
   it("round-trips group attrs through export → import", () => {
     const ttml = generateTTML({
@@ -182,7 +244,7 @@ describe("ttml import · per-line group attrs", () => {
     expect(result.lines[0].detached).toBeUndefined();
   });
 
-  it("round-trips composer:detached flag", () => {
+  it("round-trips calleditor:detached flag", () => {
     const ttml = generateTTML({
       metadata: baseMetadata,
       agents: baseAgents,
@@ -229,7 +291,7 @@ describe("ttml import · per-line group attrs", () => {
     expect(result.lines[0].groupId).toBeUndefined();
   });
 
-  it("backward compat: TTML without composer attrs imports cleanly", () => {
+  it("backward compat: TTML without calleditor attrs imports cleanly", () => {
     const flatTtml = `<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata">
       <head><metadata><ttm:agent xml:id="v1" type="person"><ttm:name>Lead</ttm:name></ttm:agent></metadata></head>
       <body><div>
@@ -244,7 +306,7 @@ describe("ttml import · per-line group attrs", () => {
 });
 
 describe("ttml export · explicit word attribute", () => {
-  it('emits composer:explicit="true" only on flagged words', () => {
+  it('emits calleditor:explicit="true" only on flagged words', () => {
     const ttml = generateTTML({
       metadata: baseMetadata,
       agents: baseAgents,
@@ -262,11 +324,13 @@ describe("ttml export · explicit word attribute", () => {
       granularity: "word",
     });
     expect(ttml).toContain(">clean</span>");
-    expect(ttml).toMatch(/<span begin="[^"]*" end="[^"]*" composer:explicit="true">dirty<\/span>/);
-    expect(ttml).not.toContain('composer:explicit="true">clean');
+    expect(ttml).toMatch(
+      /<span begin="[^"]*" end="[^"]*" calleditor:explicit="true">dirty<\/span>/,
+    );
+    expect(ttml).not.toContain('calleditor:explicit="true">clean');
   });
 
-  it("emits composer:explicit on a background word's inner span, not the x-bg container", () => {
+  it("emits calleditor:explicit on a background word's inner span, not the x-bg container", () => {
     const ttml = generateTTML({
       metadata: baseMetadata,
       agents: baseAgents,
@@ -286,12 +350,18 @@ describe("ttml export · explicit word attribute", () => {
       granularity: "word",
     });
     expect(ttml).toContain(`<span ttm:role="x-bg">`);
-    expect(ttml).not.toMatch(/<span [^>]*ttm:role="x-bg"[^>]*composer:explicit/);
-    expect(ttml).not.toMatch(/<span [^>]*composer:explicit[^>]*ttm:role="x-bg"/);
-    expect(ttml).toMatch(/<span begin="[^"]*" end="[^"]*" composer:explicit="true">shit<\/span>/);
+    expect(ttml).not.toMatch(
+      /<span [^>]*ttm:role="x-bg"[^>]*calleditor:explicit/,
+    );
+    expect(ttml).not.toMatch(
+      /<span [^>]*calleditor:explicit[^>]*ttm:role="x-bg"/,
+    );
+    expect(ttml).toMatch(
+      /<span begin="[^"]*" end="[^"]*" calleditor:explicit="true">shit<\/span>/,
+    );
   });
 
-  it("round-trip: AMLL amll:obscene import → export normalizes to composer:explicit", () => {
+  it("round-trip: AMLL amll:obscene import → export normalizes to calleditor:explicit", () => {
     const amll = `<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata"><head><metadata><ttm:agent type="person" xml:id="v1"/></metadata></head><body><div><p begin="00:01.000" end="00:02.000" ttm:agent="v1"><span begin="00:01.000" end="00:01.500">clean</span> <span begin="00:01.500" end="00:02.000" amll:obscene="true">dirty</span></p></div></body></tt>`;
     const imported = parseLyricsFile("amll.ttml", amll);
     expect(imported.lines[0].words![1].explicit).toBe(true);
@@ -302,7 +372,7 @@ describe("ttml export · explicit word attribute", () => {
       lines: imported.lines,
       granularity: "word",
     });
-    expect(exported).toMatch(/composer:explicit="true">dirty/);
+    expect(exported).toMatch(/calleditor:explicit="true">dirty/);
     expect(exported).not.toContain("amll:obscene");
 
     const reimported = parseLyricsFile("re.ttml", exported);

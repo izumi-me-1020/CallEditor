@@ -21,11 +21,13 @@ function makeBanner(overrides: {
       suggestions={overrides.suggestions}
       dismissed={overrides.dismissed ?? []}
       icon={IconBulb}
-      iconClass="text-composer-accent"
-      accentClass="bg-composer-accent/8"
+      iconClass="text-calleditor-accent"
+      accentClass="bg-calleditor-accent/8"
       modalTitle="Fake suggestions"
       multiText={(count) => `Found ${count} fake suggestions`}
-      modalCountText={(count) => `${count} fake thing${count === 1 ? "" : "s"} detected`}
+      modalCountText={(count) =>
+        `${count} fake thing${count === 1 ? "" : "s"} detected`
+      }
       accept={{ label: "Apply", rowLabel: "Row apply", icon: IconBulb }}
       acceptAll={{ label: "Apply all", icon: IconBulb }}
       rowKey={(s) => s.fingerprint}
@@ -57,19 +59,35 @@ describe("SuggestionsBanner", () => {
 
   it("renders the single-suggestion inline content and accepts it", async () => {
     const onAccept = vi.fn();
-    const screen = await render(makeBanner({ suggestions: [{ fingerprint: "f1", label: "lonely line" }], onAccept }));
+    const screen = await render(
+      makeBanner({
+        suggestions: [{ fingerprint: "f1", label: "lonely line" }],
+        onAccept,
+      }),
+    );
     expect(screen.container.textContent ?? "").toContain("lonely line");
 
     await screen.getByRole("button", { name: /apply/i }).click();
-    expect(onAccept).toHaveBeenCalledWith({ fingerprint: "f1", label: "lonely line" });
+    expect(onAccept).toHaveBeenCalledWith({
+      fingerprint: "f1",
+      label: "lonely line",
+    });
   });
 
   it("dismisses the single suggestion when the dismiss button is clicked", async () => {
     const onDismiss = vi.fn();
-    const screen = await render(makeBanner({ suggestions: [{ fingerprint: "f1", label: "lonely line" }], onDismiss }));
+    const screen = await render(
+      makeBanner({
+        suggestions: [{ fingerprint: "f1", label: "lonely line" }],
+        onDismiss,
+      }),
+    );
 
     await screen.getByRole("button", { name: "Dismiss suggestion" }).click();
-    expect(onDismiss).toHaveBeenCalledWith({ fingerprint: "f1", label: "lonely line" });
+    expect(onDismiss).toHaveBeenCalledWith({
+      fingerprint: "f1",
+      label: "lonely line",
+    });
   });
 
   it("shows the multi-suggestion summary and opens the review modal", async () => {
@@ -81,11 +99,17 @@ describe("SuggestionsBanner", () => {
         ],
       }),
     );
-    expect(screen.container.textContent ?? "").toContain("Found 2 fake suggestions");
+    expect(screen.container.textContent ?? "").toContain(
+      "Found 2 fake suggestions",
+    );
 
     await screen.getByRole("button", { name: /review 2/i }).click();
-    await expect.element(screen.getByRole("heading", { name: "Fake suggestions" })).toBeInTheDocument();
-    await expect.element(screen.getByText("2 fake things detected")).toBeInTheDocument();
+    await expect
+      .element(screen.getByRole("heading", { name: "Fake suggestions" }))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("2 fake things detected"))
+      .toBeInTheDocument();
   });
 
   it("dismisses all suggestions from the multi-suggestion banner", async () => {
@@ -100,7 +124,9 @@ describe("SuggestionsBanner", () => {
       }),
     );
 
-    await screen.getByRole("button", { name: "Dismiss all suggestions" }).click();
+    await screen
+      .getByRole("button", { name: "Dismiss all suggestions" })
+      .click();
     expect(onDismissAll).toHaveBeenCalledTimes(1);
     expect(onDismissAll).toHaveBeenCalledWith([
       { fingerprint: "f1", label: "first" },
@@ -122,7 +148,9 @@ describe("SuggestionsBanner", () => {
       }),
     );
 
-    await screen.getByRole("button", { name: "Dismiss all suggestions" }).click();
+    await screen
+      .getByRole("button", { name: "Dismiss all suggestions" })
+      .click();
     expect(onDismissAll).toHaveBeenCalledWith([
       { fingerprint: "f1", label: "first" },
       { fingerprint: "f3", label: "third" },
@@ -185,16 +213,33 @@ describe("SuggestionsBanner", () => {
     );
 
     await screen.getByRole("button", { name: /review 2/i }).click();
-    await expect.element(screen.getByRole("heading", { name: "Fake suggestions" })).toBeInTheDocument();
-    await screen.getByRole("button", { name: "Row apply", exact: true }).nth(0).click();
-    expect(onAccept).toHaveBeenCalledWith({ fingerprint: "f1", label: "first" });
+    await expect
+      .element(screen.getByRole("heading", { name: "Fake suggestions" }))
+      .toBeInTheDocument();
+    await screen
+      .getByRole("button", { name: "Row apply", exact: true })
+      .nth(0)
+      .click();
+    expect(onAccept).toHaveBeenCalledWith({
+      fingerprint: "f1",
+      label: "first",
+    });
   });
 
   it("renders the modal per-row accept button with its own row label, distinct from the inline label", async () => {
-    const screen = await render(makeBanner({ suggestions: [{ fingerprint: "f1", label: "lonely line" }] }));
+    const screen = await render(
+      makeBanner({
+        suggestions: [{ fingerprint: "f1", label: "lonely line" }],
+      }),
+    );
 
-    await expect.element(screen.getByRole("button", { name: "Apply", exact: true })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Row apply", exact: true }).elements().length).toBe(0);
+    await expect
+      .element(screen.getByRole("button", { name: "Apply", exact: true }))
+      .toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Row apply", exact: true }).elements()
+        .length,
+    ).toBe(0);
 
     const screenMulti = await render(
       makeBanner({
@@ -206,12 +251,21 @@ describe("SuggestionsBanner", () => {
     );
 
     await screenMulti.getByRole("button", { name: /review 2/i }).click();
-    await expect.element(screenMulti.getByRole("heading", { name: "Fake suggestions" })).toBeInTheDocument();
+    await expect
+      .element(screenMulti.getByRole("heading", { name: "Fake suggestions" }))
+      .toBeInTheDocument();
 
     await expect
-      .element(screenMulti.getByRole("button", { name: "Row apply", exact: true }).first())
+      .element(
+        screenMulti
+          .getByRole("button", { name: "Row apply", exact: true })
+          .first(),
+      )
       .toBeInTheDocument();
-    expect(screenMulti.getByRole("button", { name: "Apply", exact: true }).elements().length).toBe(0);
+    expect(
+      screenMulti.getByRole("button", { name: "Apply", exact: true }).elements()
+        .length,
+    ).toBe(0);
   });
 
   it("closes the modal with the Escape key", async () => {
@@ -225,7 +279,9 @@ describe("SuggestionsBanner", () => {
     );
 
     await screen.getByRole("button", { name: /review 2/i }).click();
-    await expect.element(screen.getByRole("heading", { name: "Fake suggestions" })).toBeInTheDocument();
+    await expect
+      .element(screen.getByRole("heading", { name: "Fake suggestions" }))
+      .toBeInTheDocument();
 
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     await expect

@@ -45,8 +45,7 @@ function useTimelineWheel(scrollContainerRef: RefObject<HTMLDivElement | null>, 
       }
 
       if (action.kind === "scrub") {
-        const audioEl = useAudioStore.getState().audioElement;
-        const currentTime = audioEl?.currentTime ?? useAudioStore.getState().currentTime;
+        const currentTime = useAudioStore.getState().currentTime;
         const newTime = computeScrubTime(currentTime, normalizeWheelDelta(e.deltaY, e.deltaMode), zoom, duration);
         useAudioStore.getState().seekTo(newTime);
         const playheadX = newTime * zoom;

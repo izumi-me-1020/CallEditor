@@ -28,7 +28,7 @@ interface SyncCarouselProps {
 
 const RippleRing: React.FC<{ onComplete: () => void }> = ({ onComplete }) => (
   <m.span
-    className="absolute inset-0 rounded-[50%] border border-composer-accent/20 bg-composer-accent/20 pointer-events-none blur-sm"
+    className="absolute inset-0 rounded-[50%] border border-calleditor-accent/20 bg-calleditor-accent/20 pointer-events-none blur-sm"
     initial={{ scale: 0.8, opacity: 0.5 }}
     animate={{ scale: 2.2, opacity: 0 }}
     transition={{ duration: 0.33, ease: "easeOut" }}
@@ -64,8 +64,13 @@ const WordGranularityLine: React.FC<WordGranularityLineProps> = ({
     const isPrevLine = idx === lineIndex - 1;
     const holdActive = isHolding;
     const isCurrentHeld = holdActive && isCurrent && widx === wordIndex;
-    const isLastSyncedOnCurrent = !holdActive && isCurrent && wordIndex > 0 && widx === wordIndex - 1;
-    const isLastWordOfPrevLine = !holdActive && isPrevLine && wordIndex === 0 && widx === lineWords.length - 1;
+    const isLastSyncedOnCurrent =
+      !holdActive && isCurrent && wordIndex > 0 && widx === wordIndex - 1;
+    const isLastWordOfPrevLine =
+      !holdActive &&
+      isPrevLine &&
+      wordIndex === 0 &&
+      widx === lineWords.length - 1;
     const isLastSynced = isLastSyncedOnCurrent || isLastWordOfPrevLine;
 
     const color = isCurrentHeld
@@ -88,14 +93,25 @@ const WordGranularityLine: React.FC<WordGranularityLineProps> = ({
       >
         {word}
         <AnimatePresence>
-          {hasRipple && <RippleRing key={rippleCounter} onComplete={() => setRippleKey(null)} />}
+          {hasRipple && (
+            <RippleRing
+              key={rippleCounter}
+              onComplete={() => setRippleKey(null)}
+            />
+          )}
         </AnimatePresence>
       </m.span>
     );
   });
 };
 
-const SyncCarousel: React.FC<SyncCarouselProps> = ({ lines, lineIndex, wordIndex, granularity, isHolding = false }) => {
+const SyncCarousel: React.FC<SyncCarouselProps> = ({
+  lines,
+  lineIndex,
+  wordIndex,
+  granularity,
+  isHolding = false,
+}) => {
   const [rippleKey, setRippleKey] = useState<string | null>(null);
   const [rippleCounter, setRippleCounter] = useState(0);
   const prevHoldingRef = useRef(isHolding);
@@ -123,7 +139,10 @@ const SyncCarousel: React.FC<SyncCarouselProps> = ({ lines, lineIndex, wordIndex
   const translateY = LINE_HEIGHT - lineIndex * LINE_HEIGHT;
 
   return (
-    <div className="relative overflow-hidden" style={{ height: containerHeight }}>
+    <div
+      className="relative overflow-hidden"
+      style={{ height: containerHeight }}
+    >
       <m.div
         initial={{ y: translateY }}
         animate={{ y: translateY }}
@@ -145,7 +164,7 @@ const SyncCarousel: React.FC<SyncCarouselProps> = ({ lines, lineIndex, wordIndex
               style={{ height: LINE_HEIGHT }}
               className="flex items-center justify-center w-full shrink-0"
             >
-              <div className="flex flex-wrap items-center justify-center text-4xl font-medium gap-x-4 gap-y-3">
+              <div className="flex flex-wrap items-center justify-center px-4 text-center text-2xl font-medium gap-x-2 gap-y-2 sm:text-3xl sm:gap-x-3 md:text-4xl md:gap-x-4 md:gap-y-3">
                 {granularity === "line" ? (
                   <m.span
                     animate={{

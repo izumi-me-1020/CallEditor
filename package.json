@@ -1,12 +1,12 @@
 {
-  "name": "composer",
+  "name": "calleditor",
   "private": true,
   "version": "1.16.0",
   "type": "module",
   "scripts": {
-    "dev": "vite-react-ssg dev",
+    "dev": "node ./scripts/dev.mjs",
     "build": "tsc -b && vite-react-ssg build",
-    "preview": "vite preview",
+    "preview": "node ./scripts/preview.mjs",
     "test": "pnpm test:unit && pnpm test:component",
     "test:watch": "vitest",
     "test:unit": "vitest run --project unit",

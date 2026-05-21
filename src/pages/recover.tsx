@@ -1,15 +1,26 @@
-import { downloadRecoveryFile, readRecoveryMetadata, type RecoveryResult } from "@/lib/recovery";
+import {
+  downloadRecoveryFile,
+  readRecoveryMetadata,
+  type RecoveryResult,
+} from "@/lib/recovery";
 import { PageHead } from "@/seo/page-head";
 import { Button } from "@/ui/button";
 import { ClearRecoveryButton } from "@/ui/clear-recovery-button";
 import { ClientOnly } from "@/ui/client-only";
-import { IconCheck, IconDownload, IconHome2, IconLifebuoy, IconRefresh } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconDownload,
+  IconHome2,
+  IconLifebuoy,
+  IconRefresh,
+} from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 // -- Constants -----------------------------------------------------------------
 
-const TITLE = "Recover Your Work ・ Composer";
-const DESCRIPTION = "Grab the backup Composer saved in this browser and pick up where you left off.";
+const TITLE = "Recover Your Work ・ CallEditor";
+const DESCRIPTION =
+  "Grab the backup CallEditor saved in this browser and pick up where you left off.";
 
 // -- Helpers -------------------------------------------------------------------
 
@@ -89,71 +100,104 @@ const RecoverPanel: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-composer-bg text-composer-text flex items-center justify-center p-6 select-none">
+    <div className="min-h-screen bg-calleditor-bg text-calleditor-text flex items-center justify-center p-6 select-none">
       <div className="w-full max-w-lg flex flex-col items-center text-center gap-5">
-        <IconLifebuoy size={56} strokeWidth={1.5} className="text-composer-text opacity-50" />
+        <IconLifebuoy
+          size={56}
+          strokeWidth={1.5}
+          className="text-calleditor-text opacity-50"
+        />
 
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-2xl font-semibold text-composer-text">Recover your work</h1>
-          <p className="text-sm text-composer-text-secondary leading-relaxed">
-            Composer saves your work automatically as you go. This page grabs that backup and downloads it as a file.
-            Open Composer, head to the Export tab, and click Import Project to pick up where you left off.
+          <h1 className="text-2xl font-semibold text-calleditor-text">
+            Recover your work
+          </h1>
+          <p className="text-sm text-calleditor-text-secondary leading-relaxed">
+            CallEditor saves your work automatically as you go. This page grabs
+            that backup and downloads it as a file. Open CallEditor, head to the
+            Export tab, and click Import Project to pick up where you left off.
           </p>
         </div>
 
-        {state.phase === "reading" && <p className="text-xs text-composer-text-muted">Looking for your work…</p>}
+        {state.phase === "reading" && (
+          <p className="text-xs text-calleditor-text-muted">
+            Looking for your work…
+          </p>
+        )}
 
         {state.phase === "downloaded" && (
           <div className="flex flex-col items-center gap-2 text-sm max-w-full">
-            <p className="inline-flex items-center gap-2 text-composer-text max-w-full flex-wrap justify-center">
+            <p className="inline-flex items-center gap-2 text-calleditor-text max-w-full flex-wrap justify-center">
               <IconCheck size={16} className="text-green-400 shrink-0" />
               <span className="shrink-0">Downloaded as</span>
-              <span className="font-mono text-xs select-text" title={state.result.filename}>
+              <span
+                className="font-mono text-xs select-text"
+                title={state.result.filename}
+              >
                 {truncateMiddle(state.result.filename, 44)}
               </span>
             </p>
-            <p className="text-xs text-composer-text-muted select-text">
-              {state.result.lineCount} lines, last edited {formatSavedAt(state.result.savedAt)}
+            <p className="text-xs text-calleditor-text-muted select-text">
+              {state.result.lineCount} lines, last edited{" "}
+              {formatSavedAt(state.result.savedAt)}
             </p>
           </div>
         )}
 
         {state.phase === "ready" && (
           <div className="flex flex-col items-center gap-2 text-sm">
-            <p className="text-composer-text">We found your last session.</p>
-            <p className="text-xs text-composer-text-muted select-text">
-              {state.result.lineCount} lines, last edited {formatSavedAt(state.result.savedAt)}
+            <p className="text-calleditor-text">We found your last session.</p>
+            <p className="text-xs text-calleditor-text-muted select-text">
+              {state.result.lineCount} lines, last edited{" "}
+              {formatSavedAt(state.result.savedAt)}
             </p>
           </div>
         )}
 
         {state.phase === "empty" && (
-          <p className="text-sm text-composer-text-secondary">
-            Nothing saved in this browser yet. If you were working in a different browser or profile, open this page
-            there instead.
+          <p className="text-sm text-calleditor-text-secondary">
+            Nothing saved in this browser yet. If you were working in a
+            different browser or profile, open this page there instead.
           </p>
         )}
 
         {state.phase === "failed" && (
           <div className="flex flex-col items-center gap-2 text-sm">
-            <p className="text-composer-error-text">Something went wrong while trying to find your work.</p>
-            <p className="text-xs font-mono text-composer-text-muted select-text break-all max-w-md">{state.message}</p>
+            <p className="text-calleditor-error-text">
+              Something went wrong while trying to find your work.
+            </p>
+            <p className="text-xs font-mono text-calleditor-text-muted select-text break-all max-w-md">
+              {state.message}
+            </p>
           </div>
         )}
 
         <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
           {state.phase !== "empty" && (
-            <Button variant="primary" hasIcon onClick={handleDownloadAgain} disabled={state.phase === "reading"}>
+            <Button
+              variant="primary"
+              hasIcon
+              onClick={handleDownloadAgain}
+              disabled={state.phase === "reading"}
+            >
               <IconDownload size={16} />
               {state.phase === "downloaded" ? "Download again" : "Download"}
             </Button>
           )}
-          <Button variant="secondary" hasIcon onClick={() => window.location.assign("/")}>
+          <Button
+            variant="secondary"
+            hasIcon
+            onClick={() => window.location.assign("/")}
+          >
             <IconHome2 size={16} />
-            Back to Composer
+            Back to CallEditor
           </Button>
           {state.phase === "failed" && (
-            <Button variant="ghost" hasIcon onClick={() => window.location.reload()}>
+            <Button
+              variant="ghost"
+              hasIcon
+              onClick={() => window.location.reload()}
+            >
               <IconRefresh size={16} />
               Retry
             </Button>
@@ -162,8 +206,8 @@ const RecoverPanel: React.FC = () => {
 
         {state.phase === "downloaded" && (
           <ClearRecoveryButton
-            hint="Use this if Composer keeps crashing on the same project. Wipes the autosave so the app opens fresh. Make sure your download succeeded first."
-            clearedMessage="Cleared. Open Composer to start fresh."
+            hint="Use this if CallEditor keeps crashing on the same project. Wipes the autosave so the app opens fresh. Make sure your download succeeded first."
+            clearedMessage="Cleared. Open CallEditor to start fresh."
           />
         )}
       </div>
@@ -174,7 +218,7 @@ const RecoverPanel: React.FC = () => {
 // -- Page ----------------------------------------------------------------------
 
 const RecoverFallback: React.FC = () => (
-  <div className="flex items-center justify-center h-screen bg-composer-bg text-composer-text-muted text-sm">
+  <div className="flex items-center justify-center h-screen bg-calleditor-bg text-calleditor-text-muted text-sm">
     Looking for your work…
   </div>
 );

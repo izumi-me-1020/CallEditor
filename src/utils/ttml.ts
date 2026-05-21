@@ -12,8 +12,11 @@ function escapeXml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 }
 
-function emitWordSpan(word: { text: string; begin: number; end: number; explicit?: true }, text: string): string {
-  const explicitAttr = word.explicit ? ' composer:explicit="true"' : "";
+function emitWordSpan(
+  word: { text: string; begin: number; end: number; explicit?: true },
+  text: string,
+): string {
+  const explicitAttr = word.explicit ? ' calleditor:explicit="true"' : "";
   return `<span begin="${formatTime(word.begin)}" end="${formatTime(word.end)}"${explicitAttr}>${escapeXml(text)}</span>`;
 }
 
@@ -29,17 +32,27 @@ interface TTMLOptions {
   duration?: number;
 }
 
-function generateTTML({ metadata, agents, lines, groups, granularity, minify = false, duration }: TTMLOptions): string {
+function generateTTML({
+  metadata,
+  agents,
+  lines,
+  groups,
+  granularity,
+  minify = false,
+  duration,
+}: TTMLOptions): string {
   const nl = minify ? "" : "\n";
   const ind = (n: number) => (minify ? "" : "  ".repeat(n));
 
-  const effectiveGranularity = lines.some((l) => l.words?.length) ? "word" : "line";
+  const effectiveGranularity = lines.some((l) => l.words?.length)
+    ? "word"
+    : "line";
 
   const parts: string[] = [];
 
   // Root element with namespaces
   parts.push(
-    `<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:composer="https://composer.boidu.dev/ttml" ttp:timeBase="media" xml:lang="${escapeXml(metadata.language || "en")}" composer:timing="${effectiveGranularity === "word" ? "Word" : "Line"}">`,
+    `<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:calleditor="https://calleditor.izumy.me/ttml" ttp:timeBase="media" xml:lang="${escapeXml(metadata.language || "en")}" calleditor:timing="${effectiveGranularity === "word" ? "Word" : "Line"}">`,
   );
 
   // Head section
@@ -50,21 +63,25 @@ function generateTTML({ metadata, agents, lines, groups, granularity, minify = f
   }
   for (const agent of agents) {
     if (agent.name) {
-      parts.push(`${ind(3)}<ttm:agent xml:id="${escapeXml(agent.id)}" type="${agent.type}">`);
+      parts.push(
+        `${ind(3)}<ttm:agent xml:id="${escapeXml(agent.id)}" type="${agent.type}">`,
+      );
       parts.push(`${ind(4)}<ttm:name>${escapeXml(agent.name)}</ttm:name>`);
       parts.push(`${ind(3)}</ttm:agent>`);
     } else {
-      parts.push(`${ind(3)}<ttm:agent xml:id="${escapeXml(agent.id)}" type="${agent.type}"/>`);
+      parts.push(
+        `${ind(3)}<ttm:agent xml:id="${escapeXml(agent.id)}" type="${agent.type}"/>`,
+      );
     }
   }
   if (groups && groups.length > 0) {
-    parts.push(`${ind(3)}<composer:groups>`);
+    parts.push(`${ind(3)}<calleditor:groups>`);
     for (const g of groups) {
       parts.push(
-        `${ind(4)}<composer:group id="${escapeXml(g.id)}" label="${escapeXml(g.label)}" color="${escapeXml(g.color)}" templateVersion="${g.templateVersion}"/>`,
+        `${ind(4)}<calleditor:group id="${escapeXml(g.id)}" label="${escapeXml(g.label)}" color="${escapeXml(g.color)}" templateVersion="${g.templateVersion}"/>`,
       );
     }
-    parts.push(`${ind(3)}</composer:groups>`);
+    parts.push(`${ind(3)}</calleditor:groups>`);
   }
   parts.push(`${ind(2)}</metadata>`);
   parts.push(`${ind(1)}</head>`);
@@ -78,9 +95,11 @@ function generateTTML({ metadata, agents, lines, groups, granularity, minify = f
     const timing = effectiveBounds(line);
     if (!timing) continue;
 
-    const agentAttr = line.agentId ? ` ttm:agent="${escapeXml(line.agentId)}"` : "";
+    const agentAttr = line.agentId
+      ? ` ttm:agent="${escapeXml(line.agentId)}"`
+      : "";
     const groupAttr = line.groupId
-      ? ` composer:groupId="${escapeXml(line.groupId)}" composer:instanceIdx="${line.instanceIdx ?? 0}" composer:templateLineIdx="${line.templateLineIdx ?? 0}"${line.detached ? ' composer:detached="true"' : ""}`
+      ? ` calleditor:groupId="${escapeXml(line.groupId)}" calleditor:instanceIdx="${line.instanceIdx ?? 0}" calleditor:templateLineIdx="${line.templateLineIdx ?? 0}"${line.detached ? ' calleditor:detached="true"' : ""}`
       : "";
     let content = "";
 

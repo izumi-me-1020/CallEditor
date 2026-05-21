@@ -1,4 +1,5 @@
 import { useAudioStore } from "@/stores/audio";
+import { useAppLanguage } from "@/lib/i18n";
 import { useSettingsStore } from "@/stores/settings";
 import { SliderSetting, ToggleSetting } from "@/ui/settings/setting-controls";
 
@@ -7,12 +8,13 @@ import { SliderSetting, ToggleSetting } from "@/ui/settings/setting-controls";
 const PlaybackSection: React.FC = () => {
   const set = useSettingsStore((s) => s.set);
   const hasAudio = useAudioStore((s) => s.source !== null);
+  const { t } = useAppLanguage();
 
   return (
-    <div className="divide-y divide-composer-border">
+    <div className="divide-y divide-calleditor-border">
       <SliderSetting
-        label="Default playback rate"
-        description="Starting playback speed when audio is loaded."
+        label={t("settings.playback.defaultRate.label")}
+        description={t("settings.playback.defaultRate.description")}
         settingKey="defaultPlaybackRate"
         min={0.25}
         max={2}
@@ -21,15 +23,19 @@ const PlaybackSection: React.FC = () => {
         action={
           hasAudio
             ? {
-                label: "Use current",
-                onClick: () => set("defaultPlaybackRate", useAudioStore.getState().playbackRate),
+                label: t("settings.useCurrent"),
+                onClick: () =>
+                  set(
+                    "defaultPlaybackRate",
+                    useAudioStore.getState().playbackRate,
+                  ),
               }
             : undefined
         }
       />
       <ToggleSetting
-        label="Remember volume"
-        description="Keep your volume level between sessions."
+        label={t("settings.playback.rememberVolume.label")}
+        description={t("settings.playback.rememberVolume.description")}
         settingKey="rememberVolume"
       />
     </div>

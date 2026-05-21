@@ -25,14 +25,21 @@ const ACCEPTED_AUDIO_TYPES = [
 
 // -- Component ----------------------------------------------------------------
 
-const FileDropZone: React.FC<FileDropZoneProps> = ({ accept, onFileDrop, children }) => {
+const FileDropZone: React.FC<FileDropZoneProps> = ({
+  accept,
+  onFileDrop,
+  children,
+}) => {
   const [isDragging, setIsDragging] = useState(false);
   const inputId = "file-drop-input";
   const dragCountRef = useRef(0);
 
   const handleFile = useCallback(
     (file: File) => {
-      if (ACCEPTED_AUDIO_TYPES.includes(file.type) || file.name.match(/\.(mp3|wav|m4a|ogg|flac)$/i)) {
+      if (
+        ACCEPTED_AUDIO_TYPES.includes(file.type) ||
+        file.name.match(/\.(mp3|wav|m4a|ogg|flac)$/i)
+      ) {
         onFileDrop(file);
       }
     },
@@ -96,11 +103,17 @@ const FileDropZone: React.FC<FileDropZoneProps> = ({ accept, onFileDrop, childre
       onDrop={handleDrop}
       className={`size-full flex cursor-pointer flex-col items-center justify-center p-8 transition-colors ${
         isDragging
-          ? "border-composer-accent bg-composer-accent/10"
-          : "border-composer-border hover:border-composer-border-hover"
+          ? "border-calleditor-accent bg-calleditor-accent/10"
+          : "border-calleditor-border hover:border-calleditor-border-hover"
       }`}
     >
-      <input id={inputId} type="file" accept={accept} onChange={handleInputChange} className="sr-only" />
+      <input
+        id={inputId}
+        type="file"
+        accept={accept}
+        onChange={handleInputChange}
+        className="sr-only"
+      />
       {children}
     </label>
   );

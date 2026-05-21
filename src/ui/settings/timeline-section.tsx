@@ -1,3 +1,4 @@
+import { useAppLanguage } from "@/lib/i18n";
 import { useSettingsStore } from "@/stores/settings";
 import { SliderSetting, ToggleSetting } from "@/ui/settings/setting-controls";
 import { useTimelineStore } from "@/views/timeline/timeline-store";
@@ -6,43 +7,48 @@ import { useTimelineStore } from "@/views/timeline/timeline-store";
 
 const TimelineSection: React.FC = () => {
   const set = useSettingsStore((s) => s.set);
+  const { t } = useAppLanguage();
 
   return (
-    <div className="divide-y divide-composer-border">
+    <div className="divide-y divide-calleditor-border">
       <SliderSetting
-        label="Default zoom"
-        description="Initial zoom level (px/sec) when opening the timeline."
+        label={t("settings.timeline.defaultZoom.label")}
+        description={t("settings.timeline.defaultZoom.description")}
         settingKey="defaultZoom"
         min={20}
         max={500}
         step={20}
         format={(v) => `${v} px/s`}
         action={{
-          label: "Use current",
+          label: t("settings.useCurrent"),
           onClick: () => set("defaultZoom", useTimelineStore.getState().zoom),
         }}
       />
       <SliderSetting
-        label="Default row height"
-        description="Starting height of each lyric row in the timeline."
+        label={t("settings.timeline.defaultRowHeight.label")}
+        description={t("settings.timeline.defaultRowHeight.description")}
         settingKey="defaultRowHeight"
         min={32}
         max={120}
         step={4}
         format={(v) => `${v}px`}
         action={{
-          label: "Use current",
-          onClick: () => set("defaultRowHeight", useTimelineStore.getState().defaultRowHeight),
+          label: t("settings.useCurrent"),
+          onClick: () =>
+            set(
+              "defaultRowHeight",
+              useTimelineStore.getState().defaultRowHeight,
+            ),
         }}
       />
       <ToggleSetting
-        label="Snap (magnet)"
-        description="Word edges snap to nearby anchors when dragging or resizing."
+        label={t("settings.timeline.snap.label")}
+        description={t("settings.timeline.snap.description")}
         settingKey="timelineSnap"
       />
       <SliderSetting
-        label="Snap threshold"
-        description="Distance (in pixels) at which the moving block locks onto an anchor."
+        label={t("settings.timeline.snapThreshold.label")}
+        description={t("settings.timeline.snapThreshold.description")}
         settingKey="timelineSnapThreshold"
         min={4}
         max={24}
@@ -50,13 +56,13 @@ const TimelineSection: React.FC = () => {
         format={(v) => `${v}px`}
       />
       <ToggleSetting
-        label="Follow playhead"
-        description="Auto-scroll the timeline to keep the playhead visible."
+        label={t("settings.timeline.follow.label")}
+        description={t("settings.timeline.follow.description")}
         settingKey="followPlayhead"
       />
       <ToggleSetting
-        label="Scroll wheel scrolls timeline"
-        description="Plain scroll moves the timeline horizontally. Hold Shift to scroll vertically."
+        label={t("settings.timeline.horizontalScroll.label")}
+        description={t("settings.timeline.horizontalScroll.description")}
         settingKey="timelineHorizontalScroll"
       />
     </div>

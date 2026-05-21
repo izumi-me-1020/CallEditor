@@ -1,4 +1,5 @@
 import { useAudioStore } from "@/stores/audio";
+import { useAppLanguage } from "@/lib/i18n";
 import { useProjectStore } from "@/stores/project";
 import { useSettingsStore } from "@/stores/settings";
 import { Button } from "@/ui/button";
@@ -7,7 +8,10 @@ import { generateTTML } from "@/utils/ttml";
 import { AmLyricsRenderer } from "@/views/preview/am-lyrics-renderer";
 import { BraccatoRenderer } from "@/views/preview/braccato-renderer";
 import { effectiveBounds } from "@/domain/line/bounds";
-import { IconPlayerPauseFilled, IconPlayerPlayFilled } from "@tabler/icons-react";
+import {
+  IconPlayerPauseFilled,
+  IconPlayerPlayFilled,
+} from "@tabler/icons-react";
 import { useMemo } from "react";
 
 // -- Components ---------------------------------------------------------------
@@ -23,6 +27,7 @@ const PreviewPanel: React.FC = () => {
   const isPlaying = useAudioStore((s) => s.isPlaying);
   const setIsPlaying = useAudioStore((s) => s.setIsPlaying);
   const renderer = useSettingsStore((s) => s.previewRenderer);
+  const { t } = useAppLanguage();
 
   const hasSyncedContent = useMemo(() => {
     return lines.some((line) => effectiveBounds(line) !== null);
@@ -30,13 +35,31 @@ const PreviewPanel: React.FC = () => {
 
   const ttmlString = useMemo(() => {
     if (!hasSyncedContent) return null;
-    return generateTTML({ metadata, agents, lines, groups, granularity, duration });
-  }, [metadata, agents, lines, groups, granularity, duration, hasSyncedContent]);
+    return generateTTML({
+      metadata,
+      agents,
+      lines,
+      groups,
+      granularity,
+      duration,
+    });
+  }, [
+    metadata,
+    agents,
+    lines,
+    groups,
+    granularity,
+    duration,
+    hasSyncedContent,
+  ]);
 
   if (!source) {
     return (
       <div className="flex flex-col flex-1 p-4">
-        <EmptyState message="No audio loaded" hint="Import audio in the Import tab first" />
+        <EmptyState
+          message={t("preview.empty.noAudio")}
+          hint={t("preview.empty.noAudioHint")}
+        />
       </div>
     );
   }
@@ -44,7 +67,10 @@ const PreviewPanel: React.FC = () => {
   if (lines.length === 0) {
     return (
       <div className="flex flex-col flex-1 p-4">
-        <EmptyState message="No lyrics to preview" hint="Add lyrics in the Edit tab first" />
+        <EmptyState
+          message={t("preview.empty.noLyrics")}
+          hint={t("preview.empty.noLyricsHint")}
+        />
       </div>
     );
   }
@@ -52,18 +78,33 @@ const PreviewPanel: React.FC = () => {
   if (!hasSyncedContent || !ttmlString) {
     return (
       <div className="flex flex-col flex-1 p-4">
-        <EmptyState message="No synced content" hint="Sync lyrics in the Sync tab first" />
+        <EmptyState
+          message={t("preview.empty.noSynced")}
+          hint={t("preview.empty.noSyncedHint")}
+        />
       </div>
     );
   }
 
   return (
-    <div data-tour="preview-panel" className="flex flex-col flex-1 overflow-hidden select-none">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-composer-border">
-        <h2 className="text-lg font-medium">Preview</h2>
-        <Button variant="primary" hasIcon onClick={() => setIsPlaying(!isPlaying)}>
-          {isPlaying ? <IconPlayerPauseFilled className="size-4" /> : <IconPlayerPlayFilled className="size-4" />}
-          {isPlaying ? "Pause" : "Play"}
+    <div
+      data-tour="preview-panel"
+      className="flex flex-col flex-1 overflow-hidden select-none"
+    >
+      <div className="flex flex-col gap-3 px-4 py-4 border-b border-calleditor-border md:flex-row md:items-center md:justify-between md:px-6">
+        <h2 className="text-lg font-medium">{t("preview.title")}</h2>
+        <Button
+          variant="primary"
+          hasIcon
+          onClick={() => setIsPlaying(!isPlaying)}
+          className="w-full justify-center md:w-auto"
+        >
+          {isPlaying ? (
+            <IconPlayerPauseFilled className="size-4" />
+          ) : (
+            <IconPlayerPlayFilled className="size-4" />
+          )}
+          {isPlaying ? t("preview.pause") : t("preview.play")}
         </Button>
       </div>
 

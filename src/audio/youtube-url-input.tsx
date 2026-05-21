@@ -1,5 +1,6 @@
 import { IconBrandYoutube, IconLoader2 } from "@tabler/icons-react";
 import { useCallback, useState } from "react";
+import { useAppLanguage } from "@/lib/i18n";
 import { useLoadYouTubeSource } from "@/hooks/useLoadYouTubeSource";
 import { useAudioStore } from "@/stores/audio";
 import { Button } from "@/ui/button";
@@ -13,24 +14,26 @@ interface YouTubeUrlInputProps {
 }
 
 const YouTubeUrlInput: React.FC<YouTubeUrlInputProps> = ({
-  placeholder = "Paste YouTube URL or video ID",
+  placeholder,
   className,
 }) => {
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const isLoading = useAudioStore((s) => s.isLoading);
   const loadYouTubeSource = useLoadYouTubeSource();
+  const { t } = useAppLanguage();
+  const effectivePlaceholder = placeholder ?? t("youtube.placeholder");
 
   const handleSubmit = useCallback(async () => {
     const videoId = extractVideoId(value);
     if (!videoId) {
-      setError("That doesn't look like a valid YouTube URL or ID");
+      setError(t("youtube.invalid"));
       return;
     }
     setError(null);
     await loadYouTubeSource(videoId);
     setValue("");
-  }, [value, loadYouTubeSource]);
+  }, [value, loadYouTubeSource, t]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -44,7 +47,7 @@ const YouTubeUrlInput: React.FC<YouTubeUrlInputProps> = ({
 
   return (
     <div className={`flex flex-col gap-1.5 w-full max-w-md ${className ?? ""}`}>
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="text"
           value={value}
@@ -53,16 +56,26 @@ const YouTubeUrlInput: React.FC<YouTubeUrlInputProps> = ({
             if (error) setError(null);
           }}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={effectivePlaceholder}
           disabled={isLoading}
           spellCheck={false}
           autoCapitalize="off"
           autoComplete="off"
-          className="flex-1 h-8 px-3 text-sm rounded-md bg-composer-input border border-composer-border focus:outline-none focus:border-composer-accent cursor-text disabled:opacity-50 select-text"
+          className="flex-1 h-8 px-3 text-sm py-2 sm:py-0 rounded-md bg-calleditor-input border border-calleditor-border focus:outline-none focus:border-calleditor-accent cursor-text disabled:opacity-50 select-text"
         />
-        <Button variant="primary" hasIcon onClick={handleSubmit} disabled={isLoading || trimmed.length === 0}>
-          {isLoading ? <IconLoader2 size={16} className="animate-spin" /> : <IconBrandYoutube size={16} />}
-          {isLoading ? "Loading" : "Load"}
+        <Button
+          variant="primary"
+          hasIcon
+          onClick={handleSubmit}
+          disabled={isLoading || trimmed.length === 0}
+          className="justify-center"
+        >
+          {isLoading ? (
+            <IconLoader2 size={16} className="animate-spin" />
+          ) : (
+            <IconBrandYoutube size={16} />
+          )}
+          {isLoading ? t("youtube.loading") : t("youtube.load")}
         </Button>
       </div>
       {error && <p className="text-xs text-red-400 select-text">{error}</p>}

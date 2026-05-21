@@ -1,14 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { clearRecoveryStorage, downloadRecoveryFile, readRecoveryMetadata } from "@/lib/recovery";
+import {
+  clearRecoveryStorage,
+  downloadRecoveryFile,
+  readRecoveryMetadata,
+} from "@/lib/recovery";
 import { seedProject } from "@/test/idb";
 
 // -- Helpers ------------------------------------------------------------------
 
-const DB_NAME = "ttml-composer";
+const DB_NAME = "ttml-calleditor";
 const STORE_NAME = "projects";
 const CURRENT_KEY = "current";
 
-function captureDownload(): { resolve: () => Promise<{ filename: string; size: number }>; cleanup: () => void } {
+function captureDownload(): {
+  resolve: () => Promise<{ filename: string; size: number }>;
+  cleanup: () => void;
+} {
   let captured: { filename: string; size: number } | null = null;
   const originalCreate = document.createElement.bind(document);
   const originalAppend = document.body.appendChild.bind(document.body);
@@ -77,7 +84,9 @@ describe("recovery", () => {
       expect(result.title).toBe("Drift");
       expect(result.lineCount).toBe(3);
       expect(result.savedAt).toBe(1715000000000);
-      expect(result.filename).toMatch(/^Drift-\d{4}-\d{2}-\d{2}\.ttml-project\.json$/);
+      expect(result.filename).toMatch(
+        /^Drift-\d{4}-\d{2}-\d{2}\.ttml-project\.json$/,
+      );
     });
 
     it("falls back to 'recovered' when metadata.title is missing or empty", async () => {
@@ -101,7 +110,9 @@ describe("recovery", () => {
         const result = await downloadRecoveryFile();
         expect(result.found).toBe(true);
         const dl = await capture.resolve();
-        expect(dl.filename).toMatch(/^Drift-\d{4}-\d{2}-\d{2}\.ttml-project\.json$/);
+        expect(dl.filename).toMatch(
+          /^Drift-\d{4}-\d{2}-\d{2}\.ttml-project\.json$/,
+        );
         expect(dl.size).toBeGreaterThan(0);
       } finally {
         capture.cleanup();
@@ -146,7 +157,10 @@ describe("recovery", () => {
           const db = open.result;
           expect(db.objectStoreNames.contains(STORE_NAME)).toBe(true);
           const tx = db.transaction(STORE_NAME, "readwrite");
-          tx.objectStore(STORE_NAME).put({ version: 1, lines: [], metadata: { title: "After" } }, CURRENT_KEY);
+          tx.objectStore(STORE_NAME).put(
+            { version: 1, lines: [], metadata: { title: "After" } },
+            CURRENT_KEY,
+          );
           tx.oncomplete = () => {
             db.close();
             resolve();

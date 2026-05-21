@@ -15,7 +15,11 @@ interface GutterAgentPickerProps {
 
 // -- Component ----------------------------------------------------------------
 
-const GutterAgentPicker: React.FC<GutterAgentPickerProps> = ({ lineId, lineIndex, agentId }) => {
+const GutterAgentPicker: React.FC<GutterAgentPickerProps> = ({
+  lineId,
+  lineIndex,
+  agentId,
+}) => {
   const agents = useProjectStore((s) => s.agents);
   const addAgent = useProjectStore((s) => s.addAgent);
   const updateLineWithHistory = useProjectStore((s) => s.updateLineWithHistory);
@@ -69,13 +73,17 @@ const GutterAgentPicker: React.FC<GutterAgentPickerProps> = ({ lineId, lineIndex
             });
           }}
         >
-          <span className="text-xs text-composer-text-muted tabular-nums">{lineIndex + 1}</span>
+          <span className="text-xs text-calleditor-text-muted tabular-nums">
+            {lineIndex + 1}
+          </span>
         </button>
       }
     >
       {(close) => (
         <div className="w-48 p-2">
-          <p className="px-2 mb-1 text-xs text-composer-text-muted">Assign agent</p>
+          <p className="px-2 mb-1 text-xs text-calleditor-text-muted">
+            Assign agent
+          </p>
           <div className="flex flex-col gap-px">
             {agents.map((agent) => {
               const agentColor = getAgentColor(agent.id);
@@ -87,17 +95,20 @@ const GutterAgentPicker: React.FC<GutterAgentPickerProps> = ({ lineId, lineIndex
                   onClick={() => handleAssign(agent.id, close)}
                   className={`w-full text-left px-2 py-1 text-sm cursor-pointer rounded-md flex items-center gap-2 transition-colors ${
                     isActive
-                      ? "bg-composer-accent/15 text-composer-text"
-                      : "text-composer-text hover:bg-composer-button"
+                      ? "bg-calleditor-accent/15 text-calleditor-text"
+                      : "text-calleditor-text hover:bg-calleditor-button"
                   }`}
                 >
-                  <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: agentColor }} />
+                  <span
+                    className="size-2 rounded-full shrink-0"
+                    style={{ backgroundColor: agentColor }}
+                  />
                   {agent.name || agent.id}
                 </button>
               );
             })}
           </div>
-          <div className="mt-2 pt-2 border-t border-composer-border">
+          <div className="mt-2 pt-2 border-t border-calleditor-border">
             <div className="flex gap-1">
               <input
                 type="text"
@@ -108,13 +119,13 @@ const GutterAgentPicker: React.FC<GutterAgentPickerProps> = ({ lineId, lineIndex
                   if (e.key === "Enter") handleAddNew(close);
                 }}
                 placeholder="New agent name"
-                className="flex-1 px-2 py-1 text-xs rounded bg-composer-input border border-composer-border focus:outline-none focus:border-composer-accent"
+                className="flex-1 px-2 py-1 text-xs rounded bg-calleditor-input border border-calleditor-border focus:outline-none focus:border-calleditor-accent"
               />
               <button
                 type="button"
                 onClick={() => handleAddNew(close)}
                 disabled={!newAgentName.trim()}
-                className="p-1 rounded cursor-pointer text-composer-text-muted hover:text-composer-text hover:bg-composer-button disabled:opacity-30"
+                className="p-1 rounded cursor-pointer text-calleditor-text-muted hover:text-calleditor-text hover:bg-calleditor-button disabled:opacity-30"
               >
                 <IconPlus size={14} />
               </button>

@@ -27,7 +27,9 @@ const LOG_PREFIX = "[CobaltAPI]";
 const ERROR_MESSAGES: Record<string, string> = {
   turnstile_failed: "Verification failed, refresh and try again",
   turnstile_missing: "Verification token is missing",
+  turnstile_unconfigured: "Turnstile site key is not configured for this build",
   invalid_origin: "This site is not allowed to make this request",
+  forbidden_origin: "This site is not allowed to make this request",
   invalid_video_id: "That doesn't look like a valid YouTube video",
   rate_limited: "Too many requests, wait a minute and try again",
   ip_mismatch: "Your network changed, refresh to continue",
@@ -39,10 +41,15 @@ const ERROR_MESSAGES: Record<string, string> = {
   bot_detection: "YouTube is rate-limiting, try again later",
   network_error: "Network error, check your connection",
   too_long: "This video is too long for the selected cobalt instance",
-  picker_unsupported: "This URL returned multiple items, which Composer can't import",
+  picker_unsupported:
+    "This URL returned multiple items, which CallEditor can't import",
   bad_response: "The cobalt instance returned an unexpected response",
-  empty_audio: "The cobalt instance returned an empty file, try a different instance",
-  auth_required: "This cobalt instance requires authentication that Composer doesn't support",
+  empty_audio:
+    "The cobalt instance returned an empty file, try a different instance",
+  auth_required:
+    "This cobalt instance requires authentication that CallEditor doesn't support",
+  local_helper_unavailable: "Local YouTube import helper is unavailable",
+  local_import_failed: "Local YouTube import failed",
   unknown: "Something went wrong, try again",
 };
 
@@ -67,7 +74,8 @@ function mapError(code: string): string {
 }
 
 function baseUrl(): string {
-  const url = getActiveCobaltInstance().url || import.meta.env.VITE_COBALT_API_URL;
+  const url =
+    getActiveCobaltInstance().url || import.meta.env.VITE_COBALT_API_URL;
   if (!url) {
     throw new Error(`${LOG_PREFIX} no Cobalt instance configured`);
   }
@@ -104,9 +112,12 @@ async function getSession(turnstileToken: string): Promise<SessionResponse> {
 async function getAudio(videoId: string, jwt: string): Promise<AudioResponse> {
   let res: Response;
   try {
-    res = await fetch(`${baseUrl()}/api/audio?youtube=${encodeURIComponent(videoId)}`, {
-      headers: { authorization: `Bearer ${jwt}` },
-    });
+    res = await fetch(
+      `${baseUrl()}/api/audio?youtube=${encodeURIComponent(videoId)}`,
+      {
+        headers: { authorization: `Bearer ${jwt}` },
+      },
+    );
   } catch (err) {
     console.error(LOG_PREFIX, "audio fetch failed", err);
     throw new CobaltApiError("network_error", 0);
@@ -130,9 +141,20 @@ function mapStandardCobaltErrorCode(code: string): string {
   if (code.includes("rate")) return "rate_limited";
   if (code.includes("region") || code.includes("geo")) return "geo_blocked";
   if (code.includes("too_long")) return "too_long";
-  if (code.includes("unavailable") || code.includes("private") || code.includes("empty")) return "video_unavailable";
-  if (code.includes("link.invalid") || code.includes("link.unsupported")) return "invalid_video_id";
-  if (code.includes("bot") || code.includes("captcha") || code.includes("login")) return "bot_detection";
+  if (
+    code.includes("unavailable") ||
+    code.includes("private") ||
+    code.includes("empty")
+  )
+    return "video_unavailable";
+  if (code.includes("link.invalid") || code.includes("link.unsupported"))
+    return "invalid_video_id";
+  if (
+    code.includes("bot") ||
+    code.includes("captcha") ||
+    code.includes("login")
+  )
+    return "bot_detection";
   return "cobalt_failed";
 }
 
@@ -166,7 +188,10 @@ function parseStandardCobaltResponse(body: unknown): AudioResponse {
 
   return {
     tunnelUrl: payload.url,
-    filename: typeof payload.filename === "string" ? stripFilenameExtension(payload.filename) : undefined,
+    filename:
+      typeof payload.filename === "string"
+        ? stripFilenameExtension(payload.filename)
+        : undefined,
   };
 }
 
@@ -174,12 +199,17 @@ function buildYouTubeUrl(videoId: string): string {
   return `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
 }
 
-async function getAudioFromStandardCobalt(videoId: string): Promise<AudioResponse> {
+async function getAudioFromStandardCobalt(
+  videoId: string,
+): Promise<AudioResponse> {
   let res: Response;
   try {
     res = await fetch(`${baseUrl()}/`, {
       method: "POST",
-      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         url: buildYouTubeUrl(videoId),
         downloadMode: "audio",
@@ -209,10 +239,15 @@ interface ToastErrorContext {
 }
 
 function switchSuffix(ctx: ToastErrorContext): string {
-  return ctx.isDefault ? "" : " Try a different cobalt instance from Settings → Advanced.";
+  return ctx.isDefault
+    ? ""
+    : " Try a different cobalt instance from Settings → Advanced.";
 }
 
-function formatCobaltErrorForToast(err: unknown, ctx: ToastErrorContext): string {
+function formatCobaltErrorForToast(
+  err: unknown,
+  ctx: ToastErrorContext,
+): string {
   if (!(err instanceof CobaltApiError)) return "Couldn't load YouTube audio.";
 
   const { isDefault, instanceLabel } = ctx;
@@ -232,7 +267,7 @@ function formatCobaltErrorForToast(err: unknown, ctx: ToastErrorContext): string
 
     case "bot_detection":
       return isDefault
-        ? "YouTube is rate-limiting Composer right now. Try again in a few minutes."
+        ? "YouTube is rate-limiting CallEditor right now. Try again in a few minutes."
         : `YouTube is blocking ${instanceLabel} as a bot.${switchHint}`;
 
     case "geo_blocked":
@@ -251,16 +286,28 @@ function formatCobaltErrorForToast(err: unknown, ctx: ToastErrorContext): string
         : `${instanceLabel} won't process videos this long.${switchHint}`;
 
     case "auth_required":
-      return `${instanceLabel} requires authentication that Composer doesn't support.${switchHint}`;
+      return `${instanceLabel} requires authentication that CallEditor doesn't support.${switchHint}`;
+
+    case "local_helper_unavailable":
+      return "Local YouTube import isn't available. Make sure pnpm dev started the yt-dlp helper and yt-dlp is installed.";
+
+    case "local_import_failed":
+      return "Local yt-dlp couldn't extract audio for this video. Try another video or check the helper logs.";
 
     case "invalid_origin":
+    case "forbidden_origin":
       return `${instanceLabel} doesn't allow requests from this site.${switchHint}`;
+
+    case "turnstile_unconfigured":
+      return isDefault
+        ? "YouTube import isn't configured for this build. Set VITE_TURNSTILE_SITEKEY or use a custom cobalt instance."
+        : `${instanceLabel} requires authentication that this build doesn't provide.${switchHint}`;
 
     case "video_unavailable":
       return "YouTube marks this video as private, removed, or age-restricted.";
 
     case "picker_unsupported":
-      return "This URL returns multiple items, which Composer can't import.";
+      return "This URL returns multiple items, which CallEditor can't import.";
 
     case "invalid_video_id":
       return "That doesn't look like a valid YouTube video.";

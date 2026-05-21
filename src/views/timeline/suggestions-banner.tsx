@@ -53,11 +53,11 @@ interface SuggestionsModalProps<T extends { fingerprint: string }> {
 
 // -- Components ----------------------------------------------------------------
 
-const AcceptButton: React.FC<{ action: SuggestionAction; label: string; onClick: () => void }> = ({
-  action,
-  label,
-  onClick,
-}) => {
+const AcceptButton: React.FC<{
+  action: SuggestionAction;
+  label: string;
+  onClick: () => void;
+}> = ({ action, label, onClick }) => {
   const Icon = action.icon;
   return (
     <Button size="sm" variant="primary" hasIcon onClick={onClick}>
@@ -67,13 +67,24 @@ const AcceptButton: React.FC<{ action: SuggestionAction; label: string; onClick:
   );
 };
 
-const DismissButton: React.FC<{ label: string; onClick: () => void }> = ({ label, onClick }) => (
-  <Button size="icon" variant="ghost" onClick={onClick} className="size-7" aria-label={label}>
+const DismissButton: React.FC<{ label: string; onClick: () => void }> = ({
+  label,
+  onClick,
+}) => (
+  <Button
+    size="icon"
+    variant="ghost"
+    onClick={onClick}
+    className="size-7"
+    aria-label={label}
+  >
     <IconX className="size-4" />
   </Button>
 );
 
-function SuggestionsBanner<T extends { fingerprint: string }>(props: SuggestionsBannerProps<T>): React.ReactNode {
+function SuggestionsBanner<T extends { fingerprint: string }>(
+  props: SuggestionsBannerProps<T>,
+): React.ReactNode {
   const {
     suggestions,
     dismissed,
@@ -98,14 +109,16 @@ function SuggestionsBanner<T extends { fingerprint: string }>(props: Suggestions
 
   const visible = useMemo(() => {
     const dismissedSet = new Set(dismissed);
-    return suggestions.filter((suggestion) => !dismissedSet.has(suggestion.fingerprint));
+    return suggestions.filter(
+      (suggestion) => !dismissedSet.has(suggestion.fingerprint),
+    );
   }, [suggestions, dismissed]);
 
   if (visible.length === 0 && modalOpen) setModalOpen(false);
 
   if (visible.length === 0) return null;
 
-  const shellClass = `flex items-center justify-between gap-3 px-4 py-2 border-b border-composer-border ${accentClass} text-sm`;
+  const shellClass = `flex items-center justify-between gap-3 px-4 py-2 border-b border-calleditor-border ${accentClass} text-sm`;
 
   return (
     <>
@@ -113,24 +126,42 @@ function SuggestionsBanner<T extends { fingerprint: string }>(props: Suggestions
         <div className={shellClass}>
           <div className="flex items-center gap-2 min-w-0">
             <LeadingIcon className={`size-4 shrink-0 ${iconClass}`} />
-            <span className="text-composer-text truncate">{renderInline(visible[0])}</span>
+            <span className="text-calleditor-text truncate">
+              {renderInline(visible[0])}
+            </span>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <AcceptButton action={accept} label={accept.label} onClick={() => onAccept(visible[0])} />
-            <DismissButton label="Dismiss suggestion" onClick={() => onDismiss(visible[0])} />
+            <AcceptButton
+              action={accept}
+              label={accept.label}
+              onClick={() => onAccept(visible[0])}
+            />
+            <DismissButton
+              label="Dismiss suggestion"
+              onClick={() => onDismiss(visible[0])}
+            />
           </div>
         </div>
       ) : (
         <div className={shellClass}>
           <div className="flex items-center gap-2 min-w-0">
             <LeadingIcon className={`size-4 shrink-0 ${iconClass}`} />
-            <span className="text-composer-text truncate">{multiText(visible.length)}</span>
+            <span className="text-calleditor-text truncate">
+              {multiText(visible.length)}
+            </span>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <Button size="sm" variant="primary" onClick={() => setModalOpen(true)}>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => setModalOpen(true)}
+            >
               Review {visible.length}
             </Button>
-            <DismissButton label="Dismiss all suggestions" onClick={() => onDismissAll(visible)} />
+            <DismissButton
+              label="Dismiss all suggestions"
+              onClick={() => onDismissAll(visible)}
+            />
           </div>
         </div>
       )}
@@ -154,7 +185,9 @@ function SuggestionsBanner<T extends { fingerprint: string }>(props: Suggestions
   );
 }
 
-function SuggestionsModal<T extends { fingerprint: string }>(props: SuggestionsModalProps<T>): React.ReactNode {
+function SuggestionsModal<T extends { fingerprint: string }>(
+  props: SuggestionsModalProps<T>,
+): React.ReactNode {
   const {
     isOpen,
     onClose,
@@ -174,10 +207,16 @@ function SuggestionsModal<T extends { fingerprint: string }>(props: SuggestionsM
   const AcceptAllIcon = acceptAll.icon;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} className="max-w-xl" bodyClassName="p-0">
-      <div className="px-5 py-3 border-b border-composer-border flex items-center justify-between gap-3 text-sm">
-        <div className="flex items-center gap-2 text-composer-text-muted min-w-0">
-          <LeadingIcon className="size-4 text-composer-text shrink-0 opacity-50" />
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      className="max-w-xl"
+      bodyClassName="p-0"
+    >
+      <div className="px-5 py-3 border-b border-calleditor-border flex items-center justify-between gap-3 text-sm">
+        <div className="flex items-center gap-2 text-calleditor-text-muted min-w-0">
+          <LeadingIcon className="size-4 text-calleditor-text shrink-0 opacity-50" />
           <span className="truncate">{countText(suggestions.length)}</span>
         </div>
         {suggestions.length > 1 && (
@@ -194,18 +233,26 @@ function SuggestionsModal<T extends { fingerprint: string }>(props: SuggestionsM
         )}
       </div>
       <Scroll className="max-h-[60vh]">
-        <ul className="divide-y divide-composer-border">
+        <ul className="divide-y divide-calleditor-border">
           {suggestions.map((suggestion) => (
-            <li key={rowKey(suggestion)} className="flex flex-col gap-2 px-5 py-3">
+            <li
+              key={rowKey(suggestion)}
+              className="flex flex-col gap-2 px-5 py-3"
+            >
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex flex-col gap-0.5">{renderRow(suggestion)}</div>
+                <div className="min-w-0 flex flex-col gap-0.5">
+                  {renderRow(suggestion)}
+                </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <AcceptButton
                     action={accept}
                     label={accept.rowLabel ?? accept.label}
                     onClick={() => onAccept(suggestion)}
                   />
-                  <DismissButton label="Dismiss suggestion" onClick={() => onDismiss(suggestion)} />
+                  <DismissButton
+                    label="Dismiss suggestion"
+                    onClick={() => onDismiss(suggestion)}
+                  />
                 </div>
               </div>
               {renderRowFooter?.(suggestion)}
