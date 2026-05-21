@@ -14,6 +14,7 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
   preview: {
+    allowedHosts: ["calleditor.izumy.me"],
     proxy: {
       "/__local_ytdlp": {
         target: "http://127.0.0.1:43125",
