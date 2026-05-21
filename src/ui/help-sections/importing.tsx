@@ -24,7 +24,7 @@ const COPY = {
       "If a download fails, check that the URL is right and that the video is public.",
       "A small number of videos won't download due to geo-restrictions or rights blocks.",
     ],
-    lyrics: "Lyrics files",
+    lyrics: "Call files",
     lyricsFormats:
       "Supported formats: .txt (plain text), .lrc (line-level timing), .srt (subtitles), .ttml (full timing + agents).",
     lyricsA: "In the Edit tab, use the import button at the top.",
@@ -32,7 +32,7 @@ const COPY = {
     lyricsC: "or click the import button in the header.",
     lyricsD:
       "When importing .lrc, .srt, or .ttml files, existing timing is preserved.",
-    lyricsE: "Plain .txt files get no timing. You'll sync them manually.",
+    lyricsE: "Plain .txt files get no timing. You'll sync them manually as calls.",
   },
   ja: {
     audio: "音声ソース",
@@ -52,7 +52,7 @@ const COPY = {
       "取得に失敗したら URL が正しいか、動画が公開状態かを確認してください。",
       "地域制限や権利制限で取得できない動画も一部あります。",
     ],
-    lyrics: "歌詞ファイル",
+    lyrics: "コールファイル",
     lyricsFormats:
       "対応形式: .txt（プレーンテキスト）, .lrc（行単位タイミング）, .srt（字幕）, .ttml（完全なタイミングとエージェント）。",
     lyricsA: "Edit タブでは上部の import ボタンを使います。",
@@ -61,7 +61,7 @@ const COPY = {
     lyricsD:
       ".lrc / .srt / .ttml を読み込むと既存のタイミング情報も保持されます。",
     lyricsE:
-      "プレーンな .txt にはタイミングがないので、あとで手動で同期します。",
+      "プレーンな .txt にはタイミングがないので、あとで手動でコールを同期します。",
   },
   ko: {
     audio: "오디오 소스",
@@ -81,14 +81,14 @@ const COPY = {
       "다운로드에 실패하면 URL이 맞는지, 영상이 공개 상태인지 확인하세요.",
       "지역 제한이나 권리 제한 때문에 가져오지 못하는 영상도 있습니다.",
     ],
-    lyrics: "가사 파일",
+    lyrics: "콜 파일",
     lyricsFormats:
       "지원 형식: .txt(일반 텍스트), .lrc(줄 단위 타이밍), .srt(자막), .ttml(전체 타이밍 + 에이전트).",
     lyricsA: "Edit 탭에서는 상단 import 버튼을 사용하세요.",
     lyricsB: "Timeline에서는",
     lyricsC: "을 누르거나 헤더의 import 버튼을 누르면 됩니다.",
     lyricsD: ".lrc, .srt, .ttml 파일을 가져오면 기존 타이밍 정보가 유지됩니다.",
-    lyricsE: "일반 .txt 파일에는 타이밍이 없으므로 직접 싱크를 맞춰야 합니다.",
+    lyricsE: "일반 .txt 파일에는 타이밍이 없으므로 직접 콜 싱크를 맞춰야 합니다.",
   },
 } as const;
 

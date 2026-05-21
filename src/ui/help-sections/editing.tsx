@@ -2,7 +2,7 @@ import { useAppLanguage } from "@/lib/i18n";
 import { useSettingsStore } from "@/stores/settings";
 import { HEADING, PROSE } from "@/ui/help-sections/shared";
 
-// -- Editing Lyrics -----------------------------------------------------------
+// -- Editing Calls ------------------------------------------------------------
 
 const EditSection: React.FC = () => {
   const splitCharacter = useSettingsStore((s) => s.splitCharacter);
@@ -10,7 +10,7 @@ const EditSection: React.FC = () => {
   const copy = {
     en: {
       intro:
-        "Each row is one line of lyrics. Type normally, press Enter for a new line. To reorder lines, drag them using the handle on the left side.",
+        "Each row is one line of calls. Type normally, press Enter for a new line. To reorder lines, drag them using the handle on the left side.",
       agents: "Agents (singers)",
       agentsBody: `Click a line's agent dot to assign it to a different singer. Each agent gets a unique color. Add new agents with the "+" button in the agent manager at the top.`,
       bg: "Background vocals",
@@ -36,7 +36,7 @@ const EditSection: React.FC = () => {
     },
     ja: {
       intro:
-        "1 行が歌詞 1 行です。普通に入力して Enter で改行します。行順を変えたいときは左側のハンドルをドラッグします。",
+        "1 行がコール 1 行です。普通に入力して Enter で改行します。行順を変えたいときは左側のハンドルをドラッグします。",
       agents: "エージェント（歌手）",
       agentsBody:
         "行のエージェントドットをクリックすると別の歌手に割り当てられます。各エージェントには固有の色が付き、上部のエージェント管理から + ボタンで追加できます。",
@@ -62,7 +62,7 @@ const EditSection: React.FC = () => {
     },
     ko: {
       intro:
-        "각 행은 가사 한 줄입니다. 일반적으로 입력하고 Enter로 새 줄을 만듭니다. 줄 순서를 바꾸려면 왼쪽 핸들을 드래그하세요.",
+        "각 행은 콜 한 줄입니다. 일반적으로 입력하고 Enter로 새 줄을 만듭니다. 줄 순서를 바꾸려면 왼쪽 핸들을 드래그하세요.",
       agents: "에이전트(가수)",
       agentsBody:
         '줄의 에이전트 점을 클릭하면 다른 가수로 지정할 수 있습니다. 각 에이전트에는 고유 색상이 붙고, 상단 에이전트 관리자에서 "+" 버튼으로 새 에이전트를 추가할 수 있습니다.',

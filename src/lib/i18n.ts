@@ -119,6 +119,7 @@ type TranslationKey =
   | "edit.title"
   | "edit.importFile"
   | "edit.pasteLyrics"
+  | "edit.insertOshi"
   | "edit.placeholder"
   | "edit.preview"
   | "edit.assignAgent"
@@ -345,7 +346,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "settings.section.advanced": "Advanced",
     "settings.advanced.previewRenderer.label": "Preview renderer",
     "settings.advanced.previewRenderer.description":
-      "Which engine renders synced lyrics in the Preview tab.",
+      "Which engine renders synced calls in the Preview tab.",
     "settings.advanced.previewRenderer.braccato": "Braccato (default)",
     "settings.language.label": "Language",
     "settings.language.description":
@@ -370,11 +371,11 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
       "Press a character to use as the syllable split marker",
     "settings.splitCharacter.modalEscape": "Press Escape to cancel",
     "settings.splitCharacter.modalAdvice":
-      "Pick a symbol you won't use in lyrics. Characters like commas, apostrophes, and hyphens appear in lyrics and will cause unintended splits.",
+      "Pick a symbol you won't use in calls. Characters like commas, apostrophes, and hyphens appear in calls and will cause unintended splits.",
     "settings.splitCharacter.errorBlocked":
       "Letters, numbers, and whitespace cannot be used",
     "settings.splitCharacter.warningTitle": "Character warning",
-    "settings.splitCharacter.warningCommon": "commonly appears in lyrics.",
+    "settings.splitCharacter.warningCommon": "commonly appears in calls.",
     "settings.splitCharacter.warningDescription":
       "Using it as a split marker means every occurrence in your text will be treated as a syllable break.",
     "settings.splitCharacter.warningCancel": "Cancel",
@@ -403,7 +404,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
       "Initial zoom level (px/sec) when opening the timeline.",
     "settings.timeline.defaultRowHeight.label": "Default row height",
     "settings.timeline.defaultRowHeight.description":
-      "Starting height of each lyric row in the timeline.",
+      "Starting height of each call row in the timeline.",
     "settings.timeline.snap.label": "Snap (magnet)",
     "settings.timeline.snap.description":
       "Word edges snap to nearby anchors when dragging or resizing.",
@@ -441,9 +442,9 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "settings.confirmations.replaceProject.description":
       "Show a warning when an import URL would replace your current project.",
     "settings.confirmations.replaceLyrics.label":
-      "Confirm replacing lyrics on import",
+      "Confirm replacing calls on import",
     "settings.confirmations.replaceLyrics.description":
-      "Show a warning when importing lyrics into a project that already has lines.",
+      "Show a warning when importing calls into a project that already has lines.",
     "settings.confirmations.resetSync.label": "Confirm resetting sync timing",
     "settings.confirmations.resetSync.description":
       "Show a warning before clearing every word and line timing in the sync view.",
@@ -481,24 +482,25 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "youtube.invalid": "That doesn't look like a valid YouTube URL or ID",
     "youtube.loading": "Loading",
     "youtube.load": "Load",
-    "edit.title": "Lyrics Editor",
+    "edit.title": "Call Editor",
     "edit.importFile": "Import File",
-    "edit.pasteLyrics": "Paste or type lyrics",
+    "edit.pasteLyrics": "Paste or type calls",
+    "edit.insertOshi": "Insert {oshi}",
     "edit.placeholder":
-      "Paste your lyrics here, one line at a time...\n\nOr drag and drop a lyrics file (.txt, .lrc, .srt, .ttml)",
+      "Paste your calls here, one line at a time...\n\nOr drag and drop a call file (.txt, .lrc, .srt, .ttml)",
     "edit.preview": "Preview",
     "edit.assignAgent": "Assign agent",
     "edit.clear": "Clear",
-    "edit.previewEmpty": "Lyrics will appear here",
+    "edit.previewEmpty": "Calls will appear here",
     "preview.title": "Preview",
     "preview.play": "Play",
     "preview.pause": "Pause",
     "preview.empty.noAudio": "No audio loaded",
     "preview.empty.noAudioHint": "Load a YouTube video in the Import tab first",
-    "preview.empty.noLyrics": "No lyrics to preview",
-    "preview.empty.noLyricsHint": "Add lyrics in the Edit tab first",
+    "preview.empty.noLyrics": "No calls to preview",
+    "preview.empty.noLyricsHint": "Add calls in the Edit tab first",
     "preview.empty.noSynced": "No synced content",
-    "preview.empty.noSyncedHint": "Sync lyrics in the Sync tab first",
+    "preview.empty.noSyncedHint": "Sync calls in the Sync tab first",
     "export.title": "Export",
     "export.edited": "edited",
     "export.regenerate": "Regenerate",
@@ -511,10 +513,10 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "export.importProject": "Import Project",
     "export.exportProject": "Export Project",
     "export.clear": "Clear",
-    "export.empty.noLyrics": "No lyrics to export",
-    "export.empty.noLyricsHint": "Add lyrics in the Edit tab first",
+    "export.empty.noLyrics": "No calls to export",
+    "export.empty.noLyricsHint": "Add calls in the Edit tab first",
     "export.empty.noSynced": "No synced content",
-    "export.empty.noSyncedHint": "Sync lyrics in the Sync tab first",
+    "export.empty.noSyncedHint": "Sync calls in the Sync tab first",
     "export.confirmReplace.title": "Replace current project?",
     "export.confirmReplace.confirm": "Replace",
     "export.confirmClear.title": "Clear all project data?",
@@ -540,8 +542,8 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "sync.mobile.tap": "Tap",
     "sync.empty.noAudio": "No audio loaded",
     "sync.empty.noAudioHint": "Load a YouTube video in the Import tab first",
-    "sync.empty.noLyrics": "No lyrics to sync",
-    "sync.empty.noLyricsHint": "Add lyrics in the Edit tab first",
+    "sync.empty.noLyrics": "No calls to sync",
+    "sync.empty.noLyricsHint": "Add calls in the Edit tab first",
     "timeline.header.title": "Timeline",
     "timeline.header.follow": "Follow",
     "timeline.header.rolling": "Rolling",
@@ -561,18 +563,18 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "tour.back": "Back",
     "tour.welcome.title": "Welcome to CallEditor",
     "tour.welcome.description":
-      "A tool for creating synchronized lyrics in TTML format. Let's walk through the workflow together.",
+      "A tool for creating synchronized calls in TTML format. Let's walk through the workflow together.",
     "tour.import.title": "Bring in your audio",
     "tour.import.description":
       "Paste a YouTube URL here to pull audio directly from a video.",
     "tour.importGate.title": "Import your audio",
     "tour.importGate.description": "Paste a YouTube URL to continue.",
-    "tour.edit.title": "Type or paste lyrics",
+    "tour.edit.title": "Type or paste calls",
     "tour.edit.description":
-      "Enter your lyrics in the text area on the left. Each line becomes a sync target.",
-    "tour.editGate.title": "Add your lyrics",
+      "Enter your calls in the text area on the left. Each line becomes a sync target.",
+    "tour.editGate.title": "Add your calls",
     "tour.editGate.description": "Type or paste at least one line to continue.",
-    "tour.sync.title": "Sync your lyrics",
+    "tour.sync.title": "Sync your calls",
     "tour.sync.description":
       "Press Start, then tap Space in time with each line or word. Use the granularity toggle for line vs word precision.",
     "tour.syncGate.title": "Sync at least one line",
@@ -583,7 +585,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
       "Drag words to adjust timing, nudge with arrow keys, use {modKey} + scroll to zoom, and press F to toggle playhead follow. Group repeats with {modKey}+G and duplicate linked instances with {modKey}+D.",
     "tour.preview.title": "Preview your work",
     "tour.preview.description":
-      "Watch lyrics play back in sync with the audio. Click any line to jump there.",
+      "Watch calls play back in sync with the audio. Click any line to jump there.",
     "tour.export.title": "Export your TTML",
     "tour.export.description":
       "Copy or download the finished TTML file. You can also export the full project as JSON.",
@@ -591,7 +593,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "tour.outro.description":
       "You're all set! Here's a video of the full process.",
     "tour.task.audio": "Load a YouTube video",
-    "tour.task.lyrics": "Type or paste lyrics",
+    "tour.task.lyrics": "Type or paste calls",
     "tour.task.sync": "Sync at least one line",
     "tour.stepLabel": "Step {current} / {total}",
     "help.title": "Help",
@@ -599,7 +601,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "help.section.gettingStarted": "Getting Started",
     "help.section.keyboardShortcuts": "Keyboard Shortcuts",
     "help.section.importing": "Importing Audio",
-    "help.section.editing": "Editing Lyrics",
+    "help.section.editing": "Editing Calls",
     "help.section.syncing": "Syncing",
     "help.section.timeline": "Timeline",
     "help.section.groups": "Linked groups",
@@ -641,7 +643,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "shortcuts.deselectCancel": "Deselect / cancel paste",
     "shortcuts.setWordBegin": "Set word begin to playhead",
     "shortcuts.setWordEnd": "Set word end to playhead",
-    "shortcuts.importLyrics": "Import lyrics",
+    "shortcuts.importLyrics": "Import calls",
     "shortcuts.zoomInOut": "Zoom in / out",
     "shortcuts.panTimeline": "Pan timeline",
     "shortcuts.panLocked": "Pan locked to axis",
@@ -727,7 +729,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "settings.section.advanced": "詳細",
     "settings.advanced.previewRenderer.label": "プレビュー描画エンジン",
     "settings.advanced.previewRenderer.description":
-      "プレビュータブで同期歌詞を描画するエンジンを選びます。",
+      "プレビュータブで同期コールを描画するエンジンを選びます。",
     "settings.advanced.previewRenderer.braccato": "Braccato（デフォルト）",
     "settings.language.label": "言語",
     "settings.language.description":
@@ -752,11 +754,11 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
       "音節分割マーカーとして使う文字を押してください",
     "settings.splitCharacter.modalEscape": "Escape でキャンセル",
     "settings.splitCharacter.modalAdvice":
-      "歌詞の中で使わない記号を選んでください。カンマ、アポストロフィ、ハイフンなどは歌詞に現れやすく、意図しない分割の原因になります。",
+      "コールの中で使わない記号を選んでください。カンマ、アポストロフィ、ハイフンなどはコールに現れやすく、意図しない分割の原因になります。",
     "settings.splitCharacter.errorBlocked":
       "英字・数字・空白文字は使用できません",
     "settings.splitCharacter.warningTitle": "文字の警告",
-    "settings.splitCharacter.warningCommon": "は歌詞によく現れる文字です。",
+    "settings.splitCharacter.warningCommon": "はコールによく現れる文字です。",
     "settings.splitCharacter.warningDescription":
       "これを分割マーカーにすると、テキスト中の出現箇所がすべて音節区切りとして扱われます。",
     "settings.splitCharacter.warningCancel": "キャンセル",
@@ -784,7 +786,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
       "タイムラインを開いたときの初期ズーム量 (px/秒) です。",
     "settings.timeline.defaultRowHeight.label": "デフォルト行高",
     "settings.timeline.defaultRowHeight.description":
-      "タイムライン内の歌詞行の初期高さです。",
+      "タイムライン内のコール行の初期高さです。",
     "settings.timeline.snap.label": "スナップ (マグネット)",
     "settings.timeline.snap.description":
       "ドラッグやリサイズ時に単語端を近いアンカーへ吸着させます。",
@@ -823,9 +825,9 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "settings.confirmations.replaceProject.description":
       "インポート URL で現在のプロジェクトが置き換わるときに警告を表示します。",
     "settings.confirmations.replaceLyrics.label":
-      "歌詞インポート時の置き換えを確認",
+      "コールインポート時の置き換えを確認",
     "settings.confirmations.replaceLyrics.description":
-      "既に行があるプロジェクトに歌詞を取り込むとき警告を表示します。",
+      "既に行があるプロジェクトにコールを取り込むとき警告を表示します。",
     "settings.confirmations.resetSync.label": "同期タイミングのリセットを確認",
     "settings.confirmations.resetSync.description":
       "同期ビューの全単語・全行タイミングを消す前に警告を表示します。",
@@ -862,25 +864,26 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "youtube.invalid": "有効な YouTube URL または ID ではないようです",
     "youtube.loading": "読み込み中",
     "youtube.load": "読み込む",
-    "edit.title": "歌詞エディター",
+    "edit.title": "コールエディター",
     "edit.importFile": "ファイルを読み込む",
-    "edit.pasteLyrics": "歌詞を貼り付けるか入力",
+    "edit.pasteLyrics": "コールを貼り付けるか入力",
+    "edit.insertOshi": "推し文字列",
     "edit.placeholder":
-      "ここに歌詞を1行ずつ貼り付けてください...\n\nまたは歌詞ファイル (.txt, .lrc, .srt, .ttml) をドラッグ＆ドロップ",
+      "ここにコールを1行ずつ貼り付けてください...\n\nまたはコールファイル (.txt, .lrc, .srt, .ttml) をドラッグ＆ドロップ",
     "edit.preview": "プレビュー",
     "edit.assignAgent": "エージェントを割り当て",
     "edit.clear": "クリア",
-    "edit.previewEmpty": "ここに歌詞が表示されます",
+    "edit.previewEmpty": "ここにコールが表示されます",
     "preview.title": "プレビュー",
     "preview.play": "再生",
     "preview.pause": "一時停止",
     "preview.empty.noAudio": "音声が読み込まれていません",
     "preview.empty.noAudioHint":
       "先に「読み込み」タブで YouTube 動画を読み込んでください",
-    "preview.empty.noLyrics": "プレビューする歌詞がありません",
-    "preview.empty.noLyricsHint": "先に「編集」タブで歌詞を追加してください",
+    "preview.empty.noLyrics": "プレビューするコールがありません",
+    "preview.empty.noLyricsHint": "先に「編集」タブでコールを追加してください",
     "preview.empty.noSynced": "同期済み内容がありません",
-    "preview.empty.noSyncedHint": "先に「同期」タブで歌詞を同期してください",
+    "preview.empty.noSyncedHint": "先に「同期」タブでコールを同期してください",
     "export.title": "書き出し",
     "export.edited": "編集中",
     "export.regenerate": "再生成",
@@ -893,10 +896,10 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "export.importProject": "プロジェクトを読み込む",
     "export.exportProject": "プロジェクトを書き出す",
     "export.clear": "クリア",
-    "export.empty.noLyrics": "書き出す歌詞がありません",
-    "export.empty.noLyricsHint": "先に「編集」タブで歌詞を追加してください",
+    "export.empty.noLyrics": "書き出すコールがありません",
+    "export.empty.noLyricsHint": "先に「編集」タブでコールを追加してください",
     "export.empty.noSynced": "同期済み内容がありません",
-    "export.empty.noSyncedHint": "先に「同期」タブで歌詞を同期してください",
+    "export.empty.noSyncedHint": "先に「同期」タブでコールを同期してください",
     "export.confirmReplace.title": "現在のプロジェクトを置き換えますか？",
     "export.confirmReplace.confirm": "置き換える",
     "export.confirmClear.title": "プロジェクトデータをすべて消去しますか？",
@@ -924,8 +927,8 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "sync.empty.noAudio": "音声が読み込まれていません",
     "sync.empty.noAudioHint":
       "先に「読み込み」タブで YouTube 動画を読み込んでください",
-    "sync.empty.noLyrics": "同期する歌詞がありません",
-    "sync.empty.noLyricsHint": "先に「編集」タブで歌詞を追加してください",
+    "sync.empty.noLyrics": "同期するコールがありません",
+    "sync.empty.noLyricsHint": "先に「編集」タブでコールを追加してください",
     "timeline.header.title": "タイムライン",
     "timeline.header.follow": "追従",
     "timeline.header.rolling": "ローリング",
@@ -945,20 +948,20 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "tour.back": "戻る",
     "tour.welcome.title": "CallEditor へようこそ",
     "tour.welcome.description":
-      "TTML 形式の同期歌詞を作るためのツールです。一緒に流れを見ていきましょう。",
+      "TTML 形式の同期コールを作るためのツールです。一緒に流れを見ていきましょう。",
     "tour.import.title": "音声を読み込む",
     "tour.import.description":
       "ここに YouTube URL を貼り付けると、動画から音声を取り込めます。",
     "tour.importGate.title": "音声を読み込んでください",
     "tour.importGate.description":
       "続けるには YouTube URL を貼り付けてください。",
-    "tour.edit.title": "歌詞を入力または貼り付け",
+    "tour.edit.title": "コールを入力または貼り付け",
     "tour.edit.description":
-      "左のテキストエリアに歌詞を入れてください。各行が同期対象になります。",
-    "tour.editGate.title": "歌詞を追加してください",
+      "左のテキストエリアにコールを入れてください。各行が同期対象になります。",
+    "tour.editGate.title": "コールを追加してください",
     "tour.editGate.description":
       "続けるには1行以上入力または貼り付けてください。",
-    "tour.sync.title": "歌詞を同期する",
+    "tour.sync.title": "コールを同期する",
     "tour.sync.description":
       "開始を押して、各行や単語のタイミングで Space を押します。粒度切替で行単位・単語単位を選べます。",
     "tour.syncGate.title": "少なくとも1行同期してください",
@@ -969,14 +972,14 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
       "単語をドラッグして調整し、矢印キーで微調整できます。{modKey}+スクロールでズーム、F で再生ヘッド追従を切り替えます。繰り返しは {modKey}+G でグループ化し、{modKey}+D でリンク複製できます。",
     "tour.preview.title": "仕上がりを確認",
     "tour.preview.description":
-      "音声に合わせて歌詞が再生される様子を確認できます。行をクリックするとそこへ移動します。",
+      "音声に合わせてコールが再生される様子を確認できます。行をクリックするとそこへ移動します。",
     "tour.export.title": "TTML を書き出す",
     "tour.export.description":
       "完成した TTML をコピーまたはダウンロードできます。JSON でプロジェクト全体の書き出しも可能です。",
     "tour.outro.title": "全体の流れを見る",
     "tour.outro.description": "これで準備完了です。全工程の動画はこちらです。",
     "tour.task.audio": "YouTube 動画を読み込む",
-    "tour.task.lyrics": "歌詞を入力または貼り付け",
+    "tour.task.lyrics": "コールを入力または貼り付け",
     "tour.task.sync": "少なくとも1行同期",
     "tour.stepLabel": "ステップ {current} / {total}",
     "help.title": "ヘルプ",
@@ -984,7 +987,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "help.section.gettingStarted": "はじめに",
     "help.section.keyboardShortcuts": "キーボードショートカット",
     "help.section.importing": "音声の読み込み",
-    "help.section.editing": "歌詞編集",
+    "help.section.editing": "コール編集",
     "help.section.syncing": "同期",
     "help.section.timeline": "タイムライン",
     "help.section.groups": "リンクグループ",
@@ -1026,7 +1029,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "shortcuts.deselectCancel": "選択解除 / 貼り付けキャンセル",
     "shortcuts.setWordBegin": "単語開始を再生ヘッドに設定",
     "shortcuts.setWordEnd": "単語終了を再生ヘッドに設定",
-    "shortcuts.importLyrics": "歌詞を読み込む",
+    "shortcuts.importLyrics": "コールを読み込む",
     "shortcuts.zoomInOut": "ズームイン / アウト",
     "shortcuts.panTimeline": "タイムラインをパン",
     "shortcuts.panLocked": "軸固定でパン",
@@ -1114,7 +1117,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "settings.section.advanced": "고급",
     "settings.advanced.previewRenderer.label": "미리보기 렌더러",
     "settings.advanced.previewRenderer.description":
-      "미리보기 탭에서 싱크 가사를 렌더링하는 엔진을 선택합니다.",
+      "미리보기 탭에서 싱크 콜을 렌더링하는 엔진을 선택합니다.",
     "settings.advanced.previewRenderer.braccato": "Braccato (기본값)",
     "settings.language.label": "언어",
     "settings.language.description":
@@ -1139,11 +1142,11 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
       "음절 분할 표시에 사용할 문자를 누르세요",
     "settings.splitCharacter.modalEscape": "Escape로 취소",
     "settings.splitCharacter.modalAdvice":
-      "가사에 쓰지 않을 기호를 고르세요. 쉼표, 아포스트로피, 하이픈 같은 문자는 가사에 자주 나타나 의도치 않은 분할을 만들 수 있습니다.",
+      "콜에 쓰지 않을 기호를 고르세요. 쉼표, 아포스트로피, 하이픈 같은 문자는 콜에 자주 나타나 의도치 않은 분할을 만들 수 있습니다.",
     "settings.splitCharacter.errorBlocked":
       "문자, 숫자, 공백 문자는 사용할 수 없습니다",
     "settings.splitCharacter.warningTitle": "문자 경고",
-    "settings.splitCharacter.warningCommon": "는 가사에 자주 등장하는 문자입니다.",
+    "settings.splitCharacter.warningCommon": "는 콜에 자주 등장하는 문자입니다.",
     "settings.splitCharacter.warningDescription":
       "이 문자를 분할 표시에 사용하면 텍스트에 나오는 모든 위치가 음절 경계로 처리됩니다.",
     "settings.splitCharacter.warningCancel": "취소",
@@ -1171,7 +1174,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
       "타임라인을 열 때의 초기 줌 수준(px/초)입니다.",
     "settings.timeline.defaultRowHeight.label": "기본 행 높이",
     "settings.timeline.defaultRowHeight.description":
-      "타임라인 각 가사 행의 시작 높이입니다.",
+      "타임라인 각 콜 행의 시작 높이입니다.",
     "settings.timeline.snap.label": "스냅 (자석)",
     "settings.timeline.snap.description":
       "드래그하거나 크기를 조절할 때 단어 경계가 가까운 앵커에 붙습니다.",
@@ -1207,9 +1210,9 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "settings.confirmations.replaceProject.label": "URL 프로젝트 교체 확인",
     "settings.confirmations.replaceProject.description":
       "가져오기 URL이 현재 프로젝트를 교체할 때 경고를 표시합니다.",
-    "settings.confirmations.replaceLyrics.label": "가사 가져오기 교체 확인",
+    "settings.confirmations.replaceLyrics.label": "콜 가져오기 교체 확인",
     "settings.confirmations.replaceLyrics.description":
-      "이미 줄이 있는 프로젝트에 가사를 가져올 때 경고를 표시합니다.",
+      "이미 줄이 있는 프로젝트에 콜을 가져올 때 경고를 표시합니다.",
     "settings.confirmations.resetSync.label": "싱크 타이밍 초기화 확인",
     "settings.confirmations.resetSync.description":
       "싱크 화면의 모든 단어/줄 타이밍을 지우기 전에 경고를 표시합니다.",
@@ -1245,25 +1248,26 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "youtube.invalid": "유효한 YouTube URL 또는 ID가 아닌 것 같습니다",
     "youtube.loading": "불러오는 중",
     "youtube.load": "불러오기",
-    "edit.title": "가사 편집기",
+    "edit.title": "콜 편집기",
     "edit.importFile": "파일 가져오기",
-    "edit.pasteLyrics": "가사 붙여넣기 또는 입력",
+    "edit.pasteLyrics": "콜 붙여넣기 또는 입력",
+    "edit.insertOshi": "최애 문자열",
     "edit.placeholder":
-      "여기에 가사를 한 줄씩 붙여넣으세요...\n\n또는 가사 파일(.txt, .lrc, .srt, .ttml)을 드래그 앤 드롭하세요",
+      "여기에 콜을 한 줄씩 붙여넣으세요...\n\n또는 콜 파일(.txt, .lrc, .srt, .ttml)을 드래그 앤 드롭하세요",
     "edit.preview": "미리보기",
     "edit.assignAgent": "에이전트 지정",
     "edit.clear": "지우기",
-    "edit.previewEmpty": "여기에 가사가 표시됩니다",
+    "edit.previewEmpty": "여기에 콜이 표시됩니다",
     "preview.title": "미리보기",
     "preview.play": "재생",
     "preview.pause": "일시정지",
     "preview.empty.noAudio": "불러온 오디오가 없습니다",
     "preview.empty.noAudioHint":
       "먼저 가져오기 탭에서 YouTube 영상을 불러오세요",
-    "preview.empty.noLyrics": "미리볼 가사가 없습니다",
-    "preview.empty.noLyricsHint": "먼저 편집 탭에서 가사를 추가하세요",
+    "preview.empty.noLyrics": "미리볼 콜이 없습니다",
+    "preview.empty.noLyricsHint": "먼저 편집 탭에서 콜을 추가하세요",
     "preview.empty.noSynced": "싱크된 내용이 없습니다",
-    "preview.empty.noSyncedHint": "먼저 싱크 탭에서 가사를 맞추세요",
+    "preview.empty.noSyncedHint": "먼저 싱크 탭에서 콜을 맞추세요",
     "export.title": "내보내기",
     "export.edited": "편집됨",
     "export.regenerate": "재생성",
@@ -1276,10 +1280,10 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "export.importProject": "프로젝트 가져오기",
     "export.exportProject": "프로젝트 내보내기",
     "export.clear": "지우기",
-    "export.empty.noLyrics": "내보낼 가사가 없습니다",
-    "export.empty.noLyricsHint": "먼저 편집 탭에서 가사를 추가하세요",
+    "export.empty.noLyrics": "내보낼 콜이 없습니다",
+    "export.empty.noLyricsHint": "먼저 편집 탭에서 콜을 추가하세요",
     "export.empty.noSynced": "싱크된 내용이 없습니다",
-    "export.empty.noSyncedHint": "먼저 싱크 탭에서 가사를 맞추세요",
+    "export.empty.noSyncedHint": "먼저 싱크 탭에서 콜을 맞추세요",
     "export.confirmReplace.title": "현재 프로젝트를 교체할까요?",
     "export.confirmReplace.confirm": "교체",
     "export.confirmClear.title": "프로젝트 데이터를 모두 지울까요?",
@@ -1306,8 +1310,8 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "sync.mobile.tap": "탭",
     "sync.empty.noAudio": "불러온 오디오가 없습니다",
     "sync.empty.noAudioHint": "먼저 가져오기 탭에서 YouTube 영상을 불러오세요",
-    "sync.empty.noLyrics": "싱크할 가사가 없습니다",
-    "sync.empty.noLyricsHint": "먼저 편집 탭에서 가사를 추가하세요",
+    "sync.empty.noLyrics": "싱크할 콜이 없습니다",
+    "sync.empty.noLyricsHint": "먼저 편집 탭에서 콜을 추가하세요",
     "timeline.header.title": "타임라인",
     "timeline.header.follow": "따라가기",
     "timeline.header.rolling": "롤링",
@@ -1327,19 +1331,19 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "tour.back": "뒤로",
     "tour.welcome.title": "CallEditor에 오신 것을 환영합니다",
     "tour.welcome.description":
-      "TTML 형식의 싱크 가사를 만드는 도구입니다. 함께 작업 흐름을 둘러볼게요.",
+      "TTML 형식의 싱크 콜을 만드는 도구입니다. 함께 작업 흐름을 둘러볼게요.",
     "tour.import.title": "오디오 불러오기",
     "tour.import.description":
       "여기에 YouTube URL을 붙여 넣으면 영상에서 오디오를 가져올 수 있습니다.",
     "tour.importGate.title": "오디오를 불러오세요",
     "tour.importGate.description": "계속하려면 YouTube URL을 붙여 넣으세요.",
-    "tour.edit.title": "가사 입력 또는 붙여넣기",
+    "tour.edit.title": "콜 입력 또는 붙여넣기",
     "tour.edit.description":
-      "왼쪽 텍스트 영역에 가사를 입력하세요. 각 줄이 싱크 대상이 됩니다.",
-    "tour.editGate.title": "가사를 추가하세요",
+      "왼쪽 텍스트 영역에 콜을 입력하세요. 각 줄이 싱크 대상이 됩니다.",
+    "tour.editGate.title": "콜을 추가하세요",
     "tour.editGate.description":
       "계속하려면 한 줄 이상 입력하거나 붙여 넣으세요.",
-    "tour.sync.title": "가사 싱크 맞추기",
+    "tour.sync.title": "콜 싱크 맞추기",
     "tour.sync.description":
       "시작을 누른 뒤 각 줄이나 단어 타이밍에 맞춰 Space를 누르세요. 줄/단어 정밀도는 단위 토글로 바꿀 수 있습니다.",
     "tour.syncGate.title": "최소 한 줄은 싱크하세요",
@@ -1350,7 +1354,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
       "단어를 드래그하거나 화살표 키로 미세 조정하세요. {modKey}+스크롤로 확대/축소하고 F로 재생 헤드 따라가기를 전환할 수 있습니다. 반복 구간은 {modKey}+G로 그룹화하고 {modKey}+D로 링크 인스턴스를 복제하세요.",
     "tour.preview.title": "작업 미리보기",
     "tour.preview.description":
-      "오디오와 함께 가사가 싱크되어 재생되는 모습을 확인하세요. 아무 줄이나 클릭하면 그 위치로 이동합니다.",
+      "오디오와 함께 콜이 싱크되어 재생되는 모습을 확인하세요. 아무 줄이나 클릭하면 그 위치로 이동합니다.",
     "tour.export.title": "TTML 내보내기",
     "tour.export.description":
       "완성된 TTML 파일을 복사하거나 다운로드할 수 있습니다. 전체 프로젝트를 JSON으로 내보내는 것도 가능합니다.",
@@ -1358,7 +1362,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "tour.outro.description":
       "이제 준비가 끝났습니다. 전체 과정을 보여주는 영상입니다.",
     "tour.task.audio": "YouTube 영상 불러오기",
-    "tour.task.lyrics": "가사 입력 또는 붙여넣기",
+    "tour.task.lyrics": "콜 입력 또는 붙여넣기",
     "tour.task.sync": "최소 한 줄 싱크",
     "tour.stepLabel": "단계 {current} / {total}",
     "help.title": "도움말",
@@ -1366,7 +1370,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "help.section.gettingStarted": "시작하기",
     "help.section.keyboardShortcuts": "키보드 단축키",
     "help.section.importing": "오디오 가져오기",
-    "help.section.editing": "가사 편집",
+    "help.section.editing": "콜 편집",
     "help.section.syncing": "싱크",
     "help.section.timeline": "타임라인",
     "help.section.groups": "링크 그룹",
@@ -1408,7 +1412,7 @@ const DICTIONARIES: Record<ResolvedLanguage, Record<TranslationKey, string>> = {
     "shortcuts.deselectCancel": "선택 해제 / 붙여넣기 취소",
     "shortcuts.setWordBegin": "단어 시작을 재생 헤드로 설정",
     "shortcuts.setWordEnd": "단어 끝을 재생 헤드로 설정",
-    "shortcuts.importLyrics": "가사 가져오기",
+    "shortcuts.importLyrics": "콜 가져오기",
     "shortcuts.zoomInOut": "확대 / 축소",
     "shortcuts.panTimeline": "타임라인 이동",
     "shortcuts.panLocked": "축 고정 이동",

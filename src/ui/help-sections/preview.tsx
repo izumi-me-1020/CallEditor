@@ -6,7 +6,7 @@ import { PROSE } from "@/ui/help-sections/shared";
 const COPY = {
   en: {
     intro:
-      "The Preview tab shows you how your synced lyrics will look with Better Lyrics' rendering engine. Words fill in progressively as they're sung, matching the timing you set.",
+      "The Preview tab shows you how your synced calls will look with Better Lyrics' rendering engine. Words fill in progressively with the timing you set.",
     agent:
       "Agent lines are positioned based on their inferred location (left, right, center).",
     bg: "Background vocals appear below the main line in a smaller style.",
@@ -19,7 +19,7 @@ const COPY = {
   },
   ja: {
     intro:
-      "Preview タブでは、Better Lyrics のレンダリングエンジンで同期済み歌詞がどう見えるかを確認できます。歌われるタイミングに合わせて単語が順に塗られていきます。",
+      "Preview タブでは、Better Lyrics のレンダリングエンジンで同期済みコールがどう見えるかを確認できます。設定したタイミングに合わせて単語が順に塗られていきます。",
     agent:
       "エージェント付きの行は、推定された位置に応じて左・中央・右に配置されます。",
     bg: "バックボーカルはメイン行の下に小さめのスタイルで表示されます。",
@@ -31,7 +31,7 @@ const COPY = {
   },
   ko: {
     intro:
-      "Preview 탭에서는 Better Lyrics 렌더링 엔진으로 동기화된 가사가 어떻게 보이는지 확인할 수 있습니다. 설정한 타이밍에 맞춰 단어가 순서대로 채워집니다.",
+      "Preview 탭에서는 Better Lyrics 렌더링 엔진으로 동기화된 콜이 어떻게 보이는지 확인할 수 있습니다. 설정한 타이밍에 맞춰 단어가 순서대로 채워집니다.",
     agent:
       "에이전트가 지정된 줄은 추정 위치에 따라 왼쪽, 가운데, 오른쪽에 배치됩니다.",
     bg: "백보컬은 메인 줄 아래에 더 작은 스타일로 표시됩니다.",

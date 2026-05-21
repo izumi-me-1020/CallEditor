@@ -9,7 +9,7 @@ import { MOD_KEY } from "@/utils/platform";
 const COPY = {
   en: {
     intro:
-      "The Sync tab shows your lyrics as a scrolling carousel. One line is active at a time, with each word waiting to be synced. You have two keys available, and you can use them freely in combination.",
+      "The Sync tab shows your calls as a scrolling carousel. One line is active at a time, with each word waiting to be synced. You have two keys available, and you can use them freely in combination.",
     tap: "Tap (Space)",
     tapBody:
       "to start playback and begin syncing. As the music plays, tap the same key on each word right when the singer says it. Each tap marks the word's start time, and the previous word's end time is set to the same moment, creating gapless transitions.",
@@ -46,7 +46,7 @@ const COPY = {
   },
   ja: {
     intro:
-      "Sync タブでは歌詞がスクロールするカルーセルとして表示されます。常に 1 行だけがアクティブになり、その中の単語を順に同期していきます。使うキーは 2 つで、自由に組み合わせられます。",
+      "Sync タブではコールがスクロールするカルーセルとして表示されます。常に 1 行だけがアクティブになり、その中の単語を順に同期していきます。使うキーは 2 つで、自由に組み合わせられます。",
     tap: "タップ（Space）",
     tapBody:
       "で再生を始め、そのまま同期を開始します。再生中に歌われた瞬間に合わせて同じキーを叩くと、その単語の開始時刻が打たれます。同時に前の単語の終了時刻も同じ時刻になり、隙間のないつながりになります。",
@@ -82,7 +82,7 @@ const COPY = {
   },
   ko: {
     intro:
-      "Sync 탭에서는 가사가 스크롤되는 캐러셀처럼 표시됩니다. 한 번에 한 줄만 활성화되며 각 단어를 순서대로 동기화합니다. 사용할 수 있는 키는 두 개이고 자유롭게 조합할 수 있습니다.",
+      "Sync 탭에서는 콜이 스크롤되는 캐러셀처럼 표시됩니다. 한 번에 한 줄만 활성화되며 각 단어를 순서대로 동기화합니다. 사용할 수 있는 키는 두 개이고 자유롭게 조합할 수 있습니다.",
     tap: "탭 (Space)",
     tapBody:
       "로 재생과 동기화를 시작합니다. 음악이 재생되는 동안 가수가 단어를 말하는 순간에 맞춰 같은 키를 누르세요. 각 탭은 단어의 시작 시점을 기록하고, 이전 단어의 끝 시점도 같은 시각으로 설정되어 빈틈 없이 이어집니다.",

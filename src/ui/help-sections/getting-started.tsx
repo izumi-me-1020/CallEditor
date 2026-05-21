@@ -8,19 +8,19 @@ import { MOD_KEY } from "@/utils/platform";
 
 const COPY = {
   en: {
-    introA: "CallEditor is the lyrics editor for",
+    introA: "CallEditor is the call editor for",
     introB:
-      ". It guides you through four steps to create synced lyrics. Follow the tabs left-to-right for a guided experience, or jump straight to the Timeline for a DAW-like workflow.",
+      ". It guides you through four steps to create synced calls. Follow the tabs left-to-right for a guided experience, or jump straight to the Timeline for a DAW-like workflow.",
     introC:
       "As of now, CallEditor is still in early access, so expect some rough edges. If you run into any issues or have feedback, please reach out on",
     introD: "or submit an issue on",
     step1: "1. Import your audio",
     step1Body:
       "Paste a YouTube URL into the Import tab to pull audio from a video. The waveform appears once the audio loads.",
-    step2: "2. Add your lyrics",
+    step2: "2. Add your calls",
     step2BodyA:
-      "Go to the Edit tab and type or paste your lyrics, one line per row. If you have a lyrics file (.lrc, .srt, .ttml, .txt), drop it there instead. You can also use",
-    step2BodyB: "in Timeline to import lyrics without leaving that view.",
+      "Go to the Edit tab and type or paste your calls, one line per row. If you have a call file (.lrc, .srt, .ttml, .txt), drop it there instead. You can also use",
+    step2BodyB: "to import calls without leaving that view.",
     step3: "3. Sync the timing",
     step3Body:
       "The Sync tab lets you sync words to the music using two keys: tap Space to mark gapless word boundaries, or hold F to capture a word's full duration. You can also tap Space while holding F to create gapless syllable boundaries. If you miss one, use the arrow keys to nudge the timing. For finer control, switch to Timeline and drag word blocks directly on the waveform.",
@@ -34,16 +34,16 @@ const COPY = {
   ja: {
     introA: "CallEditor は",
     introB:
-      "向けの歌詞エディタです。同期歌詞を作るまでの流れを 4 ステップで案内します。左から順にタブを進めてもいいですし、DAW に近い感覚で Timeline から始めても大丈夫です。",
+      "向けのコールエディタです。同期コールを作るまでの流れを 4 ステップで案内します。左から順にタブを進めてもいいですし、DAW に近い感覚で Timeline から始めても大丈夫です。",
     introC:
       "現在の CallEditor はまだ early access 段階なので、少し荒い部分があります。問題やフィードバックがあれば",
     introD: "または",
     step1: "1. 音声を読み込む",
     step1Body:
       "Import タブに YouTube URL を貼り付けて動画から音声を取得します。読み込み後は波形が表示されます。",
-    step2: "2. 歌詞を入れる",
+    step2: "2. コールを入れる",
     step2BodyA:
-      "Edit タブで歌詞を 1 行ずつ入力または貼り付けます。.lrc / .srt / .ttml / .txt の歌詞ファイルがあるならそこへドロップしても構いません。Timeline から離れずに読み込むなら",
+      "Edit タブでコールを 1 行ずつ入力または貼り付けます。.lrc / .srt / .ttml / .txt のコールファイルがあるならそこへドロップしても構いません。Timeline から離れずに読み込むなら",
     step2BodyB: "も使えます。",
     step3: "3. タイミングを合わせる",
     step3Body:
@@ -57,16 +57,16 @@ const COPY = {
   ko: {
     introA: "CallEditor는",
     introB:
-      "용 가사 편집기입니다. 동기화 가사를 만드는 과정을 네 단계로 안내합니다. 왼쪽에서 오른쪽으로 탭을 따라가도 되고, DAW 같은 흐름으로 Timeline부터 시작해도 됩니다.",
+      "용 콜 편집기입니다. 동기화 콜을 만드는 과정을 네 단계로 안내합니다. 왼쪽에서 오른쪽으로 탭을 따라가도 되고, DAW 같은 흐름으로 Timeline부터 시작해도 됩니다.",
     introC:
       "현재 CallEditor는 아직 얼리 액세스 단계라 거친 부분이 남아 있습니다. 문제를 발견하거나 의견이 있다면",
     introD: "또는",
     step1: "1. 오디오 가져오기",
     step1Body:
       "Import 탭에 YouTube URL을 붙여 넣어 영상에서 오디오를 가져옵니다. 오디오가 로드되면 파형이 표시됩니다.",
-    step2: "2. 가사 넣기",
+    step2: "2. 콜 넣기",
     step2BodyA:
-      "Edit 탭에서 가사를 한 줄씩 입력하거나 붙여 넣습니다. .lrc, .srt, .ttml, .txt 파일이 있다면 그쪽을 드롭해도 됩니다. Timeline을 벗어나지 않고 가져오려면",
+      "Edit 탭에서 콜을 한 줄씩 입력하거나 붙여 넣습니다. .lrc, .srt, .ttml, .txt 파일이 있다면 그쪽을 드롭해도 됩니다. Timeline을 벗어나지 않고 가져오려면",
     step2BodyB: "도 사용할 수 있습니다.",
     step3: "3. 타이밍 맞추기",
     step3Body:
@@ -129,7 +129,6 @@ const GettingStartedSection: React.FC = () => {
             <InlineKeyBadge
               keys={getEffectiveKeysArray("timeline.importLyrics")}
             />{" "}
-            in Timeline to import lyrics without
             {copy.step2BodyB}
           </p>
         </div>

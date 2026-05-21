@@ -59,19 +59,19 @@ function getTourText() {
     return {
       welcomeTitle: "CallEditor へようこそ",
       welcomeDescription:
-        "TTML 形式の同期歌詞を作るためのツールです。一緒に流れを見ていきましょう。",
+        "TTML 形式の同期コールを作るためのツールです。一緒に流れを見ていきましょう。",
       importTitle: "音声を読み込む",
       importDescription:
         "ここに YouTube URL を貼り付けると、動画から音声を取り込めます。",
       importGateTitle: "音声を読み込んでください",
       importGateDescription:
         "続けるには YouTube URL を貼り付けてください。",
-      editTitle: "歌詞を入力または貼り付け",
+      editTitle: "コールを入力または貼り付け",
       editDescription:
-        "左のテキストエリアに歌詞を入れてください。各行が同期対象になります。",
-      editGateTitle: "歌詞を追加してください",
+        "左のテキストエリアにコールを入れてください。各行が同期対象になります。",
+      editGateTitle: "コールを追加してください",
       editGateDescription: "続けるには1行以上入力または貼り付けてください。",
-      syncTitle: "歌詞を同期する",
+      syncTitle: "コールを同期する",
       syncDescription:
         "開始を押して、各行や単語のタイミングで Space を押します。粒度切替で行単位・単語単位を選べます。",
       syncGateTitle: "少なくとも1行同期してください",
@@ -81,14 +81,14 @@ function getTourText() {
       timelineDescription: `単語をドラッグして調整し、矢印キーで微調整できます。${MOD_KEY}+スクロールでズーム、F で再生ヘッド追従を切り替えます。繰り返しは ${MOD_KEY}+G でグループ化し、${MOD_KEY}+D でリンク複製できます。`,
       previewTitle: "仕上がりを確認",
       previewDescription:
-        "音声に合わせて歌詞が再生される様子を確認できます。行をクリックするとそこへ移動します。",
+        "音声に合わせてコールが再生される様子を確認できます。行をクリックするとそこへ移動します。",
       exportTitle: "TTML を書き出す",
       exportDescription:
         "完成した TTML をコピーまたはダウンロードできます。JSON でプロジェクト全体の書き出しも可能です。",
       outroTitle: "全体の流れを見る",
       outroDescription: `これで準備完了です。全工程の動画はこちらです。${YOUTUBE_EMBED_HTML}`,
       taskAudio: "YouTube 動画を読み込む",
-      taskLyrics: "歌詞を入力または貼り付け",
+      taskLyrics: "コールを入力または貼り付け",
       taskSync: "少なくとも1行同期",
       done: "完了",
     };
@@ -98,19 +98,19 @@ function getTourText() {
     return {
       welcomeTitle: "CallEditor에 오신 것을 환영합니다",
       welcomeDescription:
-        "TTML 형식의 싱크 가사를 만드는 도구입니다. 함께 작업 흐름을 둘러볼게요.",
+        "TTML 형식의 싱크 콜을 만드는 도구입니다. 함께 작업 흐름을 둘러볼게요.",
       importTitle: "오디오 불러오기",
       importDescription:
         "여기에 YouTube URL을 붙여 넣으면 영상에서 오디오를 가져올 수 있습니다.",
       importGateTitle: "오디오를 불러오세요",
       importGateDescription:
         "계속하려면 YouTube URL을 붙여 넣으세요.",
-      editTitle: "가사 입력 또는 붙여넣기",
+      editTitle: "콜 입력 또는 붙여넣기",
       editDescription:
-        "왼쪽 텍스트 영역에 가사를 입력하세요. 각 줄이 싱크 대상이 됩니다.",
-      editGateTitle: "가사를 추가하세요",
+        "왼쪽 텍스트 영역에 콜을 입력하세요. 각 줄이 싱크 대상이 됩니다.",
+      editGateTitle: "콜을 추가하세요",
       editGateDescription: "계속하려면 한 줄 이상 입력하거나 붙여 넣으세요.",
-      syncTitle: "가사 싱크 맞추기",
+      syncTitle: "콜 싱크 맞추기",
       syncDescription:
         "시작을 누른 뒤 각 줄이나 단어 타이밍에 맞춰 Space를 누르세요. 줄/단어 정밀도는 단위 토글로 바꿀 수 있습니다.",
       syncGateTitle: "최소 한 줄은 싱크하세요",
@@ -120,14 +120,14 @@ function getTourText() {
       timelineDescription: `단어를 드래그하거나 화살표 키로 미세 조정하세요. ${MOD_KEY}+스크롤로 확대/축소하고 F로 재생 헤드 따라가기를 전환할 수 있습니다. 반복 구간은 ${MOD_KEY}+G로 그룹화하고 ${MOD_KEY}+D로 링크 인스턴스를 복제하세요.`,
       previewTitle: "작업 미리보기",
       previewDescription:
-        "오디오와 함께 가사가 싱크되어 재생되는 모습을 확인하세요. 아무 줄이나 클릭하면 그 위치로 이동합니다.",
+        "오디오와 함께 콜이 싱크되어 재생되는 모습을 확인하세요. 아무 줄이나 클릭하면 그 위치로 이동합니다.",
       exportTitle: "TTML 내보내기",
       exportDescription:
         "완성된 TTML 파일을 복사하거나 다운로드할 수 있습니다. 전체 프로젝트를 JSON으로 내보내는 것도 가능합니다.",
       outroTitle: "전체 워크스루 보기",
       outroDescription: `이제 준비가 끝났습니다. 전체 과정을 보여주는 영상입니다.${YOUTUBE_EMBED_HTML}`,
       taskAudio: "YouTube 영상 불러오기",
-      taskLyrics: "가사 입력 또는 붙여넣기",
+      taskLyrics: "콜 입력 또는 붙여넣기",
       taskSync: "최소 한 줄 싱크",
       done: "완료",
     };
@@ -136,19 +136,19 @@ function getTourText() {
   return {
     welcomeTitle: "Welcome to CallEditor",
     welcomeDescription:
-      "A tool for creating synchronized lyrics in TTML format. Let's walk through the workflow together.",
+      "A tool for creating synchronized calls in TTML format. Let's walk through the workflow together.",
     importTitle: "Bring in your audio",
     importDescription:
       "Paste a YouTube URL here to pull audio straight from a video.",
     importGateTitle: "Import your audio",
     importGateDescription:
       "Paste a YouTube URL to continue.",
-    editTitle: "Type or paste lyrics",
+    editTitle: "Type or paste calls",
     editDescription:
-      "Enter your lyrics in the text area on the left. Each line becomes a sync target.",
-    editGateTitle: "Add your lyrics",
+      "Enter your calls in the text area on the left. Each line becomes a sync target.",
+    editGateTitle: "Add your calls",
     editGateDescription: "Type or paste at least one line to continue.",
-    syncTitle: "Sync your lyrics",
+    syncTitle: "Sync your calls",
     syncDescription:
       "Press Start, then tap Space in time with each line or word. Use the granularity toggle for line vs word precision.",
     syncGateTitle: "Sync at least one line",
@@ -158,14 +158,14 @@ function getTourText() {
     timelineDescription: `Drag words to adjust timing, or select words and nudge them with the arrow keys. ${MOD_KEY} + scroll to zoom, F to toggle playhead follow. Group repeating sections with ${MOD_KEY}+G, then duplicate them as linked instances with ${MOD_KEY}+D so edits propagate everywhere.`,
     previewTitle: "Preview your work",
     previewDescription:
-      "Watch lyrics play back in sync with the audio. Click any line to jump there.",
+      "Watch calls play back in sync with the audio. Click any line to jump there.",
     exportTitle: "Export your TTML",
     exportDescription:
       "Copy or download the finished TTML file. You can also export the full project as JSON.",
     outroTitle: "See a full walkthrough",
     outroDescription: `You're all set! Here's a video of the full process.${YOUTUBE_EMBED_HTML}`,
     taskAudio: "Load a YouTube video",
-    taskLyrics: "Type or paste lyrics",
+    taskLyrics: "Type or paste calls",
     taskSync: "Sync at least one line",
     done: "Done",
   };

@@ -12,7 +12,7 @@ const COPY = {
       "The Timeline is where you do the detailed work. While the Sync tab is great for tapping out rough timing, Timeline gives you full control over every word.",
     layout: "Layout",
     layoutBody:
-      "The waveform sits at the top. Below it, each lyrics line is a horizontal track. Word blocks sit on the tracks, positioned by their start and end times. The playhead follows the audio. The gutter on the left shows line numbers and agent colors.",
+      "The waveform sits at the top. Below it, each call line is a horizontal track. Word blocks sit on the tracks, positioned by their start and end times. The playhead follows the audio. The gutter on the left shows line numbers and agent colors.",
     navigation: "Navigation",
     navList: [
       "A plain scroll wheel scrolls vertically through the lines. To move through time, scroll horizontally with a trackpad gesture.",
@@ -71,7 +71,7 @@ const COPY = {
     ],
     syllables: "Syllable timing",
     syllablesBody:
-      "Syllables can be flush or separated by gaps. Gaps are useful for staccato delivery and for per-character timing in Japanese, Chinese, or Korean lyrics. The Snap syllables flush action closes those gaps across a line.",
+      "Syllables can be flush or separated by gaps. Gaps are useful for staccato delivery and for per-character timing in Japanese, Chinese, or Korean calls. The Snap syllables flush action closes those gaps across a line.",
     explicit: "Explicit words",
     explicitA:
       "Mark a word as explicit so the export carries the right flag. Use the explicit shortcut or the right-click menu.",
@@ -93,7 +93,7 @@ const COPY = {
       "Rolling: enables the rolling edit tool.",
       "Preview: opens the live preview sidebar.",
       `Snap: toggles the magnet. Hold ${MOD_KEY} while dragging to bypass.`,
-      "Import: opens lyrics import directly from Timeline.",
+      "Import: opens call import directly from Timeline.",
       `Zoom: use the +/- buttons or ${MOD_KEY} + scroll wheel.`,
     ],
     other: "Other features",
@@ -107,7 +107,7 @@ const COPY = {
       "Timeline は細かい編集をする場所です。Sync タブが大まかなタイミング取りに向いているのに対して、Timeline では各単語をより正確に扱えます。",
     layout: "レイアウト",
     layoutBody:
-      "上部に波形、その下に歌詞行ごとの横トラックが並びます。単語ブロックは開始・終了時刻に基づいて配置されます。playhead は音声に追従し、左側ガターには行番号とエージェント色が表示されます。",
+      "上部に波形、その下にコール行ごとの横トラックが並びます。単語ブロックは開始・終了時刻に基づいて配置されます。playhead は音声に追従し、左側ガターには行番号とエージェント色が表示されます。",
     navigation: "ナビゲーション",
     navList: [
       "通常のホイールは行方向に縦スクロールします。時間方向へ動くにはトラックパッドの横スクロールを使います。",
@@ -188,7 +188,7 @@ const COPY = {
       "Rolling: rolling edit ツールを有効にします。",
       "Preview: 右側のライブプレビューを開きます。",
       `Snap: 磁石を切り替えます。ドラッグ中に ${MOD_KEY} を押すと一時無効化できます。`,
-      "Import: Timeline から直接歌詞インポートを開きます。",
+      "Import: Timeline から直接コールインポートを開きます。",
       `Zoom: +/- ボタンか ${MOD_KEY} + ホイールを使います。`,
     ],
     other: "その他の機能",
@@ -202,7 +202,7 @@ const COPY = {
       "Timeline은 세밀한 편집을 하는 곳입니다. Sync 탭이 대략적인 타이밍을 찍기에 좋다면, Timeline은 각 단어를 훨씬 정밀하게 다룰 수 있습니다.",
     layout: "레이아웃",
     layoutBody:
-      "상단에는 파형이 있고, 그 아래에는 가사 줄마다 가로 트랙이 배치됩니다. 단어 블록은 시작/끝 시간에 따라 놓입니다. playhead는 오디오를 따라가고, 왼쪽 거터에는 줄 번호와 에이전트 색이 표시됩니다.",
+      "상단에는 파형이 있고, 그 아래에는 콜 줄마다 가로 트랙이 배치됩니다. 단어 블록은 시작/끝 시간에 따라 놓입니다. playhead는 오디오를 따라가고, 왼쪽 거터에는 줄 번호와 에이전트 색이 표시됩니다.",
     navigation: "탐색",
     navList: [
       "일반 휠은 줄 방향으로 세로 스크롤합니다. 시간축으로 이동하려면 트랙패드의 가로 스크롤 제스처를 사용하세요.",
@@ -283,7 +283,7 @@ const COPY = {
       "Rolling: rolling edit 도구를 켭니다.",
       "Preview: 오른쪽 라이브 미리보기를 엽니다.",
       `Snap: 자석을 토글합니다. 드래그 중 ${MOD_KEY}를 누르면 일시적으로 해제됩니다.`,
-      "Import: Timeline에서 바로 가사 가져오기를 엽니다.",
+      "Import: Timeline에서 바로 콜 가져오기를 엽니다.",
       `Zoom: +/- 버튼이나 ${MOD_KEY} + 휠을 사용합니다.`,
     ],
     other: "기타 기능",

@@ -307,6 +307,7 @@ const EditPanel: React.FC = () => {
     lines.length > 0 ? lines.map((l) => l.text).join("\n") : "",
   );
   const rawTextRef = useRef(rawText);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   rawTextRef.current = rawText;
   const linesSetByUs = useRef<LyricLine[] | null>(null);
   const modalPendingRef = useRef(false);
@@ -554,7 +555,7 @@ const EditPanel: React.FC = () => {
         const existingLineCount = useProjectStore.getState().lines.length;
         if (existingLineCount > 0) {
           const ok = await confirm({
-            title: "Replace existing lyrics?",
+            title: "Replace existing calls?",
             description: `This will replace your ${existingLineCount} existing line${existingLineCount === 1 ? "" : "s"}. This cannot be undone.`,
             confirmLabel: "Replace",
             variant: "destructive",
@@ -607,6 +608,30 @@ const EditPanel: React.FC = () => {
     fileInputRef.current?.click();
   }, []);
 
+  const handleInsertOshi = useCallback(() => {
+    const textarea = textareaRef.current;
+    const token = "{oshi}";
+
+    if (!textarea) {
+      setRawText((current) => `${current}${token}`);
+      setImportResult(null);
+      return;
+    }
+
+    const start = textarea.selectionStart ?? rawText.length;
+    const end = textarea.selectionEnd ?? rawText.length;
+    const nextText = `${rawText.slice(0, start)}${token}${rawText.slice(end)}`;
+
+    setRawText(nextText);
+    setImportResult(null);
+
+    requestAnimationFrame(() => {
+      const nextCursor = start + token.length;
+      textarea.focus();
+      textarea.setSelectionRange(nextCursor, nextCursor);
+    });
+  }, [rawText]);
+
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
@@ -658,7 +683,13 @@ const EditPanel: React.FC = () => {
 
       <BracketWarning count={bracketCount} />
 
-      <AgentManager />
+      <AgentManager
+        leading={
+          <Button size="sm" onClick={handleInsertOshi}>
+            {t("edit.insertOshi")}
+          </Button>
+        }
+      />
 
       <div className="flex min-h-0 flex-col gap-4 lg:flex-1 lg:flex-row">
         {/* Input */}
@@ -670,6 +701,7 @@ const EditPanel: React.FC = () => {
             {t("edit.pasteLyrics")}
           </label>
           <textarea
+            ref={textareaRef}
             id={textareaId}
             value={rawText}
             onChange={handleTextChange}

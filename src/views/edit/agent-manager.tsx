@@ -238,7 +238,10 @@ const AddAgentPopover: React.FC = () => {
   );
 };
 
-const AgentManager: React.FC = () => {
+const AgentManager: React.FC<{
+  leading?: React.ReactNode;
+  title?: React.ReactNode;
+}> = ({ leading, title = "Agents" }) => {
   const agents = useProjectStore((s) => s.agents);
   const removeAgent = useProjectStore((s) => s.removeAgent);
   const lines = useProjectStore((s) => s.lines);
@@ -258,8 +261,9 @@ const AgentManager: React.FC = () => {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {leading}
       <span className="text-sm font-medium text-calleditor-text-secondary">
-        Agents
+        {title}
       </span>
       {agents.map((agent) => (
         <EditAgentPopover
