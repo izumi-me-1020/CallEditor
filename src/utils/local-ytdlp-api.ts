@@ -6,6 +6,7 @@ interface LocalAudioResponse {
 }
 
 const ENDPOINT = "/__local_ytdlp/audio";
+const HEALTH_ENDPOINT = "/__local_ytdlp/health";
 
 function readFilenameFromHeaders(headers: Headers): string | undefined {
   const raw = headers.get("x-calleditor-filename");
@@ -105,4 +106,19 @@ async function getAudioFromLocalYtDlp(
   };
 }
 
-export { getAudioFromLocalYtDlp };
+async function isLocalYtDlpAvailable(signal: AbortSignal): Promise<boolean> {
+  try {
+    const res = await fetch(HEALTH_ENDPOINT, {
+      method: "GET",
+      signal,
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export { getAudioFromLocalYtDlp, isLocalYtDlpAvailable };

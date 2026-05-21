@@ -11,7 +11,10 @@ import {
   useSettingsStore,
 } from "@/stores/settings";
 import { CobaltApiError, formatCobaltErrorForToast, getAudio, getAudioFromStandardCobalt } from "@/utils/cobalt-api";
-import { getAudioFromLocalYtDlp } from "@/utils/local-ytdlp-api";
+import {
+  getAudioFromLocalYtDlp,
+  isLocalYtDlpAvailable,
+} from "@/utils/local-ytdlp-api";
 
 // -- Constants ----------------------------------------------------------------
 
@@ -57,7 +60,7 @@ async function fetchTunnel(
   signal: AbortSignal,
   ensureAuth: () => Promise<string>,
 ): Promise<TunnelResult> {
-  if (import.meta.env.DEV) {
+  if (await isLocalYtDlpAvailable(signal)) {
     try {
       const { file, filename } = await getAudioFromLocalYtDlp(videoId, signal);
       return {
