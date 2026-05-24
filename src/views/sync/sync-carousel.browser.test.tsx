@@ -30,4 +30,19 @@ describe("SyncCarousel", () => {
     );
     expect(screen.container.textContent).toContain("alpha");
   });
+
+  it("calls onTap when the carousel is clicked", async () => {
+    let taps = 0;
+    const screen = await render(
+      <SyncCarousel
+        lines={LINES}
+        lineIndex={1}
+        wordIndex={0}
+        granularity="line"
+        onTap={() => taps++}
+      />,
+    );
+    (screen.container.firstElementChild as HTMLElement | null)?.click();
+    expect(taps).toBe(1);
+  });
 });

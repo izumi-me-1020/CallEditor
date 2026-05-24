@@ -81,6 +81,7 @@ const SyncPanel: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
   const heldKeyCodeRef = useRef<string | null>(null);
+  const { lineIndex, wordIndex } = syncState.position;
 
   const {
     handleTap,
@@ -258,6 +259,28 @@ const SyncPanel: React.FC = () => {
     setIsHolding(false);
   }, [handleHoldEnd, isHolding]);
 
+  const handleSyncLinePress = useCallback(
+    (index: number) => {
+      if (
+        index === lineIndex &&
+        !editMode &&
+        (!isComplete || !syncState.isActive)
+      ) {
+        handleSyncAction();
+        return;
+      }
+      handleJumpToLine(index);
+    },
+    [
+      editMode,
+      handleJumpToLine,
+      handleSyncAction,
+      isComplete,
+      lineIndex,
+      syncState.isActive,
+    ],
+  );
+
   const playingLineIndex = useMemo(() => {
     for (let i = 0; i < lines.length; i++) {
       const timing = effectiveBounds(lines[i]);
@@ -280,7 +303,6 @@ const SyncPanel: React.FC = () => {
     return -1;
   }, [lines, currentTime]);
 
-  const { lineIndex, wordIndex } = syncState.position;
   const currentLine = lines[lineIndex];
   const prevLine = lines[lineIndex - 1];
 
@@ -520,7 +542,7 @@ const SyncPanel: React.FC = () => {
                   currentTime={currentTime}
                   editMode={editMode}
                   linkInfo={linkInfo}
-                  onClick={() => handleJumpToLine(index)}
+                  onClick={() => handleSyncLinePress(index)}
                   onNudgeWord={(wordIdx, delta) =>
                     handleNudgeWord(index, wordIdx, delta)
                   }
@@ -589,6 +611,11 @@ const SyncPanel: React.FC = () => {
               wordIndex={wordIndex}
               granularity={granularity}
               isHolding={isHolding}
+              onTap={
+                !editMode && (!isComplete || !syncState.isActive)
+                  ? handleSyncAction
+                  : undefined
+              }
             />
           )}
         </div>

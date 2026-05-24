@@ -13,6 +13,9 @@ const EditSection: React.FC = () => {
         "Each row is one line of calls. Type normally, press Enter for a new line. To reorder lines, drag them using the handle on the left side.",
       agents: "Agents (singers)",
       agentsBody: `Click a line's agent dot to assign it to a different singer. Each agent gets a unique color. Add new agents with the "+" button in the agent manager at the top.`,
+      oshi: "{oshi} button",
+      oshiBody:
+        "Use the {oshi} button next to Agents to insert the {oshi} token into your call text. In the app, that token is replaced with the fan name you set for the user, so you can keep one reusable call template and have it render with each person's configured oshi name.",
       bg: "Background vocals",
       bgBody:
         'If a line has backing vocals, add them in the "Background" field that appears below the main text. These show up as a separate track in the Timeline and get the x-bg role in TTML output.',
@@ -40,6 +43,9 @@ const EditSection: React.FC = () => {
       agents: "エージェント（歌手）",
       agentsBody:
         "行のエージェントドットをクリックすると別の歌手に割り当てられます。各エージェントには固有の色が付き、上部のエージェント管理から + ボタンで追加できます。",
+      oshi: "推し文字列ボタン",
+      oshiBody:
+        "Agents の横にある {oshi} ボタンを押すと、コール本文へ {oshi} という文字列を挿入できます。アプリ側ではこの {oshi} が、そのユーザーに設定された推し名へ置き換わるので、1 つのコールテンプレートを使い回しつつ、見る人ごとの推し名で表示できます。",
       bg: "バックボーカル",
       bgBody:
         "行にバックボーカルがある場合は、メインテキストの下に出る Background 欄へ入力します。Timeline では別トラックとして表示され、TTML では x-bg ロールになります。",
@@ -66,6 +72,9 @@ const EditSection: React.FC = () => {
       agents: "에이전트(가수)",
       agentsBody:
         '줄의 에이전트 점을 클릭하면 다른 가수로 지정할 수 있습니다. 각 에이전트에는 고유 색상이 붙고, 상단 에이전트 관리자에서 "+" 버튼으로 새 에이전트를 추가할 수 있습니다.',
+      oshi: "{oshi} 버튼",
+      oshiBody:
+        "Agents 옆의 {oshi} 버튼을 누르면 콜 본문에 {oshi} 토큰을 넣을 수 있습니다. 앱에서는 이 {oshi}가 사용자에게 설정된 최애 이름으로 치환되므로, 하나의 콜 템플릿을 여러 사람에게 재사용하면서 각자 설정한 최애 이름으로 표시할 수 있습니다.",
       bg: "백보컬",
       bgBody:
         '백보컬이 있는 줄은 본문 아래에 나타나는 "Background" 필드에 입력하세요. Timeline에서는 별도 트랙으로 보이고, TTML 출력에서는 x-bg 역할을 가집니다.',
@@ -95,6 +104,11 @@ const EditSection: React.FC = () => {
       <div>
         <h4 className={HEADING}>{copy.agents}</h4>
         <p className={PROSE}>{copy.agentsBody}</p>
+      </div>
+
+      <div>
+        <h4 className={HEADING}>{copy.oshi}</h4>
+        <p className={PROSE}>{copy.oshiBody}</p>
       </div>
 
       <div>

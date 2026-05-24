@@ -21,6 +21,8 @@ const COPY = {
     step2BodyA:
       "Go to the Edit tab and type or paste your calls, one line per row. If you have a call file (.lrc, .srt, .ttml, .txt), drop it there instead. You can also use",
     step2BodyB: "to import calls without leaving that view.",
+    step2BodyC:
+      "The {oshi} button next to Agents inserts the {oshi} token. In the app, that token becomes the user's configured oshi name.",
     step3: "3. Sync the timing",
     step3Body:
       "The Sync tab lets you sync words to the music using two keys: tap Space to mark gapless word boundaries, or hold F to capture a word's full duration. You can also tap Space while holding F to create gapless syllable boundaries. If you miss one, use the arrow keys to nudge the timing. For finer control, switch to Timeline and drag word blocks directly on the waveform.",
@@ -45,6 +47,8 @@ const COPY = {
     step2BodyA:
       "Edit タブでコールを 1 行ずつ入力または貼り付けます。.lrc / .srt / .ttml / .txt のコールファイルがあるならそこへドロップしても構いません。Timeline から離れずに読み込むなら",
     step2BodyB: "も使えます。",
+    step2BodyC:
+      "Agents の横にある {oshi} ボタンを押すと {oshi} 文字列を入れられます。アプリ側では、その文字列がユーザーに設定された推し名へ置き換わります。",
     step3: "3. タイミングを合わせる",
     step3Body:
       "Sync タブでは 2 つのキーで単語のタイミングを取れます。Space をタップすると単語境界を隙間なく打てて、F を押し続けると単語の長さをそのまま記録できます。F を押したまま Space を叩けば音節の境界も作れます。ずれたときは矢印キーで微調整し、さらに細かく詰めたいときは Timeline で波形上のブロックを直接動かします。",
@@ -68,6 +72,8 @@ const COPY = {
     step2BodyA:
       "Edit 탭에서 콜을 한 줄씩 입력하거나 붙여 넣습니다. .lrc, .srt, .ttml, .txt 파일이 있다면 그쪽을 드롭해도 됩니다. Timeline을 벗어나지 않고 가져오려면",
     step2BodyB: "도 사용할 수 있습니다.",
+    step2BodyC:
+      "Agents 옆의 {oshi} 버튼은 {oshi} 토큰을 넣어 줍니다. 앱에서는 이 토큰이 사용자의 설정된 최애 이름으로 바뀝니다.",
     step3: "3. 타이밍 맞추기",
     step3Body:
       "Sync 탭에서는 두 개의 키로 단어 타이밍을 맞춥니다. Space를 탭하면 단어 경계를 빈틈 없이 찍을 수 있고, F를 누르고 있으면 단어 전체 길이를 기록할 수 있습니다. F를 누른 채 Space를 누르면 음절 경계도 만들 수 있습니다. 놓친 부분은 방향키로 미세 조정하고, 더 세밀하게 다듬으려면 Timeline에서 파형 위 블록을 직접 드래그하세요.",
@@ -129,7 +135,7 @@ const GettingStartedSection: React.FC = () => {
             <InlineKeyBadge
               keys={getEffectiveKeysArray("timeline.importLyrics")}
             />{" "}
-            {copy.step2BodyB}
+            {copy.step2BodyB} {copy.step2BodyC}
           </p>
         </div>
         <div>

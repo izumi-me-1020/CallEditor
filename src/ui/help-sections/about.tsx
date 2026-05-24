@@ -12,9 +12,6 @@ const COPY = {
     openSource: "Open source",
     openSourceLead: "AGPL v3. Source on",
     openSourceTail: ". PRs welcome if you spot something to fix.",
-    community: "Community",
-    discord: "for questions and chat.",
-    issue: "if something's broken.",
     madeBy: "Credits",
     madeByTail:
       " is a fork of Composer, modified by izumi-me-1020 for synced call production workflows.",
@@ -28,9 +25,6 @@ const COPY = {
     openSourceLead: "AGPL v3 で公開しています。ソースコードは",
     openSourceTail:
       "にあります。気になる不具合や改善点があれば PR も歓迎です。",
-    community: "コミュニティ",
-    discord: "質問や雑談は Discord へ。",
-    issue: "不具合報告は Issue から送れます。",
     madeBy: "クレジット",
     madeByTail:
       " は Composer をベースに、izumi-me-1020 が同期コール制作向けに改変したフォークです。",
@@ -43,9 +37,6 @@ const COPY = {
     openSource: "오픈소스",
     openSourceLead: "AGPL v3로 공개되어 있으며 소스 코드는",
     openSourceTail: "에서 볼 수 있습니다. 고칠 점을 발견하면 PR도 환영합니다.",
-    community: "커뮤니티",
-    discord: "질문이나 대화는 Discord에서.",
-    issue: "문제가 있으면 Issue로 알려주세요.",
     madeBy: "크레딧",
     madeByTail:
       "는 Composer를 기반으로 izumi-me-1020이 싱크 콜 제작용으로 개조한 포크입니다.",
@@ -95,34 +86,6 @@ const AboutSection: React.FC = () => {
           </a>
           {copy.openSourceTail}
         </p>
-      </div>
-
-      <div>
-        <h4 className={HEADING}>{copy.community}</h4>
-        <ul className={`${PROSE} list-disc pl-4 space-y-1`}>
-          <li>
-            <a
-              href="https://discord.gg/UsHE3d5fWF"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-calleditor-text underline underline-offset-2 hover:text-calleditor-text-bright"
-            >
-              Discord
-            </a>{" "}
-            {copy.discord}
-          </li>
-          <li>
-            <a
-              href="https://github.com/izumi-me-1020/CallEditor/issues/new/choose"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-calleditor-text underline underline-offset-2 hover:text-calleditor-text-bright"
-            >
-              File an issue
-            </a>{" "}
-            {copy.issue}
-          </li>
-        </ul>
       </div>
 
       <div>

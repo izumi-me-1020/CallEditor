@@ -35,6 +35,45 @@ function textToLyricLines(text: string, defaultAgentId: string, existingLines: L
     const trimmed = lineText.trim();
     const cleanedText = cleanSplitCharacters(trimmed);
     const matchText = stripSplitCharacter(cleanedText);
+    const positionMatch =
+      allowPositionMatch &&
+      existingLines[index] &&
+      !usedExistingIds.has(existingLines[index].id)
+        ? existingLines[index]
+        : undefined;
+
+    if (positionMatch) {
+      usedExistingIds.add(positionMatch.id);
+
+      if (cleanedText.includes(getSplitCharacter())) {
+        return {
+          ...positionMatch,
+          text: cleanedText,
+          words: undefined,
+          begin: undefined,
+          end: undefined,
+        };
+      }
+
+      if (positionMatch.words?.length) {
+        const remapped = remapWordTextsPreservingTiming(positionMatch.words, cleanedText);
+        if (remapped) {
+          return { ...positionMatch, text: cleanedText, words: remapped };
+        }
+      }
+
+      if (positionMatch.text !== cleanedText) {
+        return {
+          ...positionMatch,
+          text: cleanedText,
+          words: undefined,
+          begin: undefined,
+          end: undefined,
+        };
+      }
+
+      return { ...positionMatch };
+    }
 
     const candidates = textToCandidates.get(matchText);
     const exactMatch = candidates?.find((line) => !usedExistingIds.has(line.id));
@@ -50,28 +89,6 @@ function textToLyricLines(text: string, defaultAgentId: string, existingLines: L
         };
       }
       return { ...exactMatch };
-    }
-
-    if (allowPositionMatch) {
-      const positionMatch = existingLines[index];
-      if (positionMatch && !usedExistingIds.has(positionMatch.id)) {
-        usedExistingIds.add(positionMatch.id);
-
-        if (positionMatch.words?.length) {
-          const remapped = remapWordTextsPreservingTiming(positionMatch.words, cleanedText);
-          if (remapped) {
-            return { ...positionMatch, text: cleanedText, words: remapped };
-          }
-        }
-
-        return {
-          ...positionMatch,
-          text: cleanedText,
-          words: undefined,
-          begin: undefined,
-          end: undefined,
-        };
-      }
     }
 
     return {

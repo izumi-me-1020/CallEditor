@@ -22,6 +22,7 @@ interface SyncCarouselProps {
   wordIndex: number;
   granularity: "line" | "word";
   isHolding?: boolean;
+  onTap?: () => void;
 }
 
 // -- Components ---------------------------------------------------------------
@@ -111,6 +112,7 @@ const SyncCarousel: React.FC<SyncCarouselProps> = ({
   wordIndex,
   granularity,
   isHolding = false,
+  onTap,
 }) => {
   const [rippleKey, setRippleKey] = useState<string | null>(null);
   const [rippleCounter, setRippleCounter] = useState(0);
@@ -140,8 +142,9 @@ const SyncCarousel: React.FC<SyncCarouselProps> = ({
 
   return (
     <div
-      className="relative overflow-hidden"
+      className={`relative overflow-hidden ${onTap ? "cursor-pointer touch-manipulation" : ""}`}
       style={{ height: containerHeight }}
+      onClick={onTap}
     >
       <m.div
         initial={{ y: translateY }}

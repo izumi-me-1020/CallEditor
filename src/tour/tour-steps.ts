@@ -68,7 +68,7 @@ function getTourText() {
         "続けるには YouTube URL を貼り付けてください。",
       editTitle: "コールを入力または貼り付け",
       editDescription:
-        "左のテキストエリアにコールを入れてください。各行が同期対象になります。",
+        "左のテキストエリアにコールを入れてください。各行が同期対象になります。Agents の横にある {oshi} ボタンで {oshi} を挿入でき、アプリ側では設定した推し名に置き換わります。",
       editGateTitle: "コールを追加してください",
       editGateDescription: "続けるには1行以上入力または貼り付けてください。",
       syncTitle: "コールを同期する",
@@ -107,7 +107,7 @@ function getTourText() {
         "계속하려면 YouTube URL을 붙여 넣으세요.",
       editTitle: "콜 입력 또는 붙여넣기",
       editDescription:
-        "왼쪽 텍스트 영역에 콜을 입력하세요. 각 줄이 싱크 대상이 됩니다.",
+        "왼쪽 텍스트 영역에 콜을 입력하세요. 각 줄이 싱크 대상이 됩니다. Agents 옆의 {oshi} 버튼으로 {oshi}를 넣을 수 있고, 앱에서는 설정된 최애 이름으로 바뀝니다.",
       editGateTitle: "콜을 추가하세요",
       editGateDescription: "계속하려면 한 줄 이상 입력하거나 붙여 넣으세요.",
       syncTitle: "콜 싱크 맞추기",
@@ -145,7 +145,7 @@ function getTourText() {
       "Paste a YouTube URL to continue.",
     editTitle: "Type or paste calls",
     editDescription:
-      "Enter your calls in the text area on the left. Each line becomes a sync target.",
+      "Enter your calls in the text area on the left. Each line becomes a sync target. The {oshi} button next to Agents inserts the {oshi} token, which the app replaces with the user's configured oshi name.",
     editGateTitle: "Add your calls",
     editGateDescription: "Type or paste at least one line to continue.",
     syncTitle: "Sync your calls",

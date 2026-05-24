@@ -276,4 +276,45 @@ describe("textToLyricLines · group attrs preservation", () => {
     expect(result[1].text).toBe("chorus");
     expect(result[1].words).toEqual(existing[1].words);
   });
+
+  it("does not steal another identical line when an edited line becomes duplicate text", () => {
+    const existing: LyricLine[] = [
+      {
+        id: "L1",
+        text: "call one",
+        agentId: "v1",
+        words: [
+          { text: "call ", begin: 10, end: 10.5 },
+          { text: "one", begin: 10.5, end: 11 },
+        ],
+      },
+      {
+        id: "L2",
+        text: "call two",
+        agentId: "v1",
+        words: [
+          { text: "call ", begin: 20, end: 20.5 },
+          { text: "two", begin: 20.5, end: 21 },
+        ],
+      },
+      {
+        id: "L3",
+        text: "call one",
+        agentId: "v1",
+        words: [
+          { text: "call ", begin: 30, end: 30.5 },
+          { text: "one", begin: 30.5, end: 31 },
+        ],
+      },
+    ];
+
+    const result = textToLyricLines("call one\ncall one\ncall one", "v1", existing);
+
+    expect(result.map((l) => l.id)).toEqual(["L1", "L2", "L3"]);
+    expect(result[1].text).toBe("call one");
+    expect(result[1].words?.[0].begin).toBe(20);
+    expect(result[1].words?.[1].begin).toBe(20.5);
+    expect(result[2].words?.[0].begin).toBe(30);
+    expect(result[2].words?.[1].begin).toBe(30.5);
+  });
 });
