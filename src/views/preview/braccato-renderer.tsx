@@ -39,11 +39,11 @@ const BraccatoRenderer: React.FC<BraccatoRendererProps> = ({ ttmlString }) => {
       ref={elementRef}
       source="#calleditor-audio"
       src={blobUrl ?? undefined}
-      className="flex-1 mx-auto w-full max-w-3xl px-6"
+      className="flex-1 mx-auto w-full max-w-3xl px-4 md:px-6"
       style={
         {
           "--braccato-font-family": "'Satoshi', sans-serif",
-          "--braccato-font-size": "2.5rem",
+          "--braccato-font-size": "clamp(1.15rem, 4.4vw, 2rem)",
           "--braccato-inactive-opacity": "0.2",
         } as React.CSSProperties
       }

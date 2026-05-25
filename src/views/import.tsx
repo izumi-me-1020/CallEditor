@@ -40,6 +40,9 @@ const ReplaceControls: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center gap-4 flex-1 p-6 w-full">
+      <div className="w-full max-w-md rounded-xl border border-calleditor-accent/20 bg-calleditor-accent/10 px-4 py-3 text-sm text-calleditor-accent-text md:hidden">
+        右上三本線から編集へ
+      </div>
       <YouTubeUrlInput placeholder={t("import.replaceYoutube")} />
     </div>
   );
@@ -98,7 +101,7 @@ const ImportPanel: React.FC = () => {
         data-tour="import-dropzone"
         className="flex flex-col-reverse flex-1 size-full"
       >
-        <div className="flex border-t border-calleditor-border">
+        <div className="flex min-w-0 border-t border-calleditor-border">
           <div
             className="shrink-0 flex items-center justify-center bg-calleditor-accent/10"
             style={{ width: GUTTER_WIDTH, height: ROW_HEIGHT }}
@@ -107,20 +110,20 @@ const ImportPanel: React.FC = () => {
           </div>
 
           <div
-            className="flex-1 flex flex-col items-start gap-1 px-4 py-3 border-l border-calleditor-accent/25 sm:flex-row sm:items-center sm:gap-6"
+            className="flex min-w-0 flex-1 flex-col items-start gap-2 border-l border-calleditor-accent/25 px-3 py-3 sm:flex-row sm:items-center sm:gap-6 sm:px-4"
             style={{ minHeight: ROW_HEIGHT }}
           >
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-calleditor-text select-text">
+              <p className="text-sm font-medium break-words text-calleditor-text select-text">
                 {fileName}
               </p>
               <p className="text-xs text-calleditor-text-muted">{extension}</p>
             </div>
-
-            <SourceDuration loading={isLoading} duration={duration} />
-
-            <div className="text-sm text-calleditor-text-muted sm:ml-auto">
-              {formatFileSize(file.size)}
+            <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 sm:ml-auto sm:w-auto sm:flex-nowrap">
+              <SourceDuration loading={isLoading} duration={duration} />
+              <div className="text-sm text-calleditor-text-muted">
+                {formatFileSize(file.size)}
+              </div>
             </div>
           </div>
         </div>
@@ -141,7 +144,7 @@ const ImportPanel: React.FC = () => {
         data-tour="import-dropzone"
         className="flex flex-col-reverse flex-1 size-full"
       >
-        <div className="flex border-t border-calleditor-border">
+        <div className="flex min-w-0 border-t border-calleditor-border">
           <div
             className="shrink-0 flex items-center justify-center bg-calleditor-accent/10"
             style={{ width: GUTTER_WIDTH, height: ROW_HEIGHT }}
@@ -150,11 +153,11 @@ const ImportPanel: React.FC = () => {
           </div>
 
           <div
-            className="flex-1 flex flex-col items-start gap-1 px-4 py-3 border-l border-calleditor-accent/25 sm:flex-row sm:items-center sm:gap-6"
+            className="flex min-w-0 flex-1 flex-col items-start gap-2 border-l border-calleditor-accent/25 px-3 py-3 sm:flex-row sm:items-center sm:gap-6 sm:px-4"
             style={{ minHeight: ROW_HEIGHT }}
           >
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-calleditor-text select-text">
+              <p className="text-sm font-medium break-words text-calleditor-text select-text">
                 {displayTitle}
               </p>
               <p className="text-xs text-calleditor-text-muted select-text">
@@ -164,8 +167,7 @@ const ImportPanel: React.FC = () => {
                   : t("import.youtubeFrom")}
               </p>
             </div>
-
-            <div className="sm:ml-auto">
+            <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 sm:ml-auto sm:w-auto sm:flex-nowrap">
               <SourceDuration loading={downloading} duration={duration} />
             </div>
           </div>

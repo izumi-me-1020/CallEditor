@@ -171,7 +171,7 @@ const LinePreview: React.FC<{
     <div
       role="button"
       tabIndex={-1}
-      className={`relative flex items-center gap-2 px-3 py-0.5 group cursor-pointer ${
+      className={`group relative flex items-center gap-2 px-3 py-0.5 cursor-pointer ${
         isSelected
           ? "bg-calleditor-accent/15"
           : line.hasBrackets
@@ -208,7 +208,7 @@ const LinePreview: React.FC<{
       </span>
 
       <span
-        className={`text-sm ${line.hasBrackets ? "text-calleditor-error" : "text-calleditor-text"}`}
+        className={`min-w-0 break-words text-[13px] sm:text-sm ${line.hasBrackets ? "text-calleditor-error" : "text-calleditor-text"}`}
         style={{ borderLeft: `2px solid ${agentColor}`, paddingLeft: "6px" }}
       >
         {stripSplitCharacter(line.text)}
@@ -220,7 +220,7 @@ const LinePreview: React.FC<{
         </span>
       )}
 
-      <div className="flex items-center gap-1.5 ml-auto transition-opacity opacity-0 group-hover:opacity-100">
+      <div className="ml-auto flex items-center gap-1.5 transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
         {agents.length > 1 && line.lineId && (
           <select
             value={line.agentId}
@@ -317,6 +317,7 @@ const EditPanel: React.FC = () => {
   } | null>(null);
   const [selectedLines, setSelectedLines] = useState<Set<number>>(new Set());
   const [lastSelectedLine, setLastSelectedLine] = useState<number | null>(null);
+  const [mobilePanel, setMobilePanel] = useState<"input" | "preview">("input");
   const dragAnchorRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
   const { t, language } = useAppLanguage();
@@ -648,12 +649,12 @@ const EditPanel: React.FC = () => {
   return (
     <div
       data-tour="edit-panel"
-      className="flex flex-col flex-1 gap-4 overflow-y-auto p-4 lg:overflow-hidden"
+      className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 text-[13px] lg:overflow-hidden md:text-sm"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
       <div className="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-medium">{t("edit.title")}</h2>
+        <h2 className="text-base font-medium md:text-lg">{t("edit.title")}</h2>
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm text-calleditor-text-muted">
             {new Intl.NumberFormat(language).format(nonEmptyCount)} line
@@ -691,9 +692,30 @@ const EditPanel: React.FC = () => {
         }
       />
 
+      <div className="grid grid-cols-2 gap-2 md:hidden">
+        <Button
+          size="sm"
+          variant={mobilePanel === "input" ? "primary" : "ghost"}
+          onClick={() => setMobilePanel("input")}
+        >
+          {t("edit.pasteLyrics")}
+        </Button>
+        <Button
+          size="sm"
+          variant={mobilePanel === "preview" ? "primary" : "ghost"}
+          onClick={() => setMobilePanel("preview")}
+        >
+          {t("edit.preview")}
+        </Button>
+      </div>
+
       <div className="flex min-h-0 flex-col gap-4 lg:flex-1 lg:flex-row">
         {/* Input */}
-        <div className="flex min-h-[18rem] min-w-0 flex-col lg:min-h-0 lg:flex-1">
+        <div
+          className={`min-h-[18rem] min-w-0 flex-col lg:min-h-0 lg:flex-1 ${
+            mobilePanel === "input" ? "flex" : "hidden md:flex"
+          }`}
+        >
           <label
             htmlFor={textareaId}
             className="mb-2 text-sm font-medium select-none text-calleditor-text-secondary"
@@ -706,13 +728,17 @@ const EditPanel: React.FC = () => {
             value={rawText}
             onChange={handleTextChange}
             placeholder={t("edit.placeholder")}
-            className="min-h-[16rem] p-3 text-sm border rounded-lg resize-none bg-calleditor-input border-calleditor-border focus:outline-none focus:border-calleditor-accent placeholder:text-calleditor-text-muted lg:min-h-0 lg:flex-1"
+            className="min-h-[16rem] resize-none rounded-lg border border-calleditor-border bg-calleditor-input p-3 text-[13px] focus:outline-none focus:border-calleditor-accent placeholder:text-calleditor-text-muted sm:text-sm lg:min-h-0 lg:flex-1"
             spellCheck={false}
           />
         </div>
 
         {/* Preview */}
-        <div className="flex min-h-[18rem] min-w-0 flex-col lg:min-h-0 lg:flex-1">
+        <div
+          className={`min-h-[18rem] min-w-0 flex-col lg:min-h-0 lg:flex-1 ${
+            mobilePanel === "preview" ? "flex" : "hidden md:flex"
+          }`}
+        >
           <div className="mb-2 flex min-h-5 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm font-medium select-none text-calleditor-text-secondary">
               {t("edit.preview")}

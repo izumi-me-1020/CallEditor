@@ -100,10 +100,10 @@ const ScrollableLineInner: React.FC<ScrollableLineProps> = ({
     const displayText = stripSplitCharacter(text);
     if (editMode && lineBegin !== undefined && lineEnd !== undefined) {
       return (
-        <span className="relative inline-block">
+        <span className="relative inline-block max-w-full whitespace-pre-wrap break-words">
           <span className="text-calleditor-text-muted">{displayText}</span>
           <span
-            className="absolute inset-0 overflow-hidden text-calleditor-accent-text"
+            className="absolute inset-0 overflow-hidden whitespace-pre-wrap break-words text-calleditor-accent-text"
             data-word-begin={lineBegin}
             data-word-end={lineEnd}
             style={{ width: "0%" }}
@@ -117,8 +117,8 @@ const ScrollableLineInner: React.FC<ScrollableLineProps> = ({
       <span
         className={
           lineBegin !== undefined
-            ? "text-calleditor-text-muted"
-            : "text-calleditor-text"
+            ? "whitespace-pre-wrap break-words text-calleditor-text-muted"
+            : "whitespace-pre-wrap break-words text-calleditor-text"
         }
       >
         {displayText}
@@ -299,7 +299,7 @@ const ScrollableLineInner: React.FC<ScrollableLineProps> = ({
           </span>
         )}
       </span>
-      <div className="flex flex-col flex-1 gap-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         {granularity === "line" ? (
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-start sm:justify-between">
             {renderLineContent()}

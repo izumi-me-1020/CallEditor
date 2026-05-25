@@ -46,8 +46,10 @@ const YouTubeUrlInput: React.FC<YouTubeUrlInputProps> = ({
   const trimmed = value.trim();
 
   return (
-    <div className={`flex flex-col gap-1.5 w-full max-w-md ${className ?? ""}`}>
-      <div className="flex flex-col gap-2 sm:flex-row">
+    <div
+      className={`flex w-full max-w-md min-w-0 flex-col gap-1.5 ${className ?? ""}`}
+    >
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
         <input
           type="text"
           value={value}
@@ -61,14 +63,14 @@ const YouTubeUrlInput: React.FC<YouTubeUrlInputProps> = ({
           spellCheck={false}
           autoCapitalize="off"
           autoComplete="off"
-          className="flex-1 h-8 px-3 text-sm py-2 sm:py-0 rounded-md bg-calleditor-input border border-calleditor-border focus:outline-none focus:border-calleditor-accent cursor-text disabled:opacity-50 select-text"
+          className="h-8 flex-1 min-w-0 rounded-md border border-calleditor-border bg-calleditor-input px-3 py-2 text-sm cursor-text select-text focus:outline-none focus:border-calleditor-accent disabled:opacity-50 sm:py-0"
         />
         <Button
           variant="primary"
           hasIcon
           onClick={handleSubmit}
           disabled={isLoading || trimmed.length === 0}
-          className="justify-center"
+          className="w-full justify-center sm:w-auto"
         >
           {isLoading ? (
             <IconLoader2 size={16} className="animate-spin" />

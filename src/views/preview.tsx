@@ -89,10 +89,10 @@ const PreviewPanel: React.FC = () => {
   return (
     <div
       data-tour="preview-panel"
-      className="flex flex-col flex-1 overflow-hidden select-none"
+      className="flex flex-1 flex-col overflow-hidden select-none text-[13px] md:text-sm"
     >
       <div className="flex flex-col gap-3 px-4 py-4 border-b border-calleditor-border md:flex-row md:items-center md:justify-between md:px-6">
-        <h2 className="text-lg font-medium">{t("preview.title")}</h2>
+        <h2 className="text-base font-medium md:text-lg">{t("preview.title")}</h2>
         <Button
           variant="primary"
           hasIcon

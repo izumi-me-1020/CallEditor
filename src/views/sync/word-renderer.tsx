@@ -104,7 +104,7 @@ const WordRenderer: React.FC<WordRendererProps> = ({
           </Tooltip>
         )}
         {isSynced && timing && !isBackground && (
-          <span className="transition-opacity opacity-0 group-hover/word:opacity-100">
+          <span className="transition-opacity opacity-100 sm:opacity-0 sm:group-hover/word:opacity-100">
             <SyllableSplitter
               word={timing}
               wordIndex={idx}

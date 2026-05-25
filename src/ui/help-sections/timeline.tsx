@@ -10,6 +10,8 @@ const COPY = {
   en: {
     intro:
       "The Timeline is where you do the detailed work. While the Sync tab is great for tapping out rough timing, Timeline gives you full control over every word.",
+    mobile:
+      "On mobile, open Timeline from the top-right section menu first. When you select a word, the bottom info bar is the quickest place to use Set Begin and Set End.",
     layout: "Layout",
     layoutBody:
       "The waveform sits at the top. Below it, each call line is a horizontal track. Word blocks sit on the tracks, positioned by their start and end times. The playhead follows the audio. The gutter on the left shows line numbers and agent colors.",
@@ -105,6 +107,8 @@ const COPY = {
   ja: {
     intro:
       "Timeline は細かい編集をする場所です。Sync タブが大まかなタイミング取りに向いているのに対して、Timeline では各単語をより正確に扱えます。",
+    mobile:
+      "スマホではまず右上のセクションメニューから Timeline を開きます。単語を選んだら、下部の情報バーにある Set Begin / Set End がいちばん使いやすい調整ポイントです。",
     layout: "レイアウト",
     layoutBody:
       "上部に波形、その下にコール行ごとの横トラックが並びます。単語ブロックは開始・終了時刻に基づいて配置されます。playhead は音声に追従し、左側ガターには行番号とエージェント色が表示されます。",
@@ -200,6 +204,8 @@ const COPY = {
   ko: {
     intro:
       "Timeline은 세밀한 편집을 하는 곳입니다. Sync 탭이 대략적인 타이밍을 찍기에 좋다면, Timeline은 각 단어를 훨씬 정밀하게 다룰 수 있습니다.",
+    mobile:
+      "모바일에서는 먼저 오른쪽 위 섹션 메뉴에서 Timeline을 엽니다. 단어를 선택하면 아래 정보 바의 Set Begin / Set End가 가장 빠른 조정 포인트입니다.",
     layout: "레이아웃",
     layoutBody:
       "상단에는 파형이 있고, 그 아래에는 콜 줄마다 가로 트랙이 배치됩니다. 단어 블록은 시작/끝 시간에 따라 놓입니다. playhead는 오디오를 따라가고, 왼쪽 거터에는 줄 번호와 에이전트 색이 표시됩니다.",
@@ -297,10 +303,14 @@ const COPY = {
 const TimelineSection: React.FC = () => {
   const { language } = useAppLanguage();
   const copy = COPY[language];
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 767px)").matches;
 
   return (
     <div className="space-y-5">
       <p className={PROSE}>{copy.intro}</p>
+      {isMobile && <p className={PROSE}>{copy.mobile}</p>}
 
       <div>
         <h4 className={HEADING}>{copy.layout}</h4>

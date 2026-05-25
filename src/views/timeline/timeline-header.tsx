@@ -171,8 +171,8 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
     toggleSnapKeys.length > 0 ? ` (${toggleSnapKeys.join(" ")})` : "";
 
   return (
-    <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-calleditor-border md:px-6">
-      <h2 className="text-lg font-medium select-none">
+    <div className="flex items-center justify-between gap-3 border-b border-calleditor-border px-4 py-3 md:px-6">
+      <h2 className="text-base font-medium select-none md:text-lg">
         {t("timeline.header.title")}
       </h2>
 

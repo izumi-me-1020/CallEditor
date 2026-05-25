@@ -20,26 +20,10 @@ const TabBar: React.FC = () => {
   ];
 
   return (
-    <nav data-tour="tab-bar" className="border-b border-calleditor-border select-none">
-      <div className="p-3 md:hidden">
-        <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium uppercase tracking-[0.16em] text-calleditor-text-muted">
-            {t("tab.mobileLabel")}
-          </span>
-          <select
-            value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value as SimpleTab)}
-            className="h-10 rounded-lg border border-calleditor-border bg-calleditor-input px-3 text-sm text-calleditor-text focus:outline-none focus:border-calleditor-accent"
-          >
-            {tabs.map((tab) => (
-              <option key={tab.id} value={tab.id}>
-                {tab.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
+    <nav
+      data-tour="tab-bar"
+      className="hidden border-b border-calleditor-border select-none md:block"
+    >
       <div className="hidden md:flex">
         {tabs.map((tab, index) => {
           const isActive = activeTab === tab.id;

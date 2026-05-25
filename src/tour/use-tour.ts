@@ -1,7 +1,6 @@
 import {
   type GatedStep,
-  TOUR_GATED_STEPS,
-  createTourSteps,
+  createTourConfig,
 } from "@/tour/tour-steps";
 import type { GuideCardState } from "@/tour/guide-card";
 import { useAppLanguage } from "@/lib/i18n";
@@ -132,8 +131,9 @@ function useTour() {
 
   const patchStepsWithGates = useCallback(
     (steps: DriveStep[]): DriveStep[] => {
+      const { gatedSteps } = createTourConfig();
       const gatedIndices = new Map(
-        TOUR_GATED_STEPS.map((g) => [g.stepIndex, g]),
+        gatedSteps.map((g) => [g.stepIndex, g]),
       );
 
       const patched: DriveStep[] = steps.map((step, idx) => {
@@ -173,11 +173,11 @@ function useTour() {
     clearGateInterval();
     setGuideCard(null);
 
-    const steps = createTourSteps();
-    const gatedIndices = new Set(TOUR_GATED_STEPS.map((g) => g.stepIndex));
+    const { steps, gatedSteps } = createTourConfig();
+    const gatedIndices = new Set(gatedSteps.map((g) => g.stepIndex));
 
     let currentGatedIdx = 0;
-    for (const gs of TOUR_GATED_STEPS) {
+    for (const gs of gatedSteps) {
       if (!gs.gateCheck()) {
         currentGatedIdx = gs.stepIndex;
         break;
@@ -205,7 +205,7 @@ function useTour() {
       clearGateInterval();
       setGuideCard(null);
 
-      const steps = createTourSteps();
+      const { steps } = createTourConfig();
       const patchedSteps = patchStepsWithGates(steps);
 
       const d = createDriverInstance(patchedSteps, (idx) =>

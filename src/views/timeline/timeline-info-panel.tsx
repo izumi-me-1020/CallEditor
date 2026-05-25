@@ -259,7 +259,7 @@ const TimelineInfoPanel: React.FC = () => {
   if (multiSelectionInfo) {
     const spanDuration = multiSelectionInfo.end - multiSelectionInfo.begin;
     return (
-      <div className="relative flex items-center gap-6 px-6 h-[54px] border-t border-calleditor-border bg-calleditor-bg-elevated">
+      <div className="relative flex flex-col gap-2 border-t border-calleditor-border bg-calleditor-bg-elevated px-4 py-3 md:h-[54px] md:flex-row md:items-center md:gap-6 md:px-6 md:py-0">
         {groupHighlight && (
           <span
             className="flex items-center gap-1 px-2 h-5 rounded-md text-[11px] font-medium select-none"
@@ -280,7 +280,7 @@ const TimelineInfoPanel: React.FC = () => {
               ? `${multiSelectionInfo.lineCount} lines selected`
               : `${multiSelectionInfo.wordCount} words selected`}
         </span>
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm">
           <div className="flex items-center gap-1">
             <span className="text-calleditor-text-muted">Range:</span>
             <span className="font-mono text-calleditor-text select-text">
@@ -308,7 +308,7 @@ const TimelineInfoPanel: React.FC = () => {
   const itemDuration = selectedItem.end - selectedItem.begin;
 
   return (
-    <div className="relative flex items-center gap-6 px-6 py-3 border-t border-calleditor-border bg-calleditor-bg-elevated">
+    <div className="relative flex flex-col gap-3 border-t border-calleditor-border bg-calleditor-bg-elevated px-4 py-3 md:flex-row md:items-center md:gap-6 md:px-6">
       {groupHighlight && (
         <span
           className="flex items-center gap-1 px-2 h-5 rounded-md text-[11px] font-medium select-none"
@@ -327,20 +327,20 @@ const TimelineInfoPanel: React.FC = () => {
           className="size-2.5 rounded-full"
           style={{ backgroundColor: color }}
         />
-        <span className="text-sm text-calleditor-text-muted">
+        <span className="text-xs text-calleditor-text-muted sm:text-sm">
           Line {selectedWord.lineIndex + 1}
         </span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-calleditor-text">
+      <div className="min-w-0 flex items-center gap-2">
+        <span className="truncate whitespace-nowrap text-sm font-medium text-calleditor-text">
           {selectedWord.type === "bg"
             ? `(${selectedItem.text})`
             : selectedItem.text}
         </span>
       </div>
 
-      <div className="flex items-center gap-4 text-sm">
+      <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm">
         <div className="flex items-center gap-1">
           <span className="text-calleditor-text-muted">Begin:</span>
           <span className="font-mono text-calleditor-text select-text">
@@ -366,7 +366,7 @@ const TimelineInfoPanel: React.FC = () => {
         backgroundText={line.backgroundText}
       />
 
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex w-full flex-col gap-2 md:ml-auto md:w-auto md:flex-row md:items-center">
         <Button
           variant="secondary"
           size="sm"

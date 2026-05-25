@@ -53,7 +53,7 @@ const AmLyricsRenderer: React.FC<AmLyricsRendererProps> = ({
     const el = document.createElement("am-lyrics") as AmLyricsElement;
     el.ttml = latestTtmlRef.current;
     el.songDurationMs = latestDurationMsRef.current;
-    el.className = "block flex-1 mx-auto w-full max-w-3xl px-6";
+    el.className = "block flex-1 mx-auto w-full max-w-3xl px-4 md:px-6";
 
     const handleLineClick = (event: Event) => {
       const detail = (event as CustomEvent<{ timestamp: number }>).detail;
@@ -72,7 +72,10 @@ const AmLyricsRenderer: React.FC<AmLyricsRendererProps> = ({
       if (el.shadowRoot.querySelector("style[data-calleditor-hide]")) return;
       const style = document.createElement("style");
       style.dataset.calleditorHide = "";
-      style.textContent = ".lyrics-header { display: none !important; }";
+      style.textContent = `
+        .lyrics-header { display: none !important; }
+        :host { --lyric-font-size: clamp(1.15rem, 4.4vw, 2rem); }
+      `;
       el.shadowRoot.appendChild(style);
     };
     injectHideStyle();

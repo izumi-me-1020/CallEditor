@@ -17,6 +17,8 @@ const COPY = {
     step1: "1. Import your audio",
     step1Body:
       "Paste a YouTube URL into the Import tab to pull audio from a video. The waveform appears once the audio loads.",
+    mobileNav:
+      "On mobile, use the top-right section menu to move between Import, Edit, Sync, Timeline, Preview, and Export.",
     step2: "2. Add your calls",
     step2BodyA:
       "Go to the Edit tab and type or paste your calls, one line per row. If you have a call file (.lrc, .srt, .ttml, .txt), drop it there instead. You can also use",
@@ -43,6 +45,8 @@ const COPY = {
     step1: "1. 音声を読み込む",
     step1Body:
       "Import タブに YouTube URL を貼り付けて動画から音声を取得します。読み込み後は波形が表示されます。",
+    mobileNav:
+      "スマホでは右上のセクションメニューから、Import / Edit / Sync / Timeline / Preview / Export を切り替えます。",
     step2: "2. コールを入れる",
     step2BodyA:
       "Edit タブでコールを 1 行ずつ入力または貼り付けます。.lrc / .srt / .ttml / .txt のコールファイルがあるならそこへドロップしても構いません。Timeline から離れずに読み込むなら",
@@ -68,6 +72,8 @@ const COPY = {
     step1: "1. 오디오 가져오기",
     step1Body:
       "Import 탭에 YouTube URL을 붙여 넣어 영상에서 오디오를 가져옵니다. 오디오가 로드되면 파형이 표시됩니다.",
+    mobileNav:
+      "모바일에서는 오른쪽 위 섹션 메뉴로 Import / Edit / Sync / Timeline / Preview / Export를 전환합니다.",
     step2: "2. 콜 넣기",
     step2BodyA:
       "Edit 탭에서 콜을 한 줄씩 입력하거나 붙여 넣습니다. .lrc, .srt, .ttml, .txt 파일이 있다면 그쪽을 드롭해도 됩니다. Timeline을 벗어나지 않고 가져오려면",
@@ -88,6 +94,9 @@ const COPY = {
 const GettingStartedSection: React.FC = () => {
   const { language } = useAppLanguage();
   const copy = COPY[language];
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 767px)").matches;
 
   return (
     <div className="space-y-5">
@@ -127,6 +136,7 @@ const GettingStartedSection: React.FC = () => {
         <div>
           <h4 className={HEADING}>{copy.step1}</h4>
           <p className={PROSE}>{copy.step1Body}</p>
+          {isMobile && <p className={`${PROSE} mt-2`}>{copy.mobileNav}</p>}
         </div>
         <div>
           <h4 className={HEADING}>{copy.step2}</h4>

@@ -1,6 +1,15 @@
 import { Button } from "@/ui/button";
 import { useAppLanguage } from "@/lib/i18n";
-import { IconHelp, IconRoute, IconSettings } from "@tabler/icons-react";
+import { useProjectStore } from "@/stores/project";
+import type { SimpleTab } from "@/stores/project";
+import { Popover } from "@/ui/popover";
+import {
+  IconDotsVertical,
+  IconHelp,
+  IconMenu2,
+  IconRoute,
+  IconSettings,
+} from "@tabler/icons-react";
 
 interface AppHeaderProps {
   onSettingsOpen: () => void;
@@ -14,28 +23,38 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onTourStart,
 }) => {
   const { t } = useAppLanguage();
+  const activeTab = useProjectStore((s) => s.activeTab);
+  const setActiveTab = useProjectStore((s) => s.setActiveTab);
+  const tabs: { id: SimpleTab; label: string }[] = [
+    { id: "import", label: t("tab.import") },
+    { id: "edit", label: t("tab.edit") },
+    { id: "sync", label: t("tab.sync") },
+    { id: "timeline", label: t("tab.timeline") },
+    { id: "preview", label: t("tab.preview") },
+    { id: "export", label: t("tab.export") },
+  ];
 
   return (
-    <header className="flex flex-col gap-3 p-4 border-b select-none md:flex-row md:items-center md:justify-between border-calleditor-border">
-      <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:gap-2">
-        <h1 className="text-xl font-semibold">
+    <header className="flex items-center justify-between gap-3 border-b border-calleditor-border p-4 select-none">
+      <div className="flex min-w-0 items-center gap-2 md:items-baseline">
+        <h1 className="truncate text-lg font-semibold md:text-xl">
           <img
             src="/logo.svg"
             alt="CallEditor Logo"
-            className="inline-block w-6 mr-2 -mt-1"
+            className="mr-2 inline-block w-6 -mt-1"
           />
           CallEditor
         </h1>
         <a
           href="https://github.com/better-lyrics/calleditor"
           target="_blank"
-          className="text-xs text-calleditor-text-muted hover:underline"
+          className="hidden text-xs text-calleditor-text-muted hover:underline md:inline"
         >
           Based on Composer by better-lyrics
         </a>
       </div>
 
-      <div className="flex items-center justify-end gap-1">
+      <div className="hidden items-center justify-end gap-1 md:flex">
         <Button
           size="icon"
           variant="ghost"
@@ -56,10 +75,103 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           size="icon"
           variant="ghost"
           onClick={onHelpOpen}
-          title={t("header.keyboardShortcuts")}
+          title={t("help.title")}
         >
           <IconHelp className="size-5" />
         </Button>
+      </div>
+
+      <div className="flex items-center gap-1 md:hidden">
+        <Popover
+          placement="bottom-end"
+          trigger={
+            <Button
+              size="icon"
+              variant="ghost"
+              title={t("action.more")}
+              className="size-8"
+            >
+              <IconDotsVertical className="size-5" />
+            </Button>
+          }
+        >
+          {(close) => (
+            <div className="flex w-44 flex-col gap-1 p-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                hasIcon
+                className="justify-start"
+                onClick={() => {
+                  onSettingsOpen();
+                  close();
+                }}
+              >
+                <IconSettings className="size-4" />
+                {t("header.settings")}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                hasIcon
+                className="justify-start"
+                onClick={() => {
+                  onTourStart();
+                  close();
+                }}
+              >
+                <IconRoute className="size-4" />
+                {t("header.productTour")}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                hasIcon
+                className="justify-start"
+                onClick={() => {
+                  onHelpOpen();
+                  close();
+                }}
+              >
+                <IconHelp className="size-4" />
+                {t("help.title")}
+              </Button>
+            </div>
+          )}
+        </Popover>
+
+        <Popover
+          placement="bottom-end"
+          trigger={
+            <Button
+              size="icon"
+              variant="ghost"
+              title={t("tab.mobileLabel")}
+              className="size-8"
+            >
+              <IconMenu2 className="size-5" />
+            </Button>
+          }
+        >
+          {(close) => (
+            <div className="flex w-44 flex-col gap-1 p-2">
+              {tabs.map((tab) => (
+                <Button
+                  key={tab.id}
+                  size="sm"
+                  variant={activeTab === tab.id ? "primary" : "ghost"}
+                  className="justify-start"
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    close();
+                  }}
+                >
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
+          )}
+        </Popover>
       </div>
     </header>
   );

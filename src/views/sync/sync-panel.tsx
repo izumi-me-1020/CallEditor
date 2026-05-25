@@ -440,12 +440,12 @@ const SyncPanel: React.FC = () => {
   return (
     <div
       data-tour="sync-panel"
-      className="flex flex-col flex-1 overflow-hidden select-none"
+      className="flex flex-1 flex-col overflow-hidden select-none text-[13px] md:text-sm"
     >
       {/* Header */}
       <div className="flex flex-col gap-3 px-4 py-4 border-b md:flex-row md:items-center md:justify-between md:px-6 border-calleditor-border">
         <div className="flex items-baseline gap-3">
-          <h2 className="text-lg font-medium">{t("sync.title")}</h2>
+          <h2 className="text-base font-medium md:text-lg">{t("sync.title")}</h2>
           <span className="font-mono text-sm text-calleditor-text-muted tabular-nums">
             {progressText}
           </span>
