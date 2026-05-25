@@ -3,6 +3,7 @@ import type { SyllablePosition } from "@/domain/word/syllable-groups";
 import { selfKey } from "@/views/timeline/snap";
 import { useTimelineStore } from "@/views/timeline/timeline-store";
 import { useDraggable } from "@dnd-kit/core";
+import { useEffect, useRef } from "react";
 
 // -- Types ---------------------------------------------------------------------
 
@@ -41,6 +42,8 @@ const SYLLABLE_RADIUS: Record<SyllablePosition, string> = {
   middle: "rounded-none",
   last: "rounded-r-xl rounded-l-none",
 };
+const TOUCH_RESIZE_DELAY_MS = 180;
+const TOUCH_RESIZE_MOVE_TOLERANCE_PX = 8;
 
 const WordBlock: React.FC<WordBlockProps> = ({
   id,
@@ -90,12 +93,78 @@ const WordBlock: React.FC<WordBlockProps> = ({
     },
   });
 
-  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
+  const resizeTimerRef = useRef<number | null>(null);
+  const resizePointerIdRef = useRef<number | null>(null);
+  const resizeStartPointRef = useRef<{ clientX: number; clientY: number } | null>(
+    null,
+  );
+  const resizeEdgeRef = useRef<"left" | "right" | null>(null);
+
+  const clearPendingResize = () => {
+    if (resizeTimerRef.current !== null) {
+      window.clearTimeout(resizeTimerRef.current);
+      resizeTimerRef.current = null;
+    }
+    resizePointerIdRef.current = null;
+    resizeStartPointRef.current = null;
+    resizeEdgeRef.current = null;
+  };
+
+  useEffect(() => clearPendingResize, []);
+
+  const handleResizeMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     e.stopPropagation();
     e.preventDefault();
     const edge = e.currentTarget.dataset.edge as "left" | "right";
     onResizeStart(edge, e.clientX);
+  };
+
+  const handleResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+
+    if (e.pointerType === "mouse") {
+      return;
+    }
+
+    const edge = e.currentTarget.dataset.edge as "left" | "right";
+    resizePointerIdRef.current = e.pointerId;
+    resizeStartPointRef.current = { clientX: e.clientX, clientY: e.clientY };
+    resizeEdgeRef.current = edge;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+
+    resizeTimerRef.current = window.setTimeout(() => {
+      if (!resizeEdgeRef.current) {
+        return;
+      }
+
+      onResizeStart(resizeEdgeRef.current, e.clientX);
+      clearPendingResize();
+    }, TOUCH_RESIZE_DELAY_MS);
+  };
+
+  const handleResizePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (resizePointerIdRef.current !== e.pointerId || !resizeStartPointRef.current) {
+      return;
+    }
+
+    const deltaX = e.clientX - resizeStartPointRef.current.clientX;
+    const deltaY = e.clientY - resizeStartPointRef.current.clientY;
+    if (
+      Math.hypot(deltaX, deltaY) > TOUCH_RESIZE_MOVE_TOLERANCE_PX &&
+      resizeTimerRef.current !== null
+    ) {
+      clearPendingResize();
+    }
+  };
+
+  const handleResizePointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (resizePointerIdRef.current !== e.pointerId) {
+      return;
+    }
+
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+    clearPendingResize();
   };
 
   const syllableBorder: React.CSSProperties = {};
@@ -118,7 +187,7 @@ const WordBlock: React.FC<WordBlockProps> = ({
       data-syllable-position={syllablePosition}
       className={cn(
         "absolute top-1 bottom-1 flex items-center justify-center",
-        "text-xs text-white truncate select-none cursor-grab",
+        "touch-none text-xs text-white truncate select-none cursor-grab",
         "border transition-opacity duration-100",
         SYLLABLE_RADIUS[syllablePosition],
         isDimmed && "opacity-30",
@@ -166,8 +235,11 @@ const WordBlock: React.FC<WordBlockProps> = ({
             : "cursor-ew-resize",
           leftHighlighted && "bg-white/10",
         )}
-        onMouseDown={handleResizeStart}
-        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={handleResizeMouseDown}
+        onPointerCancel={handleResizePointerEnd}
+        onPointerDown={handleResizePointerDown}
+        onPointerMove={handleResizePointerMove}
+        onPointerUp={handleResizePointerEnd}
         onMouseEnter={() => onEdgeHover?.("left", true)}
         onMouseLeave={() => onEdgeHover?.("left", false)}
       />
@@ -186,8 +258,11 @@ const WordBlock: React.FC<WordBlockProps> = ({
             : "cursor-ew-resize",
           rightHighlighted && "bg-white/10",
         )}
-        onMouseDown={handleResizeStart}
-        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={handleResizeMouseDown}
+        onPointerCancel={handleResizePointerEnd}
+        onPointerDown={handleResizePointerDown}
+        onPointerMove={handleResizePointerMove}
+        onPointerUp={handleResizePointerEnd}
         onMouseEnter={() => onEdgeHover?.("right", true)}
         onMouseLeave={() => onEdgeHover?.("right", false)}
       />

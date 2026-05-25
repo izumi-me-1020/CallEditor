@@ -26,6 +26,7 @@ const Slider: React.FC<SliderProps> = ({
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
+  const activePointerIdRef = useRef<number | null>(null);
 
   const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
 
@@ -47,27 +48,57 @@ const Slider: React.FC<SliderProps> = ({
     [min, max, step, value],
   );
 
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+  const stopDragging = useCallback(() => {
+    isDraggingRef.current = false;
+    activePointerIdRef.current = null;
+  }, []);
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      activePointerIdRef.current = e.pointerId;
       isDraggingRef.current = true;
+      e.currentTarget.setPointerCapture?.(e.pointerId);
       onChange(calculateValue(e.clientX));
-
-      const handleMouseMove = (e: MouseEvent) => {
-        if (isDraggingRef.current) {
-          onChange(calculateValue(e.clientX));
-        }
-      };
-
-      const handleMouseUp = () => {
-        isDraggingRef.current = false;
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-      };
-
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
     },
     [calculateValue, onChange],
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (
+        !isDraggingRef.current ||
+        activePointerIdRef.current === null ||
+        e.pointerId !== activePointerIdRef.current
+      ) {
+        return;
+      }
+
+      onChange(calculateValue(e.clientX));
+    },
+    [calculateValue, onChange],
+  );
+
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (activePointerIdRef.current !== e.pointerId) {
+        return;
+      }
+
+      e.currentTarget.releasePointerCapture?.(e.pointerId);
+      stopDragging();
+    },
+    [stopDragging],
+  );
+
+  const handlePointerCancel = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (activePointerIdRef.current !== e.pointerId) {
+        return;
+      }
+
+      stopDragging();
+    },
+    [stopDragging],
   );
 
   const handleKeyDown = useCallback(
@@ -117,11 +148,14 @@ const Slider: React.FC<SliderProps> = ({
       aria-valuenow={value}
       aria-label={ariaLabel}
       className={cn(
-        "group relative h-1 cursor-pointer rounded-full bg-calleditor-button",
+        "group relative h-1 cursor-pointer touch-none rounded-full bg-calleditor-button",
         className,
       )}
-      onMouseDown={handleMouseDown}
       onKeyDown={handleKeyDown}
+      onPointerCancel={handlePointerCancel}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
     >
       <div
         className="absolute inset-y-0 left-0 rounded-full bg-calleditor-accent"

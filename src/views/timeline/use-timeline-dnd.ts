@@ -9,7 +9,14 @@ import { addTrailingSpaceIfMissing, trimTrailingSpaceFromLast } from "@/utils/wo
 import { wouldDropCrossInstance } from "@/views/timeline/dnd-group-guard";
 import type { WordSelection } from "@/domain/selection/model";
 import { useTimelineStore } from "@/views/timeline/timeline-store";
-import { type DragEndEvent, type DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import {
+  type DragEndEvent,
+  type DragStartEvent,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import { nanoid } from "nanoid";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -184,9 +191,15 @@ function useTimelineDnd(lines: LyricLine[]) {
   }, []);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 180,
+        tolerance: 10,
       },
     }),
   );

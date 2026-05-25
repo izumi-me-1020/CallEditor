@@ -22,6 +22,8 @@ import {
 } from "@/views/timeline/timeline-store";
 import {
   IconArrowBarBoth,
+  IconArrowBackUp,
+  IconArrowForwardUp,
   IconChevronsDown,
   IconChevronsUp,
   IconDots,
@@ -60,6 +62,10 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
   const snapEnabled = useSettingsStore((s) => s.timelineSnap);
   const setSetting = useSettingsStore((s) => s.set);
   const isBypassing = useTimelineStore((s) => s.isBypassing);
+  const undo = useProjectStore((s) => s.undo);
+  const redo = useProjectStore((s) => s.redo);
+  const canUndo = useProjectStore((s) => s.canUndo());
+  const canRedo = useProjectStore((s) => s.canRedo());
   const toggleSnapKeys = getEffectiveKeysArray("timeline.toggleSnap");
   const lines = useProjectStore((s) => s.lines);
   const collapsedInstances = useTimelineStore((s) => s.collapsedInstances);
@@ -349,6 +355,31 @@ const TimelineHeader: React.FC<TimelineHeaderProps> = ({ onImportLyrics }) => {
       </div>
 
       <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={undo}
+            disabled={!canUndo}
+            title={t("shortcuts.undo")}
+            aria-label={t("shortcuts.undo")}
+            className="size-8"
+          >
+            <IconArrowBackUp size={16} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={redo}
+            disabled={!canRedo}
+            title={t("shortcuts.redo")}
+            aria-label={t("shortcuts.redo")}
+            className="size-8"
+          >
+            <IconArrowForwardUp size={16} />
+          </Button>
+        </div>
+
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
