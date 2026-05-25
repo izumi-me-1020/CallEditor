@@ -1,6 +1,5 @@
 import type { DriveStep } from "driver.js";
 import { resolveAppLanguage } from "@/lib/i18n";
-import { useAudioStore } from "@/stores/audio";
 import { useProjectStore } from "@/stores/project";
 import { useSettingsStore } from "@/stores/settings";
 import { MOD_KEY } from "@/utils/platform";
@@ -33,8 +32,6 @@ const YOUTUBE_EMBED_HTML = `<div class="calleditor-tour-video-embed"><iframe src
 
 // -- Gate checks --------------------------------------------------------------
 
-const gateAudioLoaded = () => useAudioStore.getState().source !== null;
-const gateLyricsExist = () => useProjectStore.getState().lines.length > 0;
 const gateFirstLineSynced = () => {
   const lines = useProjectStore.getState().lines;
   return lines.length > 0 && lines[0]?.begin !== undefined;
@@ -75,17 +72,12 @@ function getTourText() {
       importTitle: "音声を読み込む",
       importDescription:
         "ここに YouTube URL を貼り付けると、動画から音声を取り込めます。",
-      importGateTitle: "音声を読み込んでください",
-      importGateDescription:
-        "続けるには YouTube URL を貼り付けてください。",
       sectionTitle: "セクションを切り替える",
       sectionDescription:
         "スマホでは右上の三本線から各セクションへ移動します。読み込みが終わったら、ここから編集へ進みます。",
       editTitle: "コールを入力または貼り付け",
       editDescription:
         "左のテキストエリアにコールを入れてください。各行が同期対象になります。Agents の横にある {oshi} ボタンで {oshi} を挿入でき、アプリ側では設定した推し名に置き換わります。",
-      editGateTitle: "コールを追加してください",
-      editGateDescription: "続けるには1行以上入力または貼り付けてください。",
       syncTitle: "コールを同期する",
       syncDescription:
         "開始を押して、各行や単語のタイミングで Space を押します。粒度切替で行単位・単語単位を選べます。",
@@ -123,17 +115,12 @@ function getTourText() {
       importTitle: "오디오 불러오기",
       importDescription:
         "여기에 YouTube URL을 붙여 넣으면 영상에서 오디오를 가져올 수 있습니다.",
-      importGateTitle: "오디오를 불러오세요",
-      importGateDescription:
-        "계속하려면 YouTube URL을 붙여 넣으세요.",
       sectionTitle: "섹션 전환",
       sectionDescription:
         "모바일에서는 오른쪽 위 메뉴로 각 섹션으로 이동합니다. 오디오를 불러온 뒤 여기서 편집으로 넘어가세요.",
       editTitle: "콜 입력 또는 붙여넣기",
       editDescription:
         "왼쪽 텍스트 영역에 콜을 입력하세요. 각 줄이 싱크 대상이 됩니다. Agents 옆의 {oshi} 버튼으로 {oshi}를 넣을 수 있고, 앱에서는 설정된 최애 이름으로 바뀝니다.",
-      editGateTitle: "콜을 추가하세요",
-      editGateDescription: "계속하려면 한 줄 이상 입력하거나 붙여 넣으세요.",
       syncTitle: "콜 싱크 맞추기",
       syncDescription:
         "시작을 누른 뒤 각 줄이나 단어 타이밍에 맞춰 Space를 누르세요. 줄/단어 정밀도는 단위 토글로 바꿀 수 있습니다.",
@@ -170,17 +157,12 @@ function getTourText() {
     importTitle: "Bring in your audio",
     importDescription:
       "Paste a YouTube URL here to pull audio straight from a video.",
-    importGateTitle: "Import your audio",
-    importGateDescription:
-      "Paste a YouTube URL to continue.",
     sectionTitle: "Switch sections",
     sectionDescription:
       "On mobile, use the top-right menu to move between sections. After audio loads, open that menu and continue to Edit.",
     editTitle: "Type or paste calls",
     editDescription:
       "Enter your calls in the text area on the left. Each line becomes a sync target. The {oshi} button next to Agents inserts the {oshi} token, which the app replaces with the user's configured oshi name.",
-    editGateTitle: "Add your calls",
-    editGateDescription: "Type or paste at least one line to continue.",
     syncTitle: "Sync your calls",
     syncDescription:
       "Press Start, then tap Space in time with each line or word. Use the granularity toggle for line vs word precision.",
@@ -235,18 +217,7 @@ function createDesktopTourSteps(): DriveStep[] {
       },
       onHighlightStarted: () => switchTab("import"),
     },
-    // 2: GATED - wait for audio
-    {
-      element: () =>
-        document.querySelector('[data-tour="import-dropzone"]') as Element,
-      popover: {
-        title: text.importGateTitle,
-        description: text.importGateDescription,
-        showButtons: [],
-      },
-      onHighlightStarted: () => switchTab("import"),
-    },
-    // 3: Edit tab
+    // 2: Edit tab
     {
       element: () =>
         document.querySelector('[data-tour="edit-panel"]') as Element,
@@ -258,18 +229,7 @@ function createDesktopTourSteps(): DriveStep[] {
       },
       onHighlightStarted: () => switchTab("edit"),
     },
-    // 4: GATED - wait for lyrics
-    {
-      element: () =>
-        document.querySelector('[data-tour="edit-panel"]') as Element,
-      popover: {
-        title: text.editGateTitle,
-        description: text.editGateDescription,
-        showButtons: [],
-      },
-      onHighlightStarted: () => switchTab("edit"),
-    },
-    // 5: Sync tab
+    // 3: Sync tab
     {
       element: () =>
         document.querySelector('[data-tour="sync-panel"]') as Element,
@@ -281,7 +241,7 @@ function createDesktopTourSteps(): DriveStep[] {
       },
       onHighlightStarted: () => switchTab("sync"),
     },
-    // 6: GATED - wait for first line synced
+    // 4: GATED - wait for first line synced
     {
       element: () =>
         document.querySelector('[data-tour="sync-panel"]') as Element,
@@ -292,7 +252,7 @@ function createDesktopTourSteps(): DriveStep[] {
       },
       onHighlightStarted: () => switchTab("sync"),
     },
-    // 7: Timeline tab
+    // 5: Timeline tab
     {
       element: () =>
         document.querySelector('[data-tour="timeline-panel"]') as Element,
@@ -304,7 +264,7 @@ function createDesktopTourSteps(): DriveStep[] {
       },
       onHighlightStarted: () => switchTab("timeline"),
     },
-    // 8: Preview tab
+    // 6: Preview tab
     {
       element: () =>
         document.querySelector('[data-tour="preview-panel"]') as Element,
@@ -316,7 +276,7 @@ function createDesktopTourSteps(): DriveStep[] {
       },
       onHighlightStarted: () => switchTab("preview"),
     },
-    // 9: Export tab
+    // 7: Export tab
     {
       element: () =>
         document.querySelector('[data-tour="export-panel"]') as Element,
@@ -328,7 +288,7 @@ function createDesktopTourSteps(): DriveStep[] {
       },
       onHighlightStarted: () => switchTab("export"),
     },
-    // 10: Outro with video
+    // 8: Outro with video
     {
       popover: {
         title: text.outroTitle,
@@ -367,16 +327,6 @@ function createMobileTourSteps(): DriveStep[] {
     },
     {
       element: () =>
-        document.querySelector('[data-tour="import-dropzone"]') as Element,
-      popover: {
-        title: text.importGateTitle,
-        description: text.importGateDescription,
-        showButtons: [],
-      },
-      onHighlightStarted: () => switchTab("import"),
-    },
-    {
-      element: () =>
         document.querySelector('[data-tour="mobile-section-menu"]') as Element,
       popover: {
         title: text.sectionTitle,
@@ -394,16 +344,6 @@ function createMobileTourSteps(): DriveStep[] {
         description: text.editDescription,
         side: "bottom",
         align: "center",
-      },
-      onHighlightStarted: () => switchTab("edit"),
-    },
-    {
-      element: () =>
-        document.querySelector('[data-tour="edit-panel"]') as Element,
-      popover: {
-        title: text.editGateTitle,
-        description: text.editGateDescription,
-        showButtons: [],
       },
       onHighlightStarted: () => switchTab("edit"),
     },
@@ -481,19 +421,7 @@ function createTourConfig(): TourConfig {
       steps: createMobileTourSteps(),
       gatedSteps: [
         {
-          stepIndex: 2,
-          task: text.taskAudio,
-          gateCheck: gateAudioLoaded,
-          tabId: "import",
-        },
-        {
           stepIndex: 5,
-          task: text.taskLyrics,
-          gateCheck: gateLyricsExist,
-          tabId: "edit",
-        },
-        {
-          stepIndex: 7,
           task: text.taskSync,
           gateCheck: gateFirstLineSynced,
           tabId: "sync",
@@ -503,25 +431,13 @@ function createTourConfig(): TourConfig {
   }
 
   return {
-    steps: createDesktopTourSteps(),
-    gatedSteps: [
-      {
-        stepIndex: 2,
-        task: text.taskAudio,
-        gateCheck: gateAudioLoaded,
-        tabId: "import",
-      },
-      {
-        stepIndex: 4,
-        task: text.taskLyrics,
-        gateCheck: gateLyricsExist,
-        tabId: "edit",
-      },
-      {
-        stepIndex: 6,
-        task: text.taskSync,
-        gateCheck: gateFirstLineSynced,
-        tabId: "sync",
+      steps: createDesktopTourSteps(),
+      gatedSteps: [
+        {
+          stepIndex: 4,
+          task: text.taskSync,
+          gateCheck: gateFirstLineSynced,
+          tabId: "sync",
       },
     ],
   };

@@ -609,9 +609,9 @@ const EditPanel: React.FC = () => {
     fileInputRef.current?.click();
   }, []);
 
-  const handleInsertOshi = useCallback(() => {
+  const handleInsertToken = useCallback(
+    (token: string) => {
     const textarea = textareaRef.current;
-    const token = "{oshi}";
 
     if (!textarea) {
       setRawText((current) => `${current}${token}`);
@@ -631,7 +631,17 @@ const EditPanel: React.FC = () => {
       textarea.focus();
       textarea.setSelectionRange(nextCursor, nextCursor);
     });
-  }, [rawText]);
+    },
+    [rawText],
+  );
+
+  const handleInsertOshi = useCallback(() => {
+    handleInsertToken("{oshi}");
+  }, [handleInsertToken]);
+
+  const handleInsertSeparator = useCallback(() => {
+    handleInsertToken("|");
+  }, [handleInsertToken]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -686,9 +696,14 @@ const EditPanel: React.FC = () => {
 
       <AgentManager
         leading={
-          <Button size="sm" onClick={handleInsertOshi}>
-            {t("edit.insertOshi")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={handleInsertOshi}>
+              {t("edit.insertOshi")}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={handleInsertSeparator}>
+              区切り
+            </Button>
+          </div>
         }
       />
 
