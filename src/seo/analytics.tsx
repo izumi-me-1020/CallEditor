@@ -1,6 +1,6 @@
 import { Head } from "vite-react-ssg";
 
-const GA4_ID = "G-G7W3J8HYQ5";
+const GA4_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
 const AnalyticsScripts: React.FC = () => {
   if (!GA4_ID) return null;
