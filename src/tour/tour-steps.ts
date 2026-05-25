@@ -28,8 +28,6 @@ function switchTab(tabId: string) {
     );
 }
 
-const YOUTUBE_EMBED_HTML = `<div class="calleditor-tour-video-embed"><iframe src="https://www.youtube.com/embed/IEA0W4qpRIs?rel=0" title="CallEditor demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
-
 // -- Gate checks --------------------------------------------------------------
 
 const gateFirstLineSynced = () => {
@@ -44,9 +42,16 @@ function isMobileTourViewport(): boolean {
   return window.matchMedia("(max-width: 767px)").matches;
 }
 
+function getTourYoutubeEmbedHtml(): string {
+  const videoId = isMobileTourViewport() ? "dKC_z1sDeKY" : "ZTwsFz45eLk";
+
+  return `<div class="calleditor-tour-video-embed"><iframe src="https://www.youtube.com/embed/${videoId}?rel=0" title="CallEditor demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+}
+
 // -- Tour Steps ---------------------------------------------------------------
 
 function getTourText() {
+  const youtubeEmbedHtml = getTourYoutubeEmbedHtml();
   const preferredLanguage = useSettingsStore.getState().appLanguage;
   const lyricsText = useProjectStore
     .getState()
@@ -99,7 +104,7 @@ function getTourText() {
       exportDescription:
         "完成した TTML をコピーまたはダウンロードできます。JSON でプロジェクト全体の書き出しも可能です。",
       outroTitle: "全体の流れを見る",
-      outroDescription: `これで準備完了です。全工程の動画はこちらです。${YOUTUBE_EMBED_HTML}`,
+      outroDescription: `これで準備完了です。全工程の動画はこちらです。${youtubeEmbedHtml}`,
       taskAudio: "YouTube 動画を読み込む",
       taskLyrics: "コールを入力または貼り付け",
       taskSync: "少なくとも1行同期",
@@ -142,7 +147,7 @@ function getTourText() {
       exportDescription:
         "완성된 TTML 파일을 복사하거나 다운로드할 수 있습니다. 전체 프로젝트를 JSON으로 내보내는 것도 가능합니다.",
       outroTitle: "전체 워크스루 보기",
-      outroDescription: `이제 준비가 끝났습니다. 전체 과정을 보여주는 영상입니다.${YOUTUBE_EMBED_HTML}`,
+      outroDescription: `이제 준비가 끝났습니다. 전체 과정을 보여주는 영상입니다.${youtubeEmbedHtml}`,
       taskAudio: "YouTube 영상 불러오기",
       taskLyrics: "콜 입력 또는 붙여넣기",
       taskSync: "최소 한 줄 싱크",
@@ -184,7 +189,7 @@ function getTourText() {
     exportDescription:
       "Copy or download the finished TTML file. You can also export the full project as JSON.",
     outroTitle: "See a full walkthrough",
-    outroDescription: `You're all set! Here's a video of the full process.${YOUTUBE_EMBED_HTML}`,
+    outroDescription: `You're all set! Here's a video of the full process.${youtubeEmbedHtml}`,
     taskAudio: "Load a YouTube video",
     taskLyrics: "Type or paste calls",
     taskSync: "Sync at least one line",
