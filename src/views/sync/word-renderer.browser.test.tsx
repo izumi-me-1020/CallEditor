@@ -15,6 +15,9 @@ describe("WordRenderer", () => {
       />,
     );
     expect(screen.container.textContent ?? "").toContain("hello");
+    expect(
+      screen.container.querySelector("button[title='Split into syllables']"),
+    ).not.toBeNull();
   });
 
   it("renders a synced word with two time controls (begin and end)", async () => {

@@ -1,5 +1,5 @@
 import { cn } from "@/utils/cn";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 // -- Types --------------------------------------------------------------------
 
@@ -27,6 +27,7 @@ const Slider: React.FC<SliderProps> = ({
   const trackRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const activePointerIdRef = useRef<number | null>(null);
+  const activeTouchIdRef = useRef<number | null>(null);
 
   const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
 
@@ -51,7 +52,14 @@ const Slider: React.FC<SliderProps> = ({
   const stopDragging = useCallback(() => {
     isDraggingRef.current = false;
     activePointerIdRef.current = null;
+    activeTouchIdRef.current = null;
   }, []);
+
+  useEffect(() => {
+    return () => {
+      stopDragging();
+    };
+  }, [stopDragging]);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -100,6 +108,65 @@ const Slider: React.FC<SliderProps> = ({
     },
     [stopDragging],
   );
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      const touch = e.changedTouches[0];
+      if (!touch) {
+        return;
+      }
+
+      activeTouchIdRef.current = touch.identifier;
+      isDraggingRef.current = true;
+      onChange(calculateValue(touch.clientX));
+    },
+    [calculateValue, onChange],
+  );
+
+  useEffect(() => {
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDraggingRef.current || activeTouchIdRef.current === null) {
+        return;
+      }
+
+      const touch = Array.from(e.changedTouches).find(
+        (item) => item.identifier === activeTouchIdRef.current,
+      );
+      if (!touch) {
+        return;
+      }
+
+      e.preventDefault();
+      onChange(calculateValue(touch.clientX));
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (activeTouchIdRef.current === null) {
+        return;
+      }
+
+      const touch = Array.from(e.changedTouches).find(
+        (item) => item.identifier === activeTouchIdRef.current,
+      );
+      if (!touch) {
+        return;
+      }
+
+      stopDragging();
+    };
+
+    document.addEventListener("touchmove", handleTouchMove, {
+      passive: false,
+    });
+    document.addEventListener("touchend", handleTouchEnd);
+    document.addEventListener("touchcancel", handleTouchEnd);
+
+    return () => {
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("touchcancel", handleTouchEnd);
+    };
+  }, [calculateValue, onChange, stopDragging]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -156,6 +223,7 @@ const Slider: React.FC<SliderProps> = ({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onTouchStart={handleTouchStart}
     >
       <div
         className="absolute inset-y-0 left-0 rounded-full bg-calleditor-accent"

@@ -390,9 +390,19 @@ function useSyncHandlers({
   const handleSplitWord = useCallback(
     (lineIdx: number, wordIdx: number, newWords: WordTiming[]) => {
       const line = lines[lineIdx];
-      if (!line?.words) return;
+      if (!line) return;
 
-      const updatedWords = [...line.words];
+      const sourceWords =
+        line.words && line.words.length > 0
+          ? [...line.words]
+          : splitIntoWords(line.text).map((text) => ({
+              text,
+              begin: 0,
+              end: 0,
+            }));
+      if (!sourceWords[wordIdx]) return;
+
+      const updatedWords = [...sourceWords];
       updatedWords.splice(wordIdx, 1, ...newWords);
       const newLineText = updatedWords
         .map((w) => w.text)

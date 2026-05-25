@@ -82,6 +82,7 @@ const WordRenderer: React.FC<WordRendererProps> = ({
   currentTime = 0,
 }) => {
   const isSynced = !!timing;
+  const splitterWord = timing ?? { text: word, begin: 0, end: 0 };
 
   const prevWord = allWords?.[idx - 1];
   const nextWord = allWords?.[idx + 1];
@@ -103,10 +104,10 @@ const WordRenderer: React.FC<WordRendererProps> = ({
             </span>
           </Tooltip>
         )}
-        {isSynced && timing && !isBackground && (
+        {!isBackground && (
           <span className="transition-opacity opacity-100 sm:opacity-0 sm:group-hover/word:opacity-100">
             <SyllableSplitter
-              word={timing}
+              word={splitterWord}
               wordIndex={idx}
               onSplit={handlers.onSplit ?? (() => {})}
             />
